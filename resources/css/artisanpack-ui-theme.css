@@ -93,6 +93,12 @@
     --color-warning-content: #ffffff;
     --color-error: #ef4444;
     --color-error-content: #ffffff;
+    --color-primary: #2962FF;
+    --color-primary-content: #FFFFFF;
+    --color-secondary: #00E5FF;
+    --color-secondary-content: #000000;
+    --color-accent: #E040FB;
+    --color-accent-content: #FFFFFF;
 }
 
 /**
