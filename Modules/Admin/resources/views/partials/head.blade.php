@@ -9,25 +9,7 @@
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-@env('testing')
-    <!-- Vite assets are skipped in testing to avoid manifest/hot file lookups. -->
-@else
-    @php
-        $adminBuildDir = 'build-admin';
-        $adminHotFile = public_path('hot-admin');
-        $adminManifest = public_path($adminBuildDir . '/manifest.json');
-    @endphp
-
-    @if (file_exists($adminManifest) || file_exists($adminHotFile))
-        {!! vite([
-            'Modules/Admin/resources/assets/css/admin.css',
-            'Modules/Admin/resources/assets/js/admin.js',
-        ])->useBuildDirectory('build-admin')->useHotFile(public_path('hot-admin')) !!}
-    @else
-        {{-- Fallback to root app assets if the Admin manifest/hot file is not present to avoid 500s. --}}
-        @vite(['resources/css/app.css', 'resources/js/auth.js'])
-    @endif
-@endenv
+@vite(['Modules/Admin/resources/assets/css/admin.css', 'Modules/Admin/resources/assets/js/admin.js'])
 
 <script>
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC

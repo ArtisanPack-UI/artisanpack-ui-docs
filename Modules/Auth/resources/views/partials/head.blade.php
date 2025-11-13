@@ -9,25 +9,7 @@
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-@env('testing')
-    <!-- Vite assets are skipped in testing to avoid manifest/hot file lookups. -->
-@else
-    @php
-        $authBuildDir = 'build-auth';
-        $authHotFile = public_path('hot-auth');
-        $authManifest = public_path($authBuildDir . '/manifest.json');
-    @endphp
-
-    @if (file_exists($authManifest) || file_exists($authHotFile))
-        {!! vite([
-            'Modules/Auth/resources/assets/css/auth.css',
-            'Modules/Auth/resources/assets/js/auth.js',
-        ])->useBuildDirectory('build-auth')->useHotFile(public_path('hot-auth')) !!}
-    @else
-        {{-- Fallback to root app assets if the Auth manifest/hot file is not present to avoid 500s. --}}
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @endif
-@endenv
+@vite(['Modules/Auth/resources/assets/css/auth.css', 'Modules/Auth/resources/assets/js/auth.js'])
 
 <script>
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC

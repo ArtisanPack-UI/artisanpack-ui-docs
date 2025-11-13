@@ -9,25 +9,7 @@
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-@env('testing')
-    <!-- Vite assets are skipped in testing to avoid manifest/hot file lookups. -->
-@else
-    @php
-        $coreBuildDir = 'build-core';
-        $coreHotFile = public_path('hot-core');
-        $coreManifest = public_path($coreBuildDir . '/manifest.json');
-    @endphp
-
-    @if (file_exists($coreManifest) || file_exists($coreHotFile))
-        {!! vite([
-            'Modules/Core/resources/assets/css/core.css',
-            'Modules/Core/resources/assets/js/core.js',
-        ])->useBuildDirectory('build-core')->useHotFile(public_path('hot-core')) !!}
-    @else
-        {{-- Fallback to root app assets if the Core manifest/hot file is not present to avoid 500s. --}}
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @endif
-@endenv
+@vite(['Modules/Core/resources/assets/css/app.css', 'Modules/Core/resources/assets/js/app.js'])
 
 <script>
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC
