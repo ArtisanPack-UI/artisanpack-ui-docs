@@ -25,6 +25,6 @@
         {{ $slot }}
 
         {{-- Vite JS --}}
-        {{-- {{ module_vite('build-admin', 'resources/assets/js/app.js') }} --}}
+        {{-- {{ module_vite('build-admin', 'resources/assets/js/auth.js') }} --}}
     </body>
 </html>

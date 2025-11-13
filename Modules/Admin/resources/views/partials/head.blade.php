@@ -25,7 +25,7 @@
         ])->useBuildDirectory('build-admin')->useHotFile(public_path('hot-admin')) !!}
     @else
         {{-- Fallback to root app assets if the Admin manifest/hot file is not present to avoid 500s. --}}
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/auth.js'])
     @endif
 @endenv
 
