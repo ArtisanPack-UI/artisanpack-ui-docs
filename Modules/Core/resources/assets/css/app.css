@@ -16,6 +16,11 @@
 /* Theme toggle */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Global Font Family */
+@theme {
+    --font-sans: 'Montserrat', sans-serif;
+}
+
 /**
 * Paginator - Traditional style
 * Because Laravel defaults does not match well the design of daisyUI.
