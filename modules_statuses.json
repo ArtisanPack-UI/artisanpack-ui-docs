@@ -2,5 +2,7 @@
     "Admin": true,
     "Auth": true,
     "Users": true,
-    "Core": true
+    "Core": true,
+    "Pages": true,
+    "Packages": true
 }
