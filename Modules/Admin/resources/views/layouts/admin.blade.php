@@ -31,6 +31,10 @@
             <x-artisanpack-menu-separator />
 
             <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :href="route('dashboard')" />
+            <x-artisanpack-menu-sub title="Pages" icon="fas.file">
+                <x-artisanpack-menu-item title="Pages" :href="route('dashboard.pages')" />
+                <x-artisanpack-menu-item title="Add Page" :href="route('dashboard.pages.add')" />
+            </x-artisanpack-menu-sub>
             <x-artisanpack-menu-item title="Settings" icon="fas.cogs" :href="route('settings')" />
 
             <x-artisanpack-menu-separator />

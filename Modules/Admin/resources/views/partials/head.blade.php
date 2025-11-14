@@ -13,6 +13,8 @@
 
 @vite(['Modules/Admin/resources/assets/css/admin.css', 'Modules/Admin/resources/assets/js/admin.js'])
 
+@stack('styles')
+
 <script>
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -23,3 +25,11 @@
         document.documentElement.classList.remove('dark')
     }
 </script>
+
+<script src="{{ asset('vendor/artisanpack-ui/js/tinymce-editor.js') }}"></script>
+<script src="{{ asset('vendor/artisanpack-ui/js/tinymce/tinymce.min.js') }}" referrerpolicy="origin"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
