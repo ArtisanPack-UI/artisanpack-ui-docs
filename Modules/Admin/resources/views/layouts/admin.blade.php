@@ -30,8 +30,8 @@
 
             <x-artisanpack-menu-separator />
 
-            <x-artisanpack-menu-item title="Dashboard" icon="o-sparkles" :href="route('dashboard')" />
-            <x-artisanpack-menu-item title="Settings" icon="o-sparkles" :href="route('settings.profile')" />
+            <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :href="route('dashboard')" />
+            <x-artisanpack-menu-item title="Settings" icon="fas.cogs" :href="route('settings')" />
 
             <x-artisanpack-menu-separator />
 
