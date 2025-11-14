@@ -2,7 +2,7 @@
 @import './artisanpack-ui-theme.css';
 
 @source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../../../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 /** daisyUI */
 @plugin "daisyui" {
@@ -10,8 +10,8 @@
 }
 
 /* Livewire UI Components */
-@source "../../vendor/artisanpack-ui/livewire-ui-components/resources/views/**/*.php";
-@source "../../vendor/artisanpack-ui/livewire-ui-components/src/View/Components/**/*.php";
+@source "../../../../../vendor/artisanpack-ui/livewire-ui-components/resources/views/**/*.php";
+@source "../../../../../vendor/artisanpack-ui/livewire-ui-components/src/View/Components/**/*.php";
 
 /* Theme toggle */
 @custom-variant dark (&:where(.dark, .dark *));

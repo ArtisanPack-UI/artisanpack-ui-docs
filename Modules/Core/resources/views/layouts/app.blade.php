@@ -7,10 +7,10 @@
 <div class="bg-background">
     @include('core::partials.header')
 
-    <div id="site-content" class="w-full max-w-[90rem] mx-auto flex flex-wrap py-20">
+    <div id="site-content" class="w-full max-w-[90rem] mx-auto flex flex-wrap py-20 gap-8">
         @include('core::partials.main-sidebar')
 
-        <main id="main" class="w-full md:w-[calc(100%-40rem)] h-full">
+        <main id="main" class="w-full flex-1 h-full">
             {{ $slot }}
         </main>
 
@@ -19,6 +19,7 @@
 
     @include('core::partials.footer')
 </div>
+<x-artisanpack-spotlight />
 @livewireScripts
 </body>
 </html>
