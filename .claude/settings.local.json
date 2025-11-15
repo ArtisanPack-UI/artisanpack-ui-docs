@@ -3,7 +3,17 @@
     "allow": [
       "mcp__laravel-boost__database-schema",
       "mcp__laravel-boost__list-routes",
-      "mcp__laravel-boost__database-query"
+      "mcp__laravel-boost__database-query",
+      "mcp__laravel-boost__application-info",
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan:*)",
+      "Bash(vendor/bin/pint:*)",
+      "mcp__herd__find_available_services",
+      "Bash(composer require:*)",
+      "mcp__laravel-boost__last-error",
+      "mcp__laravel-boost__browser-logs",
+      "Bash(npm run build:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -2,49 +2,82 @@
 
 namespace Modules\Packages\Livewire\Admin;
 
+use App\Jobs\ImportWikiDocumentation;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Core\Setting;
 use Modules\Packages\Package;
 
 #[Layout('admin::layouts.admin')]
 class EditPackage extends Component
 {
     use Toast;
-    public Package $package;
-    public string $name = '';
-    public string $slug = '';
-    public int|null $home = null;
-    public string $wiki_url = '';
-    public string $changelog_url = '';
-	public string|null $icon = '';
 
-    public function mount(Package $package) {
+    public Package $package;
+
+    public string $name = '';
+
+    public string $slug = '';
+
+    public ?int $home = null;
+
+    public string $wiki_url = '';
+
+    public string $changelog_url = '';
+
+    public ?string $icon = '';
+
+    public function mount(Package $package)
+    {
         $this->package = $package;
         $this->name = $package->name;
         $this->slug = $package->slug;
         $this->home = $package->home;
         $this->wiki_url = $package->wiki_url;
         $this->changelog_url = $package->changelog_url;
-		$this->icon = $package->icon;
+        $this->icon = $package->icon;
     }
 
-    public function updatePackage() {
+    public function updatePackage()
+    {
         $validated = $this->validate([
-                                         'name' => 'required|string',
-                                         'slug' => 'required|string',
-                                         'home' => 'nullable|integer',
-                                         'wiki_url' => 'nullable|string',
-                                         'changelog_url' => 'nullable|string',
-			'icon' => 'nullable|string',
-                                     ]);
+            'name' => 'required|string',
+            'slug' => 'required|string',
+            'home' => 'nullable|integer',
+            'wiki_url' => 'nullable|string',
+            'changelog_url' => 'nullable|string',
+            'icon' => 'nullable|string',
+        ]);
 
         $this->package->update($validated);
 
         $this->success('Package updated successfully!');
     }
 
-    public function updatedName() {
+    public function importDocumentation()
+    {
+        if (empty($this->wiki_url)) {
+            $this->error('Wiki URL is required to import documentation.');
+
+            return;
+        }
+
+        $gitlabToken = Setting::where('key', 'gitlab_token')->first()?->value;
+
+        if (empty($gitlabToken)) {
+            $this->error('GitLab token not configured in settings.');
+
+            return;
+        }
+
+        ImportWikiDocumentation::dispatch($this->package, $gitlabToken);
+
+        $this->success('Documentation import started! This may take a few moments.');
+    }
+
+    public function updatedName()
+    {
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
     }
 

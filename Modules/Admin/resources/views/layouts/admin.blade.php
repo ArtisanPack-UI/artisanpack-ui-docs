@@ -27,16 +27,16 @@
 
         {{-- MENU --}}
         <x-artisanpack-menu :title="null" activate-by-route class="flex flex-col flex-1 fill-base-content">
-            <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :href="route('dashboard')" exact route="dashboard" />
+            <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :link="route('dashboard')" exact route="dashboard" />
             <x-artisanpack-menu-sub title="Pages" icon="fas.file">
-                <x-artisanpack-menu-item title="Pages" :href="route('dashboard.pages')" exact route="dashboard.pages" />
-                <x-artisanpack-menu-item title="Add Page" :href="route('dashboard.pages.add')" exact route="dashboard.pages.add" />
+                <x-artisanpack-menu-item title="Pages" :link="route('dashboard.pages')" exact route="dashboard.pages" />
+                <x-artisanpack-menu-item title="Add Page" :link="route('dashboard.pages.add')" exact route="dashboard.pages.add" />
             </x-artisanpack-menu-sub>
             <x-artisanpack-menu-sub title="Packages" icon="ap.puzzle">
-                <x-artisanpack-menu-item title="Packages" :href="route('dashboard.packages')" exact route="dashboard.packages" />
-                <x-artisanpack-menu-item title="Add Package" :href="route('dashboard.packages.add')" exact route="dashboard.packages.add" />
+                <x-artisanpack-menu-item title="Packages" :link="route('dashboard.packages')" exact route="dashboard.packages" />
+                <x-artisanpack-menu-item title="Add Package" :link="route('dashboard.packages.add')" exact route="dashboard.packages.add" />
             </x-artisanpack-menu-sub>
-            <x-artisanpack-menu-item title="Settings" icon="fas.cogs" :href="route('settings')" exact route="settings" />
+            <x-artisanpack-menu-item title="Settings" icon="fas.cogs" :link="route('settings')" exact route="settings" />
 
             <x-artisanpack-menu-separator />
 

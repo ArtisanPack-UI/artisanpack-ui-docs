@@ -23,7 +23,8 @@
         "livewire/volt": "^1.7",
         "mhmiton/laravel-modules-livewire": "^5.2",
         "nwidart/laravel-modules": "^12.0",
-        "owenvoke/blade-fontawesome": "^2.9"
+        "owenvoke/blade-fontawesome": "^2.9",
+        "predis/predis": "^3.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

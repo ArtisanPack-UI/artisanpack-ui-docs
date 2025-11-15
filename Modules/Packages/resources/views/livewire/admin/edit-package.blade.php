@@ -17,16 +17,31 @@
                 <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required />
             </div>
 
-            <div class="flex-1">
+            <div class="flex-1 space-y-4">
                 <x-artisanpack-card title="Page Details">
                     <div class="space-y-4">
-                        <x-artisanpack-select wire:model="homepage" label="Homepage" :options="[]" />
+                        <x-artisanpack-select wire:model="home" label="Homepage" :options="[]" />
 
                         <x-artisanpack-input wire:model.live="icon" label="Icon" />
                     </div>
 
                     <x-slot:actions>
                         <x-artisanpack-button type="submit" class="btn-primary">Update Package</x-artisanpack-button>
+                    </x-slot:actions>
+                </x-artisanpack-card>
+
+                <x-artisanpack-card title="Documentation">
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            Import documentation from the GitLab wiki repository. This will fetch all wiki pages and create or update documentation entries for this package.
+                        </p>
+                    </div>
+
+                    <x-slot:actions>
+                        <x-artisanpack-button wire:click="importDocumentation" class="btn-secondary" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="importDocumentation">Import Documentation</span>
+                            <span wire:loading wire:target="importDocumentation">Importing...</span>
+                        </x-artisanpack-button>
                     </x-slot:actions>
                 </x-artisanpack-card>
             </div>
