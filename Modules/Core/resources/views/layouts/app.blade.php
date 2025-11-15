@@ -20,6 +20,7 @@
     @include('core::partials.footer')
 </div>
 <x-artisanpack-spotlight />
+@stack('scripts')
 @livewireScripts
 </body>
 </html>

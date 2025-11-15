@@ -10,7 +10,7 @@ use Modules\Pages\Livewire\Public\Page;
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('pages', PagesController::class)->names('pages');
 
-    Route::get('/dashboard/pages/add-pages/', AddPage::class)->name('dashboard.pages.add');
+    Route::get('/dashboard/pages/add-page/', AddPage::class)->name('dashboard.pages.add');
     Route::get('/dashboard/pages/{page}', EditPage::class)->name('dashboard.pages.edit');
     Route::get('/dashboard/pages/', Pages::class)->name('dashboard.pages');
 });

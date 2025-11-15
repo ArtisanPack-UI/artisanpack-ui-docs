@@ -27,15 +27,16 @@
 
         {{-- MENU --}}
         <x-artisanpack-menu :title="null" activate-by-route class="flex flex-col flex-1">
-
-            <x-artisanpack-menu-separator />
-
-            <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :href="route('dashboard')" />
+            <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :href="route('dashboard')" exact route="dashboard" />
             <x-artisanpack-menu-sub title="Pages" icon="fas.file">
-                <x-artisanpack-menu-item title="Pages" :href="route('dashboard.pages')" />
-                <x-artisanpack-menu-item title="Add Page" :href="route('dashboard.pages.add')" />
+                <x-artisanpack-menu-item title="Pages" :href="route('dashboard.pages')" exact route="dashboard.pages" />
+                <x-artisanpack-menu-item title="Add Page" :href="route('dashboard.pages.add')" exact route="dashboard.pages.add" />
             </x-artisanpack-menu-sub>
-            <x-artisanpack-menu-item title="Settings" icon="fas.cogs" :href="route('settings')" />
+            <x-artisanpack-menu-sub title="Packages" icon="fas.puzzle-piece">
+                <x-artisanpack-menu-item title="Packages" :href="route('dashboard.packages')" exact route="dashboard.packages" />
+                <x-artisanpack-menu-item title="Add Package" :href="route('dashboard.packages.add')" exact route="dashboard.packages.add" />
+            </x-artisanpack-menu-sub>
+            <x-artisanpack-menu-item title="Settings" icon="fas.cogs" :href="route('settings')" exact route="settings" />
 
             <x-artisanpack-menu-separator />
 
@@ -64,5 +65,8 @@
 
 {{--  TOAST area --}}
 <x-artisanpack-toast />
+<x-artisanpack-spotlight />
+@stack('styles')
+@livewireScripts
 </body>
 </html>
