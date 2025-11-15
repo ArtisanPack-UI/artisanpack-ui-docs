@@ -4,6 +4,7 @@ namespace Modules\Pages\Livewire\Public;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Core\Setting;
 use Modules\Pages\Page as PageModel;
 
 #[Layout('core::layouts.app')]
@@ -28,6 +29,12 @@ class Page extends Component
                     $query->whereNull('parent')->orWhere('parent', 0);
                 })
                 ->firstOrFail();
+        }
+
+        $homePage = Setting::where('key', 'homePage')->first();
+
+        if ($homePage && $homePage->value && $this->page->id == $homePage->value) {
+            $this->redirect(route('home'));
         }
 
         $this->title = $this->page->title;
