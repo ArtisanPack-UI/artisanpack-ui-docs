@@ -17,6 +17,7 @@ class EditPackage extends Component
     public int|null $home = null;
     public string $wiki_url = '';
     public string $changelog_url = '';
+	public string|null $icon = '';
 
     public function mount(Package $package) {
         $this->package = $package;
@@ -25,6 +26,7 @@ class EditPackage extends Component
         $this->home = $package->home;
         $this->wiki_url = $package->wiki_url;
         $this->changelog_url = $package->changelog_url;
+		$this->icon = $package->icon;
     }
 
     public function updatePackage() {
@@ -34,6 +36,7 @@ class EditPackage extends Component
                                          'home' => 'nullable|integer',
                                          'wiki_url' => 'nullable|string',
                                          'changelog_url' => 'nullable|string',
+			'icon' => 'nullable|string',
                                      ]);
 
         $this->package->update($validated);

@@ -16,6 +16,7 @@ class AddPackage extends Component
     public int|null $home = null;
     public string $wiki_url = '';
     public string $changelog_url = '';
+	public string $icon = '';
 
     public function addPackage() {
         $validated = $this->validate([
@@ -24,6 +25,7 @@ class AddPackage extends Component
             'home' => 'nullable|integer',
             'wiki_url' => 'nullable|string',
             'changelog_url' => 'nullable|string',
+			'icon' => 'nullable|string',
         ]);
 
         $package = Package::create($validated);

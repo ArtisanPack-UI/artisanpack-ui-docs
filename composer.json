@@ -11,10 +11,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "artisanpack-ui/accessibility": "^1.1",
+        "artisanpack-ui/accessibility": "^2.0",
         "artisanpack-ui/core": "^1.0",
-        "artisanpack-ui/icons": "^1.0",
-        "artisanpack-ui/livewire-ui-components": "^1.0.0-beta1",
+        "artisanpack-ui/icons": "^2.0",
+        "artisanpack-ui/livewire-ui-components": "^1.0-beta2",
         "artisanpack-ui/security": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",

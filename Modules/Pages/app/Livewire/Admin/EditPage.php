@@ -17,7 +17,8 @@ class EditPage extends Component
 	public string $slug = '';
 	public string $content = '';
 	public int $parent = 0;
-	public int $order = 0;
+	public int $menu_order = 0;
+	public string|null $icon = '';
 	public $page;
 
 	public function mount(Page $page) {
@@ -26,6 +27,8 @@ class EditPage extends Component
 		$this->slug = $page->slug;
 		$this->content = $page->content;
 		$this->parent = $page->parent;
+		$this->icon = $page->icon;
+		$this->menu_order = $page->menu_order ?? 0;
 	}
 
 	public function save()
@@ -35,7 +38,8 @@ class EditPage extends Component
 										 'slug' => 'required|string',
 										 'content' => 'required|string',
 										 'parent' => 'nullable|integer',
-										 'order' => 'nullable|integer',
+										 'menu_order' => 'nullable|integer',
+			'icon' => 'nullable|string'
 									 ]);
 
 		$this->page->update($validated);

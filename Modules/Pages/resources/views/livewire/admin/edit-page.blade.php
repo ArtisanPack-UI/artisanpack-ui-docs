@@ -24,7 +24,9 @@
                     <div class="space-y-4">
                         <x-artisanpack-select wire:model="parent_id" label="Parent Page" :options="$this->pages" />
 
-                        <x-artisanpack-input type="number" wire:model.live="order" label="Order" />
+                        <x-artisanpack-input type="number" wire:model.live="menu_order" label="Order" />
+
+                        <x-artisanpack-input wire:model.live="icon" label="Icon" />
                     </div>
 
                     <x-slot:actions>

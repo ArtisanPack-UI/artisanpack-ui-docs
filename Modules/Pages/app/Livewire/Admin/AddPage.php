@@ -17,7 +17,8 @@ class AddPage extends Component
 	public string $slug = '';
 	public string $content = '';
 	public int $parent = 0;
-	public int $order = 0;
+	public int $menu_order = 0;
+	public string $icon = '';
 
 	public function save()
 	{
@@ -26,7 +27,8 @@ class AddPage extends Component
 			'slug' => 'required|string',
 			'content' => 'required|string',
 			'parent' => 'nullable|integer',
-			'order' => 'nullable|integer',
+			'menu_order' => 'nullable|integer',
+			'icon' => 'nullable|string',
 		]);
 
 		$page = Page::create($validated);

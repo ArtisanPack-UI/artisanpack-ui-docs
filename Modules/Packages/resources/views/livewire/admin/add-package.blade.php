@@ -21,6 +21,8 @@
                 <x-artisanpack-card title="Page Details">
                     <div class="space-y-4">
                         <x-artisanpack-select wire:model="homepage" label="Homepage" :options="[]" />
+
+                        <x-artisanpack-input wire:model.live="icon" label="Icon" />
                     </div>
 
                     <x-slot:actions>

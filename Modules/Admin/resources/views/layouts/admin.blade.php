@@ -26,13 +26,13 @@
         <x-app-logo class="px-5 pt-4" />
 
         {{-- MENU --}}
-        <x-artisanpack-menu :title="null" activate-by-route class="flex flex-col flex-1">
+        <x-artisanpack-menu :title="null" activate-by-route class="flex flex-col flex-1 fill-base-content">
             <x-artisanpack-menu-item title="Dashboard" icon="fas.gauge-high" :href="route('dashboard')" exact route="dashboard" />
             <x-artisanpack-menu-sub title="Pages" icon="fas.file">
                 <x-artisanpack-menu-item title="Pages" :href="route('dashboard.pages')" exact route="dashboard.pages" />
                 <x-artisanpack-menu-item title="Add Page" :href="route('dashboard.pages.add')" exact route="dashboard.pages.add" />
             </x-artisanpack-menu-sub>
-            <x-artisanpack-menu-sub title="Packages" icon="fas.puzzle-piece">
+            <x-artisanpack-menu-sub title="Packages" icon="ap.puzzle">
                 <x-artisanpack-menu-item title="Packages" :href="route('dashboard.packages')" exact route="dashboard.packages" />
                 <x-artisanpack-menu-item title="Add Package" :href="route('dashboard.packages.add')" exact route="dashboard.packages.add" />
             </x-artisanpack-menu-sub>

@@ -15,5 +15,6 @@ class Package extends Model
 		'homepage',
 		'wiki_url',
 		'changelog_url',
+		'icon'
 	];
 }

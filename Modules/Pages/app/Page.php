@@ -16,6 +16,8 @@ class Page extends Model
         'slug',
         'content',
         'parent',
+		'menu_order',
+		'icon'
     ];
 
     public function parentPage(): BelongsTo
