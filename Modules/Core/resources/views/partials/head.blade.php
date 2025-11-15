@@ -13,6 +13,8 @@
 
 @vite(['Modules/Core/resources/assets/css/app.css', 'Modules/Core/resources/assets/js/app.js'])
 
+@stack('styles')
+
 <script>
     // On page load or when changing themes, best to add inline in `head` to avoid FOUC
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {

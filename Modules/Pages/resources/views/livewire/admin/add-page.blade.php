@@ -1,5 +1,5 @@
 @push('styles')
-    @vite(['Modules/Pages/Resources/assets/css/admin.css'])
+    @vite(['Modules/Pages/resources/assets/css/admin.css'])
 @endpush
 
 <section class="w-full">

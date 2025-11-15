@@ -2,7 +2,7 @@
 @import '../../../../../Modules/Core/resources/assets/css/artisanpack-ui-theme.css';
 
 @source '../../views';
-@source '../../../../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../../../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/livewire/public/*.blade.php';
 
 /** daisyUI */
 @plugin "daisyui" {
@@ -27,4 +27,32 @@
 
 .artisanpack-table-pagination button {
     @apply cursor-pointer
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+h1 {
+    @apply text-3xl font-bold mb-4
+}
+
+h2 {
+    @apply text-2xl font-bold mb-3
+}
+
+h3 {
+    @apply text-xl font-bold mb-2
+}
+
+h4 {
+    @apply text-lg font-bold mb-1
+}
+
+ul {
+    @apply list-disc list-inside pl-4
+}
+
+pre {
+    @apply mb-4
 }

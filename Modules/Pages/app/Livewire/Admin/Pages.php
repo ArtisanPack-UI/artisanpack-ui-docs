@@ -30,6 +30,11 @@ class Pages extends Component
 		return Page::all();
 	}
 
+    public function delete(Page $pageId) {
+        $page = Page::where('id', $pageId)->first();
+        $page->delete();
+    }
+
     public function render()
     {
         return view('pages::livewire.admin.pages');

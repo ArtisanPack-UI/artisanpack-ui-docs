@@ -21,6 +21,34 @@
     --font-sans: 'Montserrat', sans-serif;
 }
 
+p {
+    margin-bottom: 1rem;
+}
+
+h1 {
+    @apply text-3xl font-bold mb-4
+}
+
+h2 {
+    @apply text-2xl font-bold mb-3
+}
+
+h3 {
+    @apply text-xl font-bold mb-2
+}
+
+h4 {
+    @apply text-lg font-bold mb-1
+}
+
+ul {
+    @apply list-disc list-inside pl-4
+}
+
+pre {
+    @apply mb-4
+}
+
 /**
 * Paginator - Traditional style
 * Because Laravel defaults does not match well the design of daisyUI.

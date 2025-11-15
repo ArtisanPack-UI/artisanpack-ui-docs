@@ -29,9 +29,11 @@ class AddPage extends Component
 			'order' => 'nullable|integer',
 		]);
 
-		Page::create($validated);
+		$page = Page::create($validated);
 
 		$this->success('Page created successfully.');
+
+        $this->redirect(route('dashboard.pages.edit', [ 'page' => $page->id ]));
 	}
 
 	#[Computed]

@@ -1,5 +1,5 @@
 @push('styles')
-    @vite(['Modules/Pages/Resources/assets/css/admin.css'])
+    @vite(['Modules/Pages/resources/assets/css/admin.css'])
 @endpush
 <div>
     <x-artisanpack-header title="Pages">
@@ -12,7 +12,7 @@
         @scope('actions', $page)
         <div class="flex gap-2">
             <x-artisanpack-button icon="fas.edit" href="{{ route('dashboard.pages.edit', $page->id) }}" class="btn-primary btn-sm" wire:navigate>Edit</x-artisanpack-button>
-            <x-artisanpack-button icon="fas.trash" class="btn-error btn-sm" wire:confirm="delete({{ $page->id }})">Delete</x-artisanpack-button>
+            <x-artisanpack-button icon="fas.trash" class="btn-error btn-sm" wire:click="delete({{ $page->id }})" wire:confirm="Do you want to delete this page?">Delete</x-artisanpack-button>
         </div>
         @endscope
     </x-artisanpack-table>

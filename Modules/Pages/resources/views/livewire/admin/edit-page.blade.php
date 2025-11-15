@@ -1,11 +1,11 @@
 @push('styles')
-    @vite(['Modules/Pages/Resources/assets/css/admin.css'])
+    @vite(['Modules/Pages/resources/assets/css/admin.css'])
 @endpush
 
 <section class="w-full">
     <x-artisanpack-header title="Edit Page">
         <x-slot:actions>
-            <x-artisanpack-button :href="route('dashboard.pages.add')" class="btn-primary" icon="fas.plus">Add Page</x-artisanpack-button>
+            <x-artisanpack-button :href="route('dashboard.pages.add')" class="btn-primary" icon="fas.plus" wire:navigate>Add Page</x-artisanpack-button>
         </x-slot:actions>
     </x-artisanpack-header>
 
