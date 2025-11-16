@@ -61,3 +61,14 @@ pre {
 .artisanpack-table-pagination button {
     @apply cursor-pointer
 }
+
+/* Packges Menu Styles */
+.packages-menu {
+    .artisanpack-menu-item {
+        a {
+            span {
+                @apply whitespace-normal
+            }
+        }
+    }
+}

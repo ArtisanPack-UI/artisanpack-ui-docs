@@ -38,6 +38,9 @@
                     </div>
 
                     <x-slot:actions>
+                        <a href="{{ route('dashboard.packages.documentation', $package) }}" class="btn btn-secondary">
+                            Manage Order
+                        </a>
                         <x-artisanpack-button wire:click="importDocumentation" class="btn-secondary" wire:loading.attr="disabled">
                             <span wire:loading.remove wire:target="importDocumentation">Import Documentation</span>
                             <span wire:loading wire:target="importDocumentation">Importing...</span>

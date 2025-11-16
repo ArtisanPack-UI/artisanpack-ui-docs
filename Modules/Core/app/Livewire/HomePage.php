@@ -4,6 +4,7 @@ namespace Modules\Core\Livewire;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Core\Services\TableOfContentsService;
 use Modules\Core\Setting;
 use Modules\Pages\Page;
 
@@ -16,6 +17,8 @@ class HomePage extends Component
 
     public string $content = '';
 
+    public array $tableOfContents = [];
+
     public function mount(): void
     {
         $homeSetting = Setting::where('key', 'homePage')->first();
@@ -25,7 +28,16 @@ class HomePage extends Component
 
             if ($this->page) {
                 $this->title = $this->page->title;
-                $this->content = $this->page->content;
+
+                // Sanitize content first with kses
+                $sanitizedContent = kses($this->page->content);
+
+                // Process sanitized content and extract table of contents
+                $tocService = new TableOfContentsService;
+                $processed = $tocService->process($sanitizedContent, isMarkdown: false);
+
+                $this->content = $processed['content'];
+                $this->tableOfContents = $tocService->buildNestedStructure($processed['headings']);
             }
         }
     }

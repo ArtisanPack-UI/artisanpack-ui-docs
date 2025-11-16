@@ -4,6 +4,7 @@ namespace Modules\Packages\Livewire\Public;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Core\Services\TableOfContentsService;
 use Modules\Packages\Changelog as ChangelogModel;
 use Modules\Packages\Package;
 
@@ -18,6 +19,8 @@ class Changelog extends Component
 
     public string $content = '';
 
+    public array $tableOfContents = [];
+
     public function mount(string $package): void
     {
         // Find the package by slug
@@ -28,7 +31,13 @@ class Changelog extends Component
             ->firstOrFail();
 
         $this->title = $this->changelog->title;
-        $this->content = $this->changelog->content;
+
+        // Process content and extract table of contents
+        $tocService = new TableOfContentsService;
+        $processed = $tocService->process($this->changelog->content, isMarkdown: true);
+
+        $this->content = $processed['content'];
+        $this->tableOfContents = $tocService->buildNestedStructure($processed['headings']);
     }
 
     public function render()

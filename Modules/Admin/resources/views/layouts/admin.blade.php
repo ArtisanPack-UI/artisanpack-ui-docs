@@ -31,6 +31,7 @@
             <x-artisanpack-menu-sub title="Pages" icon="fas.file">
                 <x-artisanpack-menu-item title="Pages" :link="route('dashboard.pages')" exact route="dashboard.pages" />
                 <x-artisanpack-menu-item title="Add Page" :link="route('dashboard.pages.add')" exact route="dashboard.pages.add" />
+                <x-artisanpack-menu-item title="Menu Order" :link="route('dashboard.pages.menu-order')" exact route="dashboard.pages.menu-order" />
             </x-artisanpack-menu-sub>
             <x-artisanpack-menu-sub title="Packages" icon="ap.puzzle">
                 <x-artisanpack-menu-item title="Packages" :link="route('dashboard.packages')" exact route="dashboard.packages" />

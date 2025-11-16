@@ -16,7 +16,8 @@
       "Bash(npm run build:*)",
       "mcp__laravel-boost__read-log-entries",
       "mcp__laravel-boost__get-absolute-url",
-      "mcp__laravel-boost__tinker"
+      "mcp__laravel-boost__tinker",
+      "WebFetch(domain:gitlab.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

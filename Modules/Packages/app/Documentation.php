@@ -8,20 +8,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Documentation extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
-	protected $table = 'documentation';
+    protected $table = 'documentation';
 
-	protected $fillable = [
-		'title',
-		'slug',
-		'parent',
-		'package_id',
-		'content',
-	];
+    protected $fillable = [
+        'title',
+        'slug',
+        'parent',
+        'menu_order',
+        'package_id',
+        'content',
+    ];
 
-	public function package(): BelongsTo
-	{
-		return $this->belongsTo( Package::class );
-	}
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class);
+    }
 }

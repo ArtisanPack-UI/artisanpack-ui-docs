@@ -4,6 +4,7 @@ namespace Modules\Pages\Livewire\Public;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Core\Services\TableOfContentsService;
 use Modules\Core\Setting;
 use Modules\Pages\Page as PageModel;
 
@@ -15,6 +16,8 @@ class Page extends Component
     public string $title = '';
 
     public string $content = '';
+
+    public array $tableOfContents = [];
 
     public function mount(string $slug, ?string $parentSlug = null): void
     {
@@ -38,7 +41,16 @@ class Page extends Component
         }
 
         $this->title = $this->page->title;
-        $this->content = $this->page->content;
+
+        // Sanitize content first with kses
+        $sanitizedContent = kses($this->page->content);
+
+        // Process sanitized content and extract table of contents
+        $tocService = new TableOfContentsService;
+        $processed = $tocService->process($sanitizedContent, isMarkdown: false);
+
+        $this->content = $processed['content'];
+        $this->tableOfContents = $tocService->buildNestedStructure($processed['headings']);
     }
 
     public function render()

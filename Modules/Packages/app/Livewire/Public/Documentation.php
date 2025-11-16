@@ -4,6 +4,7 @@ namespace Modules\Packages\Livewire\Public;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Core\Services\TableOfContentsService;
 use Modules\Packages\Documentation as DocumentationModel;
 use Modules\Packages\Package;
 
@@ -18,6 +19,8 @@ class Documentation extends Component
 
     public string $content = '';
 
+    public array $tableOfContents = [];
+
     public function mount(string $package, string $slug): void
     {
         // Find the package by slug
@@ -29,7 +32,13 @@ class Documentation extends Component
             ->firstOrFail();
 
         $this->title = $this->documentation->title;
-        $this->content = $this->documentation->content;
+
+        // Process content and extract table of contents
+        $tocService = new TableOfContentsService;
+        $processed = $tocService->process($this->documentation->content, isMarkdown: true);
+
+        $this->content = $processed['content'];
+        $this->tableOfContents = $tocService->buildNestedStructure($processed['headings']);
     }
 
     public function render()
