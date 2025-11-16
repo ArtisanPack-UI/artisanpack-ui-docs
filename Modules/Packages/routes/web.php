@@ -5,9 +5,17 @@ use Modules\Packages\Http\Controllers\PackagesController;
 use Modules\Packages\Livewire\Admin\AddPackage;
 use Modules\Packages\Livewire\Admin\EditPackage;
 use Modules\Packages\Livewire\Admin\Packages;
-use Modules\Pages\Livewire\Admin\AddPage;
-use Modules\Pages\Livewire\Admin\EditPage;
-use Modules\Pages\Livewire\Admin\Pages;
+use Modules\Packages\Livewire\Public\Documentation;
+
+// Public documentation route - test route
+Route::get('/documentation/test', function () {
+    return 'Documentation route is working!';
+});
+
+// Public documentation route
+Route::get('/documentation/{package}/{slug}', Documentation::class)
+    ->where('slug', '.*')
+    ->name('documentation.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('packages', PackagesController::class)->names('packages');

@@ -20,7 +20,7 @@ class EditPackage extends Component
 
     public string $slug = '';
 
-    public ?int $home = null;
+    public ?int $homepage = null;
 
     public string $wiki_url = '';
 
@@ -28,15 +28,18 @@ class EditPackage extends Component
 
     public ?string $icon = '';
 
+    public array $pages = [];
+
     public function mount(Package $package)
     {
         $this->package = $package;
         $this->name = $package->name;
         $this->slug = $package->slug;
-        $this->home = $package->home;
+        $this->homepage = $package->homepage;
         $this->wiki_url = $package->wiki_url;
         $this->changelog_url = $package->changelog_url;
         $this->icon = $package->icon;
+        $this->pages = $package->documentation()->get()->toArray();
     }
 
     public function updatePackage()
@@ -44,7 +47,7 @@ class EditPackage extends Component
         $validated = $this->validate([
             'name' => 'required|string',
             'slug' => 'required|string',
-            'home' => 'nullable|integer',
+            'homepage' => 'nullable|integer',
             'wiki_url' => 'nullable|string',
             'changelog_url' => 'nullable|string',
             'icon' => 'nullable|string',

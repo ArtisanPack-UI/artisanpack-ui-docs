@@ -5,5 +5,5 @@
 <article>
     <x-artisanpack-header :title="$title" level="1" />
 
-    {!! kses($content) !!}
+    {!! Str::markdown($content) !!}
 </article>

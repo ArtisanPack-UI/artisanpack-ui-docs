@@ -13,7 +13,10 @@
       "Bash(composer require:*)",
       "mcp__laravel-boost__last-error",
       "mcp__laravel-boost__browser-logs",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "mcp__laravel-boost__read-log-entries",
+      "mcp__laravel-boost__get-absolute-url",
+      "mcp__laravel-boost__tinker"
     ]
   },
   "enableAllProjectMcpServers": true,

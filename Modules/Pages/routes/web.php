@@ -16,7 +16,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Public page routes - placed at the end to avoid conflicts with other routes
-Route::get('/{parentSlug}/{slug}', Page::class)->name('page.child');
+Route::get('/{parentSlug}/{slug}', Page::class)
+    ->where('parentSlug', '^(?!documentation).*')
+    ->name('page.child');
 
 Route::get('/{slug}', Page::class)
     ->where('slug', '.+')

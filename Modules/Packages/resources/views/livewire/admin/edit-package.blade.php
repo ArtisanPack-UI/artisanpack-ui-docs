@@ -20,7 +20,7 @@
             <div class="flex-1 space-y-4">
                 <x-artisanpack-card title="Page Details">
                     <div class="space-y-4">
-                        <x-artisanpack-select wire:model="home" label="Homepage" :options="[]" />
+                        <x-artisanpack-select wire:model="homepage" label="Homepage" :options="$pages" option-label="title" placeholder="Select a page" />
 
                         <x-artisanpack-input wire:model.live="icon" label="Icon" />
                     </div>
