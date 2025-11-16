@@ -5,6 +5,7 @@ use Modules\Packages\Http\Controllers\PackagesController;
 use Modules\Packages\Livewire\Admin\AddPackage;
 use Modules\Packages\Livewire\Admin\EditPackage;
 use Modules\Packages\Livewire\Admin\Packages;
+use Modules\Packages\Livewire\Public\Changelog;
 use Modules\Packages\Livewire\Public\Documentation;
 
 // Public documentation route - test route
@@ -16,6 +17,10 @@ Route::get('/documentation/test', function () {
 Route::get('/documentation/{package}/{slug}', Documentation::class)
     ->where('slug', '.*')
     ->name('documentation.show');
+
+// Public changelog route
+Route::get('/changelogs/{package}', Changelog::class)
+    ->name('changelog.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('packages', PackagesController::class)->names('packages');

@@ -44,6 +44,21 @@
                         </x-artisanpack-button>
                     </x-slot:actions>
                 </x-artisanpack-card>
+
+                <x-artisanpack-card title="Changelog">
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            Import the changelog from the GitLab repository. This will fetch the changelog file and create or update the changelog entry for this package.
+                        </p>
+                    </div>
+
+                    <x-slot:actions>
+                        <x-artisanpack-button wire:click="importChangelog" class="btn-secondary" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="importChangelog">Import Changelog</span>
+                            <span wire:loading wire:target="importChangelog">Importing...</span>
+                        </x-artisanpack-button>
+                    </x-slot:actions>
+                </x-artisanpack-card>
             </div>
         </div>
     </form>

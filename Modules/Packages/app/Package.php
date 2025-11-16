@@ -25,7 +25,13 @@ class Package extends Model
         return PackageFactory::new();
     }
 
-    public function documentation(): HasMany {
+    public function documentation(): HasMany
+    {
         return $this->hasMany(Documentation::class);
+    }
+
+    public function changelogs(): HasMany
+    {
+        return $this->hasMany(Changelog::class);
     }
 }

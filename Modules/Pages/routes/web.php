@@ -17,10 +17,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Public page routes - placed at the end to avoid conflicts with other routes
 Route::get('/{parentSlug}/{slug}', Page::class)
-    ->where('parentSlug', '^(?!documentation).*')
+    ->where('parentSlug', '^(?!documentation|changelogs).*')
     ->name('page.child');
 
 Route::get('/{slug}', Page::class)
     ->where('slug', '.+')
-    ->where('slug', '^(?!dashboard|login|register|password).*')
+    ->where('slug', '^(?!dashboard|login|register|password|changelogs).*')
     ->name('page.show');

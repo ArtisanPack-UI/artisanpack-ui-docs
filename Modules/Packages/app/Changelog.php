@@ -8,15 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Changelog extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
-	protected $fillable = [
-		'content',
-		'package_id',
-	];
+    protected $fillable = [
+        'title',
+        'content',
+        'package_id',
+    ];
 
-	public function package(): BelongsTo
-	{
-		return $this->belongsTo( Package::class );
-	}
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace Modules\Packages\Livewire\Admin;
 
+use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
 use Livewire\Attributes\Layout;
@@ -77,6 +78,27 @@ class EditPackage extends Component
         ImportWikiDocumentation::dispatch($this->package, $gitlabToken);
 
         $this->success('Documentation import started! This may take a few moments.');
+    }
+
+    public function importChangelog(): void
+    {
+        if (empty($this->changelog_url)) {
+            $this->error('Changelog URL is required to import changelog.');
+
+            return;
+        }
+
+        $gitlabToken = Setting::where('key', 'gitlab_token')->first()?->value;
+
+        if (empty($gitlabToken)) {
+            $this->error('GitLab token not configured in settings.');
+
+            return;
+        }
+
+        ImportChangelog::dispatch($this->package, $gitlabToken);
+
+        $this->success('Changelog import started! This may take a few moments.');
     }
 
     public function updatedName()

@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -59,6 +60,60 @@ test('import documentation does not dispatch job when gitlab token is not config
 
     Livewire::test(EditPackage::class, ['package' => $package])
         ->call('importDocumentation')
+        ->assertHasNoErrors();
+
+    Queue::assertNothingPushed();
+});
+
+test('import changelog dispatches job when changelog url and token are present', function () {
+    Queue::fake();
+
+    $package = Package::factory()->create([
+        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+    ]);
+
+    Setting::create([
+        'key' => 'gitlab_token',
+        'value' => 'test-token-123',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->call('importChangelog')
+        ->assertHasNoErrors();
+
+    Queue::assertPushed(ImportChangelog::class, function ($job) use ($package) {
+        return $job->package->id === $package->id && $job->gitlabToken === 'test-token-123';
+    });
+});
+
+test('import changelog does not dispatch job when changelog url is missing', function () {
+    Queue::fake();
+
+    $package = Package::factory()->create([
+        'changelog_url' => '',
+    ]);
+
+    Setting::create([
+        'key' => 'gitlab_token',
+        'value' => 'test-token-123',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->call('importChangelog')
+        ->assertHasNoErrors();
+
+    Queue::assertNothingPushed();
+});
+
+test('import changelog does not dispatch job when gitlab token is not configured', function () {
+    Queue::fake();
+
+    $package = Package::factory()->create([
+        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->call('importChangelog')
         ->assertHasNoErrors();
 
     Queue::assertNothingPushed();

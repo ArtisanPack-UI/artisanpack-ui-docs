@@ -87,4 +87,57 @@ class GitLabService
 
         throw new \Exception("Invalid GitLab wiki URL format: {$wikiUrl}");
     }
+
+    /**
+     * Get raw file content from a GitLab repository
+     *
+     * @param  string  $fileUrl  The URL to the GitLab file (e.g., https://gitlab.com/group/project/-/blob/main/CHANGELOG.md)
+     *
+     * @throws \Exception
+     */
+    public function getFileContent(string $fileUrl): string
+    {
+        [$projectPath, $filePath, $ref] = $this->extractFilePathFromUrl($fileUrl);
+        $encodedPath = urlencode($projectPath);
+        $encodedFilePath = urlencode($filePath);
+
+        $response = Http::withHeaders([
+            'PRIVATE-TOKEN' => $this->token,
+        ])->get("{$this->baseUrl}/projects/{$encodedPath}/repository/files/{$encodedFilePath}/raw?ref={$ref}");
+
+        if (! $response->successful()) {
+            throw new \Exception("Failed to fetch file content from '{$fileUrl}': {$response->body()}");
+        }
+
+        return $response->body();
+    }
+
+    /**
+     * Extract project path, file path, and ref from file URL
+     *
+     * @return array{0: string, 1: string, 2: string} [projectPath, filePath, ref]
+     *
+     * @throws \Exception
+     */
+    protected function extractFilePathFromUrl(string $fileUrl): array
+    {
+        // Example URL formats:
+        // https://gitlab.com/group/project/-/blob/main/CHANGELOG.md
+        // https://gitlab.com/group/subgroup/project/-/blob/develop/docs/CHANGELOG.md
+        // We need to extract:
+        // - project path: group/project or group/subgroup/project
+        // - file path: CHANGELOG.md or docs/CHANGELOG.md
+        // - ref: main, develop, etc.
+
+        $pattern = '/gitlab\.com\/([^\/]+(?:\/[^\/]+)*)\/-\/blob\/([^\/]+)\/(.+)/';
+        if (preg_match($pattern, $fileUrl, $matches)) {
+            return [
+                $matches[1], // project path
+                $matches[3], // file path
+                $matches[2], // ref (branch)
+            ];
+        }
+
+        throw new \Exception("Invalid GitLab file URL format: {$fileUrl}");
+    }
 }
