@@ -72,3 +72,40 @@ pre {
         }
     }
 }
+
+/* Layout Styles */
+#main {
+
+    a {
+        @apply text-primary underline hover:text-accent
+    }
+
+    ul {
+        @apply mb-1
+    }
+}
+
+/* Mobile Menu Dropdown Styles */
+@media (max-width: 767px) {
+    .dropdown-content {
+        @apply p-2
+    }
+
+    .dropdown-content aside {
+        @apply w-full
+    }
+
+    /* Adjust sidebar padding for mobile dropdown */
+    .dropdown-content .bg-primary-accent-gradient {
+        @apply rounded-lg
+    }
+
+    /* Mobile TOC Collapse Styles */
+    #toc-nav-mobile a {
+        @apply block py-2 px-3 rounded hover:bg-base-200 transition-colors
+    }
+
+    #toc-nav-mobile a.font-bold {
+        @apply bg-base-200
+    }
+}

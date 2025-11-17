@@ -39,14 +39,19 @@ class ViewServiceProvider extends ServiceProvider
         });
     }
 
-    private function setPageActiveState(&$pages): void
+    private function setPageActiveState(&$pages, $parentSlug = null): void
     {
         foreach ($pages as &$page) {
             if (isset($page['children'])) {
-                $this->setPageActiveState($page['children']);
+                $this->setPageActiveState($page['children'], $page['slug']);
             }
 
-            $page['active'] = $this->isCurrentUrl($page['slug']) || $this->isChildActive($page['children'] ?? []);
+            // Check if this specific page is active based on the full URL context
+            $isPageActive = $parentSlug
+                ? $this->isCurrentChildPageUrl($parentSlug, $page['slug'])
+                : $this->isCurrentTopLevelPageUrl($page['slug']);
+
+            $page['active'] = $isPageActive || $this->isChildActive($page['children'] ?? []);
         }
     }
 
@@ -54,7 +59,7 @@ class ViewServiceProvider extends ServiceProvider
     {
         foreach ($packages as &$package) {
             if (isset($package['documentation'])) {
-                $this->setDocActiveState($package['documentation']);
+                $this->setDocActiveState($package['documentation'], $package['slug']);
             }
 
             $package['active'] = (isset($package['homepage']) && $package['homepage']->active) ||
@@ -63,14 +68,14 @@ class ViewServiceProvider extends ServiceProvider
         }
     }
 
-    private function setDocActiveState(&$docs): void
+    private function setDocActiveState(&$docs, string $packageSlug): void
     {
         foreach ($docs as &$doc) {
             if (isset($doc['children'])) {
-                $this->setDocActiveState($doc['children']);
+                $this->setDocActiveState($doc['children'], $packageSlug);
             }
 
-            $doc['active'] = $this->isCurrentUrl($doc['slug']) || $this->isChildActive($doc['children'] ?? []);
+            $doc['active'] = $this->isCurrentDocUrl($packageSlug, $doc['slug']) || $this->isChildActive($doc['children'] ?? []);
         }
     }
 
@@ -101,6 +106,40 @@ class ViewServiceProvider extends ServiceProvider
         }
 
         return request()->segment(count(request()->segments())) === $slug;
+    }
+
+    private function isCurrentDocUrl(string $packageSlug, string $docSlug): bool
+    {
+        // Check if we're on a documentation page: /documentation/{package}/{slug}
+        return request()->segment(1) === 'documentation' &&
+               request()->segment(2) === $packageSlug &&
+               request()->segment(3) === $docSlug;
+    }
+
+    private function isCurrentChangelogUrl(string $packageSlug): bool
+    {
+        // Check if we're on a changelog page: /changelogs/{package}
+        return request()->segment(1) === 'changelogs' &&
+               request()->segment(2) === $packageSlug;
+    }
+
+    private function isCurrentTopLevelPageUrl(string $slug): bool
+    {
+        // Check if we're on a top-level page: /{slug}
+        // Make sure it's not a documentation or changelog page
+        $firstSegment = request()->segment(1);
+
+        return $firstSegment === $slug &&
+               request()->segment(2) === null &&
+               ! in_array($firstSegment, ['documentation', 'changelogs', 'dashboard', 'pages', 'api']);
+    }
+
+    private function isCurrentChildPageUrl(string $parentSlug, string $slug): bool
+    {
+        // Check if we're on a child page: /{parentSlug}/{slug}
+        return request()->segment(1) === $parentSlug &&
+               request()->segment(2) === $slug &&
+               request()->segment(3) === null;
     }
 
     protected function buildHierarchy($items, $parentId = null): array
@@ -151,7 +190,7 @@ class ViewServiceProvider extends ServiceProvider
             foreach ($docs as $doc) {
                 if ($package->homepage && $doc->id === $package->homepage) {
                     $homepage = $doc;
-                    $homepage->active = $this->isCurrentUrl($homepage->slug);
+                    $homepage->active = $this->isCurrentDocUrl($package->slug, $homepage->slug);
                 } else {
                     $regularDocs[] = $doc;
                 }
@@ -160,7 +199,7 @@ class ViewServiceProvider extends ServiceProvider
             // Get changelog
             $changelog = $package->changelogs()->first();
             if ($changelog) {
-                $changelog->active = $this->isCurrentUrl($changelog->slug);
+                $changelog->active = $this->isCurrentChangelogUrl($package->slug);
             }
 
             // Build documentation hierarchy

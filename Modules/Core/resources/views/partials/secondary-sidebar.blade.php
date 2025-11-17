@@ -1,7 +1,7 @@
-<aside id="sidebar-right" class="w-full md:w-[20rem] bg-base-100 h-full sticky top-24">
+<aside id="sidebar-right" class="w-full md:w-[20rem]">
     @if(isset($tableOfContents) && count($tableOfContents) > 0)
-        <div class="bg-secondary-accent-gradient rounded-lg p-[1px] overflow-hidden">
-            <div class="bg-base-100 p-4 rounded-lg">
+        <div class="bg-secondary-accent-gradient rounded-lg p-[1px] overflow-hidden max-h-[calc(100vh-6rem)]">
+            <div class="bg-base-100 p-4 rounded-lg max-h-full overflow-y-auto">
                 <x-artisanpack-heading level="2" class="mb-4">Table of Contents</x-artisanpack-heading>
 
                 <nav id="toc-nav" class="space-y-1">

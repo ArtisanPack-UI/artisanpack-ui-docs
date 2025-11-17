@@ -2,12 +2,12 @@
     :title="$package['name']"
     :icon="$package['icon'] ?? 'ap.puzzle'"
     :active="$package['active']"
+    :open="$package['active']"
 >
     {{-- Homepage (first item) --}}
     @if(isset($package['homepage']) && $package['homepage'])
         <x-artisanpack-menu-item
-            :title="$package['homepage']->title"
-            icon="fas.home"
+            :title="$package['name']"
             :link="route('documentation.show', ['package' => $package['slug'], 'slug' => $package['homepage']->slug])"
             :active="$package['homepage']->active"
             route="documentation.show"
