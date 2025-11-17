@@ -2,7 +2,7 @@
 
 namespace Modules\Core\Services;
 
-use Illuminate\Support\Str;
+use Spatie\LaravelMarkdown\MarkdownRenderer;
 
 class TableOfContentsService
 {
@@ -14,8 +14,11 @@ class TableOfContentsService
     public function process(string $content, bool $isMarkdown = false): array
     {
         if ($isMarkdown) {
-            // Convert markdown to HTML first
-            $content = Str::markdown($content);
+            // Convert markdown to HTML using Spatie's markdown package
+            $content = app(MarkdownRenderer::class)
+                ->highlightTheme('github-dark')
+                ->highlightCode()
+                ->toHtml($content);
         }
 
         // Extract and add IDs to headings

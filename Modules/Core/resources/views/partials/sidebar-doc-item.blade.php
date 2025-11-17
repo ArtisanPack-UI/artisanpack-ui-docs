@@ -4,7 +4,6 @@
         :title="$doc['title']"
         :active="$doc['active']"
         :open="$doc['active']"
-        :icon="null"
     >
         @foreach($doc['children'] as $child)
             @include('core::partials.sidebar-doc-item', ['doc' => $child, 'packageSlug' => $packageSlug])

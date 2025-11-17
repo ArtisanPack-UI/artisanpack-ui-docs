@@ -25,4 +25,8 @@ class Documentation extends Model
     {
         return $this->belongsTo(Package::class);
     }
+
+	public function isPackageHome() {
+		return intval($this->package()->homepage) === intval($this->id);
+	}
 }

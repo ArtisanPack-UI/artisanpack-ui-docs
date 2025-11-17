@@ -34,4 +34,12 @@ class Package extends Model
     {
         return $this->hasMany(Changelog::class);
     }
+
+	public function home(): ?Documentation {
+		return Documentation::find(intval($this->homepage))->first() ?? null;
+	}
+
+	public function changelog(): ?Changelog {
+		return $this->changelogs()->first() ?? null;
+	}
 }

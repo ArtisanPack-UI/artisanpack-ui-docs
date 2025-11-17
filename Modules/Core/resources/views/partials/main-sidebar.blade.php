@@ -1,5 +1,5 @@
 <aside id="sidebar" class="w-full md:w-[20rem]">
-    <div class="bg-primary-accent-gradient rounded-lg p-[1px] fill-base-content max-h-[calc(100vh-6rem)] overflow-y-auto">
+    <div class="bg-primary-accent-gradient rounded-lg p-[1px] fill-base-content">
         <div class="bg-base-100 p-4 rounded-lg">
             {{-- Pages Menu --}}
             @if(isset($sidebarPages) && count($sidebarPages) > 0)
@@ -10,7 +10,7 @@
                 </x-artisanpack-menu>
             @endif
 
-            <x-artisanpack-separator class="menu-separator" />
+            <div class="relative my-5 h-[1px] bg-secondary"></div>
 
             {{-- Packages Menu --}}
             @if(isset($sidebarPackages) && count($sidebarPackages) > 0)

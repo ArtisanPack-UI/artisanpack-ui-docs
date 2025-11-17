@@ -6,12 +6,19 @@
             <span class="sr-only">ArtisanPack UI</span>
         </a>
 
-        <div class="flex-1 min-w-0 order-3 md:order-2 w-full md:w-auto">
+        <div
+            class="flex-1 min-w-0 order-3 md:order-2 w-full md:w-auto cursor-pointer"
+            onclick="setTimeout(() => window.dispatchEvent(new CustomEvent('mary-search-open', { bubbles: true })), 10);"
+            onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setTimeout(() => window.dispatchEvent(new CustomEvent('mary-search-open', { bubbles: true })), 10); }"
+            role="button"
+            tabindex="0"
+            aria-label="{{ __('Open search') }}"
+        >
             <x-artisanpack-input
                 :placeholder="__('Search...')"
                 icon="fas.magnifying-glass"
-                @click.stop="$dispatch('mary-search-open')"
-                :aria-label="__('Search')"
+                readonly
+                tabindex="-1"
             />
         </div>
 

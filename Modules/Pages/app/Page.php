@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Setting;
 
 class Page extends Model
 {
@@ -29,4 +30,8 @@ class Page extends Model
     {
         return $this->hasMany(Page::class, 'parent');
     }
+
+	public function isHomePage(): bool {
+		return intval(Setting::where('key', 'homePage')->first()->value) === intval($this->id);
+	}
 }
