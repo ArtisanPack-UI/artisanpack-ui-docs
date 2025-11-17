@@ -12,7 +12,7 @@ return [
         'route_prefix' => '',
         'components' => [
             'spotlight' => [
-                'class' => 'App\\Support\\Spotlight',
+                'class' => 'Modules\\Core\\Spotlight',
             ],
         ],
         'icons' => [

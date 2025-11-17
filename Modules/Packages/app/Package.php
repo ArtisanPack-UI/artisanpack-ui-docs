@@ -36,7 +36,7 @@ class Package extends Model
     }
 
 	public function home(): ?Documentation {
-		return Documentation::find(intval($this->homepage))->first() ?? null;
+		return Documentation::where('id', intval($this->homepage))->first() ?? null;
 	}
 
 	public function changelog(): ?Changelog {

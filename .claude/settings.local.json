@@ -19,7 +19,8 @@
       "mcp__laravel-boost__tinker",
       "WebFetch(domain:gitlab.com)",
       "Bash(cat:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:mary-ui.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
