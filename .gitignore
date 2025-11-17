@@ -1,5 +1,4 @@
 # Laravel specific ignores
-/bootstrap/cache/*.php
 /storage/*.key
 /public/build
 /public/hot
