@@ -46,12 +46,6 @@ default:
     # Install Composer
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-    # Copy environment file
-    - cp .env.example .env
-
-    # Set application key
-    - php artisan key:generate
-
     # Install Composer dependencies
     - composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts
 
@@ -98,6 +92,12 @@ test:unit:
   dependencies:
     - build:composer
   script:
+    # Copy environment file
+    - cp .env.example .env
+
+    # Set application key
+    - php artisan key:generate
+
     # Run database migrations
     - php artisan migrate --force --seed
 
@@ -123,6 +123,11 @@ test:feature:
   dependencies:
     - build:composer
   script:
+    # Copy environment file
+    - cp .env.example .env
+
+    # Set application key
+    - php artisan key:generate
     # Run database migrations
     - php artisan migrate --force --seed
 
@@ -218,7 +223,7 @@ deploy:production:
 
   environment:
     name: production
-    url: https://your-production-domain.com
+    url: https://docs.artisanpackui.dev
   only:
     - main
   when: manual  # Require manual approval before deployment
