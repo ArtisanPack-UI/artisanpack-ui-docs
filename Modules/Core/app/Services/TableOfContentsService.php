@@ -2,7 +2,7 @@
 
 namespace Modules\Core\Services;
 
-use Spatie\LaravelMarkdown\MarkdownRenderer;
+use Illuminate\Support\Str;
 
 class TableOfContentsService
 {
@@ -14,11 +14,8 @@ class TableOfContentsService
     public function process(string $content, bool $isMarkdown = false): array
     {
         if ($isMarkdown) {
-            // Convert markdown to HTML using Spatie's markdown package
-            $content = app(MarkdownRenderer::class)
-                ->highlightTheme('github-dark')
-                ->highlightCode()
-                ->toHtml($content);
+            // Convert markdown to HTML with code block support
+            $content = $this->convertMarkdown($content);
         }
 
         // Extract and add IDs to headings
@@ -29,6 +26,34 @@ class TableOfContentsService
             'headings' => $headings,
             'content' => $content,
         ];
+    }
+
+    /**
+     * Convert markdown to HTML with proper code block handling
+     */
+    protected function convertMarkdown(string $markdown): string
+    {
+        // Use Laravel's built-in markdown with CommonMark
+        $html = Str::markdown($markdown);
+
+        // Wrap code blocks in containers for Prism.js
+        // This handles both with and without language classes
+        $html = preg_replace_callback(
+            '/<pre><code(?:\s+class="language-(\w+)")?>(.+?)<\/code><\/pre>/s',
+            function ($matches) {
+                $language = $matches[1] ?? 'plaintext';
+                $code = $matches[2];
+
+                return sprintf(
+                    '<div class="code-block-container"><pre><code class="language-%s">%s</code></pre></div>',
+                    $language,
+                    $code
+                );
+            },
+            $html
+        );
+
+        return $html;
     }
 
     /**

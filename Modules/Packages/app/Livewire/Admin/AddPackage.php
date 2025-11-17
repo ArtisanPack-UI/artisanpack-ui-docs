@@ -17,6 +17,7 @@ class AddPackage extends Component
     public string $wiki_url = '';
     public string $changelog_url = '';
 	public string $icon = '';
+	public ?string $version = '';
 
     public function addPackage() {
         $validated = $this->validate([
@@ -26,6 +27,7 @@ class AddPackage extends Component
             'wiki_url' => 'nullable|string',
             'changelog_url' => 'nullable|string',
 			'icon' => 'nullable|string',
+			'version' => 'nullable|string',
         ]);
 
         $package = Package::create($validated);

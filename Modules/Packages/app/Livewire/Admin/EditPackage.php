@@ -30,6 +30,7 @@ class EditPackage extends Component
     public ?string $icon = '';
 
     public array $pages = [];
+	public ?string $version = '';
 
     public function mount(Package $package)
     {
@@ -41,6 +42,7 @@ class EditPackage extends Component
         $this->changelog_url = $package->changelog_url;
         $this->icon = $package->icon;
         $this->pages = $package->documentation()->get()->toArray();
+		$this->version = $package->version;
     }
 
     public function updatePackage()
@@ -52,6 +54,7 @@ class EditPackage extends Component
             'wiki_url' => 'nullable|string',
             'changelog_url' => 'nullable|string',
             'icon' => 'nullable|string',
+			'version' => 'nullable|string',
         ]);
 
         $this->package->update($validated);
@@ -67,7 +70,10 @@ class EditPackage extends Component
             return;
         }
 
-        $gitlabToken = Setting::where('key', 'gitlab_token')->first()?->value;
+        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
+
+        // Decrypt the token (it's stored encrypted for security)
+        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
 
         if (empty($gitlabToken)) {
             $this->error('GitLab token not configured in settings.');
@@ -88,7 +94,10 @@ class EditPackage extends Component
             return;
         }
 
-        $gitlabToken = Setting::where('key', 'gitlab_token')->first()?->value;
+        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
+
+        // Decrypt the token (it's stored encrypted for security)
+        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
 
         if (empty($gitlabToken)) {
             $this->error('GitLab token not configured in settings.');

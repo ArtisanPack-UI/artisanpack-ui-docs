@@ -18,6 +18,7 @@ class Package extends Model
         'wiki_url',
         'changelog_url',
         'icon',
+		'version',
     ];
 
     protected static function newFactory()

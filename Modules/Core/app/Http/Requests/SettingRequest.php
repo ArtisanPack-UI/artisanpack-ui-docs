@@ -16,6 +16,8 @@ class SettingRequest extends FormRequest
 
 	public function authorize(): bool
 	{
-		return true;
+		// Only authenticated users can manage settings
+		// Additional role/permission checks can be added here if needed
+		return $this->user() !== null;
 	}
 }

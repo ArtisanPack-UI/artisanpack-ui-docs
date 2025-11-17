@@ -22,7 +22,9 @@
                     <div class="space-y-4">
                         <x-artisanpack-select wire:model="homepage" label="Homepage" :options="$pages" option-label="title" placeholder="Select a page" />
 
-                        <x-artisanpack-input wire:model.live="icon" label="Icon" />
+                        <x-artisanpack-input wire:model="icon" label="Icon" />
+
+                        <x-artisanpack-input wire:model="version" label="Version" />
                     </div>
 
                     <x-slot:actions>

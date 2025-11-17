@@ -19,7 +19,11 @@ class SettingsPage extends Component
 
     public function mount() {
         $settings = Setting::get();
-        $this->gitLabToken = $settings->firstWhere('key', 'gitlab_token')?->value ?? '';
+
+        // Decrypt the GitLab token when retrieving it
+        $encryptedToken = $settings->firstWhere('key', 'gitlab_token')?->value;
+        $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
+
         $this->homePage = $settings->firstWhere('key', 'homePage')?->value ?? '';
     }
 
@@ -30,9 +34,14 @@ class SettingsPage extends Component
         ]);
 
        if ($validated) {
+           // Encrypt the GitLab token before storing it for security
+           $tokenValue = !empty($validated['gitLabToken'])
+               ? encrypt($validated['gitLabToken'])
+               : null;
+
            Setting::updateOrCreate(
                ['key' => 'gitlab_token'],
-               ['value' => $validated['gitLabToken']]
+               ['value' => $tokenValue]
            );
 
            Setting::updateOrCreate(

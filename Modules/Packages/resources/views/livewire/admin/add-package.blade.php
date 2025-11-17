@@ -23,6 +23,8 @@
                         <x-artisanpack-select wire:model="home" label="Homepage" :options="[]" />
 
                         <x-artisanpack-input wire:model.live="icon" label="Icon" />
+
+                        <x-artisanpack-input wire:model.live="version" label="Version" />
                     </div>
 
                     <x-slot:actions>

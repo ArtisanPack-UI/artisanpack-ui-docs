@@ -30,23 +30,31 @@ h1 {
 }
 
 h2 {
-    @apply text-2xl font-bold mb-3
+    @apply text-2xl font-bold mb-4
 }
 
 h3 {
-    @apply text-xl font-bold mb-2
+    @apply text-xl font-bold mb-4
 }
 
 h4 {
-    @apply text-lg font-bold mb-1
+    @apply text-lg font-bold mb-4
 }
 
 ul {
     @apply list-disc list-inside pl-4
 }
 
+ol {
+    @apply list-decimal list-inside pl-4 mb-4
+}
+
 pre {
     @apply mb-4
+}
+
+body {
+    line-height: 1.5;
 }
 
 /**
@@ -93,41 +101,103 @@ pre {
     }
 
     ul {
-        @apply mb-1
+        @apply mb-4
+    }
+
+    /* Code block container */
+    .code-block-container {
+        @apply relative my-6;
     }
 
     /* Code block styles */
-    pre {
-        @apply relative rounded-lg overflow-x-auto my-4 p-4 bg-base-300;
+    pre[class*="language-"] {
+        @apply rounded-lg my-0 shadow-lg;
         max-width: 100%;
+        overflow-x: auto;
+        padding: 1.5rem !important;
+        margin: 0 !important;
     }
 
-    pre code {
-        @apply block overflow-x-auto;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-        font-size: 0.875rem;
-        line-height: 1.5;
+    code[class*="language-"] {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
+        font-size: 0.875rem !important;
+        line-height: 1.6 !important;
+        text-shadow: none !important;
     }
 
     /* Inline code styles */
     :not(pre) > code {
-        @apply px-1.5 py-0.5 rounded bg-base-300 text-accent;
+        @apply px-2 py-0.5 rounded bg-base-300 text-accent font-semibold;
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
         font-size: 0.875em;
     }
 
     /* Copy button styles */
-    .code-block-wrapper {
-        @apply relative;
+    .copy-code-button {
+        @apply absolute top-3 right-3 btn btn-sm opacity-70 hover:opacity-100 transition-all duration-200;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.9);
     }
 
-    .copy-code-button {
-        @apply absolute top-2 right-2 btn btn-xs btn-ghost opacity-70 hover:opacity-100 transition-opacity;
+    .copy-code-button:hover {
+        background: rgba(0, 0, 0, 0.6);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
     }
 
     .copy-code-button.copied {
-        @apply btn-success;
+        background: #10b981 !important;
+        color: white !important;
+        border-color: #059669 !important;
+        opacity: 1 !important;
+        transform: scale(1.1);
     }
+
+    .copy-code-button svg {
+        @apply w-4 h-4;
+    }
+
+    /* Copied text indicator */
+    .copy-code-button::after {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: 0;
+        background: #10b981;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    .copy-code-button.copied::after {
+        content: 'Copied!';
+        opacity: 1;
+    }
+}
+
+/* Table of Contents Styles */
+.toc-link {
+    @apply transition-all duration-200;
+}
+
+.toc-link:hover {
+    @apply bg-base-200;
+}
+
+.toc-link.font-bold {
+    @apply bg-base-200 font-semibold;
+    font-weight: 600 !important;
+}
+
+.toc-link.bg-base-200 {
+    background-color: var(--fallback-b2, oklch(var(--b2) / var(--tw-bg-opacity))) !important;
 }
 
 /* Mobile Menu Dropdown Styles */
@@ -151,6 +221,7 @@ pre {
     }
 
     #toc-nav-mobile a.font-bold {
-        @apply bg-base-200
+        @apply bg-base-200 font-semibold;
+        font-weight: 600;
     }
 }

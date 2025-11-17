@@ -20,7 +20,10 @@
       "WebFetch(domain:gitlab.com)",
       "Bash(cat:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:mary-ui.com)"
+      "WebFetch(domain:mary-ui.com)",
+      "WebFetch(domain:laravelmodules.com)",
+      "Bash(php:*)",
+      "Bash(find:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

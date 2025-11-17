@@ -19,8 +19,8 @@ class Packages extends Component
                 'label' => 'Name',
             ],
             [
-                'key' => 'slug',
-                'label' => 'Slug',
+                'key' => 'version',
+                'label' => 'Version',
             ]
         ];
     }

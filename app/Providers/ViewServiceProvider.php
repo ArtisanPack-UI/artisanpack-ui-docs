@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Setting;
 use Modules\Packages\Documentation;
 use Modules\Packages\Package;
 use Modules\Pages\Page;
@@ -46,12 +47,13 @@ class ViewServiceProvider extends ServiceProvider
                 $this->setPageActiveState($page['children'], $page['slug']);
             }
 
-            // Check if this specific page is active based on the full URL context
-            $isPageActive = $parentSlug
+            // Check if THIS specific page is the current URL
+            $page['isCurrentPage'] = $parentSlug
                 ? $this->isCurrentChildPageUrl($parentSlug, $page['slug'])
                 : $this->isCurrentTopLevelPageUrl($page['slug']);
 
-            $page['active'] = $isPageActive || $this->isChildActive($page['children'] ?? []);
+            // Check if this page or any of its children are active
+            $page['active'] = $page['isCurrentPage'] || $this->isChildActive($page['children'] ?? []);
         }
     }
 
@@ -75,7 +77,11 @@ class ViewServiceProvider extends ServiceProvider
                 $this->setDocActiveState($doc['children'], $packageSlug);
             }
 
-            $doc['active'] = $this->isCurrentDocUrl($packageSlug, $doc['slug']) || $this->isChildActive($doc['children'] ?? []);
+            // Check if THIS specific doc is the current URL
+            $doc['isCurrentPage'] = $this->isCurrentDocUrl($packageSlug, $doc['slug']);
+
+            // Check if this doc or any of its children are active
+            $doc['active'] = $doc['isCurrentPage'] || $this->isChildActive($doc['children'] ?? []);
         }
     }
 
@@ -110,10 +116,18 @@ class ViewServiceProvider extends ServiceProvider
 
     private function isCurrentDocUrl(string $packageSlug, string $docSlug): bool
     {
-        // Check if we're on a documentation page: /documentation/{package}/{slug}
-        return request()->segment(1) === 'documentation' &&
-               request()->segment(2) === $packageSlug &&
-               request()->segment(3) === $docSlug;
+        // Check if we're on a documentation page
+        if (request()->segment(1) !== 'documentation' || request()->segment(2) !== $packageSlug) {
+            return false;
+        }
+
+        // Build the full slug path from URL segments (everything after /documentation/{package}/)
+        $segments = request()->segments();
+        $urlSlugPath = implode('/', array_slice($segments, 2)); // Skip 'documentation' and package name
+
+        // Compare the URL slug path directly with the doc slug
+        // (slugs in DB are stored as full paths like "guides/usage")
+        return $urlSlugPath === $docSlug;
     }
 
     private function isCurrentChangelogUrl(string $packageSlug): bool
@@ -128,6 +142,17 @@ class ViewServiceProvider extends ServiceProvider
         // Check if we're on a top-level page: /{slug}
         // Make sure it's not a documentation or changelog page
         $firstSegment = request()->segment(1);
+
+		if (! $firstSegment) {
+			$homePage = Setting::where('key', 'homePage')->first()->value ?? 0;
+			 if ($homePage !== 0) {
+				 $homePageSlug = Page::find($homePage)->slug;
+
+				 if ($homePageSlug === $slug) {
+					 return true;
+				 }
+			 }
+		}
 
         return $firstSegment === $slug &&
                request()->segment(2) === null &&

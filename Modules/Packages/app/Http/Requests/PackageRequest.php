@@ -19,6 +19,8 @@ class PackageRequest extends FormRequest
 
 	public function authorize(): bool
 	{
-		return true;
+		// Only authenticated users can manage packages
+		// Additional role/permission checks can be added here if needed
+		return $this->user() !== null;
 	}
 }

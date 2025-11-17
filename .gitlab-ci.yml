@@ -1,0 +1,253 @@
+# GitLab CI/CD Pipeline for Laravel Application
+# Runs tests, quality checks, and deploys to Laravel Cloud
+
+# Define pipeline stages
+stages:
+  - build
+  - test
+  - quality
+  - deploy
+
+# Global variables
+variables:
+  MYSQL_DATABASE: testing
+  MYSQL_ROOT_PASSWORD: secret
+  DB_HOST: mysql
+  DB_USERNAME: root
+  DB_PASSWORD: secret
+  COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+  NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.npm-cache"
+
+# Cache configuration for faster builds
+cache:
+  key:
+    files:
+      - composer.lock
+      - package-lock.json
+  paths:
+    - .composer-cache/
+    - .npm-cache/
+    - vendor/
+    - node_modules/
+
+# Default image and services
+default:
+  image: php:8.4-cli
+  services:
+    - mysql:8.0
+  before_script:
+    # Install system dependencies
+    - apt-get update -qq
+    - apt-get install -y -qq git curl libzip-dev zip unzip libonig-dev libpq-dev nodejs npm
+
+    # Install PHP extensions
+    - docker-php-ext-install pdo_mysql mbstring zip pcntl
+
+    # Install Composer
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+    # Copy environment file
+    - cp .env.example .env
+
+    # Set application key
+    - php artisan key:generate
+
+    # Install Composer dependencies
+    - composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts
+
+    # Install NPM dependencies
+    - npm ci --prefer-offline --no-audit
+
+# ==================== BUILD STAGE ====================
+
+build:composer:
+  stage: build
+  script:
+    - composer validate --strict
+    - composer install --prefer-dist --no-ansi --no-interaction --no-progress --optimize-autoloader
+  artifacts:
+    paths:
+      - vendor/
+    expire_in: 1 hour
+  only:
+    - main
+    - develop
+    - merge_requests
+
+build:npm:
+  stage: build
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - node_modules/
+      - public/build/
+    expire_in: 1 hour
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# ==================== TEST STAGE ====================
+
+test:unit:
+  stage: test
+  needs:
+    - build:composer
+  dependencies:
+    - build:composer
+  script:
+    # Run database migrations
+    - php artisan migrate --force --seed
+
+    # Run unit tests
+    - php artisan test --testsuite=Unit --parallel --stop-on-failure
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  artifacts:
+    when: always
+    reports:
+      junit: storage/logs/junit.xml
+    paths:
+      - storage/logs/
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+    - merge_requests
+
+test:feature:
+  stage: test
+  needs:
+    - build:composer
+  dependencies:
+    - build:composer
+  script:
+    # Run database migrations
+    - php artisan migrate --force --seed
+
+    # Run feature tests
+    - php artisan test --testsuite=Feature --parallel --stop-on-failure
+  artifacts:
+    when: always
+    reports:
+      junit: storage/logs/junit.xml
+    paths:
+      - storage/logs/
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# ==================== QUALITY STAGE ====================
+
+quality:pint:
+  stage: quality
+  needs:
+    - build:composer
+  dependencies:
+    - build:composer
+  script:
+    # Run Laravel Pint in test mode (don't fix, just check)
+    - ./vendor/bin/pint --test
+  allow_failure: false
+  only:
+    - main
+    - develop
+    - merge_requests
+
+quality:security:
+  stage: quality
+  needs:
+    - build:composer
+  dependencies:
+    - build:composer
+  script:
+    # Check for known security vulnerabilities in dependencies
+    - composer audit
+  allow_failure: true
+  only:
+    - main
+    - develop
+    - merge_requests
+
+quality:npm:
+  stage: quality
+  needs:
+    - build:npm
+  dependencies:
+    - build:npm
+  script:
+    # Check for npm vulnerabilities
+    - npm audit --audit-level=high
+  allow_failure: true
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# ==================== DEPLOY STAGE ====================
+
+# Deploy to Laravel Cloud
+# Note: Laravel Cloud typically auto-deploys on push to main branch
+# This job serves as a gate - deployment only happens if all tests pass
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  needs:
+    - test:unit
+    - test:feature
+    - quality:pint
+    - build:npm
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - echo "All tests and quality checks passed!"
+    - echo "Laravel Cloud will automatically deploy this commit to production"
+    - echo "Commit SHA - $CI_COMMIT_SHA"
+    - echo "Branch - $CI_COMMIT_REF_NAME"
+
+    # Optional: Trigger Laravel Cloud deployment via API if manual control is needed
+    # Uncomment and configure if you want to use Laravel Cloud API instead of auto-deploy
+    # - |
+    #   curl -X POST "https://cloud.laravel.com/api/projects/${LARAVEL_CLOUD_PROJECT_ID}/deployments" \
+    #     -H "Authorization: Bearer ${LARAVEL_CLOUD_API_TOKEN}" \
+    #     -H "Content-Type: application/json" \
+    #     -d "{\"commit\": \"${CI_COMMIT_SHA}\"}"
+
+  environment:
+    name: production
+    url: https://your-production-domain.com
+  only:
+    - main
+  when: manual  # Require manual approval before deployment
+
+# Deploy to staging/development
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  needs:
+    - test:unit
+    - test:feature
+    - quality:pint
+    - build:npm
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - echo "Deploying to staging environment"
+    - echo "Commit SHA - $CI_COMMIT_SHA"
+
+    # Optional: Trigger staging deployment via API
+    # - |
+    #   curl -X POST "https://cloud.laravel.com/api/projects/${LARAVEL_CLOUD_STAGING_PROJECT_ID}/deployments" \
+    #     -H "Authorization: Bearer ${LARAVEL_CLOUD_API_TOKEN}" \
+    #     -H "Content-Type: application/json" \
+    #     -d "{\"commit\": \"${CI_COMMIT_SHA}\"}"
+
+  environment:
+    name: staging
+    url: https://your-staging-domain.com
+  only:
+    - develop
+  when: on_success  # Auto-deploy to staging if tests pass

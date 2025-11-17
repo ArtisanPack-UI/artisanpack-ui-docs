@@ -19,6 +19,8 @@ class DocumentationRequest extends FormRequest
 
 	public function authorize(): bool
 	{
-		return true;
+		// Only authenticated users can manage documentation
+		// Additional role/permission checks can be added here if needed
+		return $this->user() !== null;
 	}
 }

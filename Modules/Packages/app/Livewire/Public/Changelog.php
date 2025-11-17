@@ -20,11 +20,16 @@ class Changelog extends Component
     public string $content = '';
 
     public array $tableOfContents = [];
+	public string $packageName = '';
+	public string $version = '';
 
     public function mount(string $package): void
     {
         // Find the package by slug
         $this->packageModel = Package::where('slug', $package)->firstOrFail();
+
+		$this->packageName = $this->packageModel->name ?? '';
+		$this->version = $this->packageModel->version ?? '';
 
         // Find the changelog for this package
         $this->changelog = ChangelogModel::where('package_id', $this->packageModel->id)
@@ -36,7 +41,8 @@ class Changelog extends Component
         $tocService = new TableOfContentsService;
         $processed = $tocService->process($this->changelog->content, isMarkdown: true);
 
-        $this->content = $processed['content'];
+        // Sanitize HTML content to prevent XSS attacks
+        $this->content = kses($processed['content']);
         $this->tableOfContents = $tocService->buildNestedStructure($processed['headings']);
     }
 

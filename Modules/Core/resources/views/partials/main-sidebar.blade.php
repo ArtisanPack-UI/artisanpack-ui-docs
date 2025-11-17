@@ -3,7 +3,7 @@
         <div class="bg-base-100 p-4 rounded-lg">
             {{-- Pages Menu --}}
             @if(isset($sidebarPages) && count($sidebarPages) > 0)
-                <x-artisanpack-menu :title="null" activate-by-route>
+                <x-artisanpack-menu :title="null">
                     @foreach($sidebarPages as $page)
                         @include('core::partials.sidebar-page-item', ['page' => $page])
                     @endforeach
