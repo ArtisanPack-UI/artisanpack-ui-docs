@@ -63,12 +63,14 @@ class SitemapController extends Controller
             }
 
             // Add changelog page if exists
-            $urls->push([
-                'loc' => route('changelog.show', ['package' => $package->slug]),
-                'lastmod' => $package->updated_at->toW3cString(),
-                'changefreq' => 'monthly',
-                'priority' => '0.6',
-            ]);
+            if ($package->changelog()) {
+                $urls->push([
+                    'loc' => route('changelog.show', ['package' => $package->slug]),
+                    'lastmod' => $package->updated_at->toW3cString(),
+                    'changefreq' => 'monthly',
+                    'priority' => '0.6',
+                ]);
+            }
         }
 
         $content = view('sitemap', ['urls' => $urls])->render();
