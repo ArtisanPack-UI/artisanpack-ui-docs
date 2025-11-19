@@ -13,11 +13,15 @@ use Modules\Pages\Page;
 class SettingsPage extends Component
 {
     use Toast;
-    public string | null $gitLabToken = '';
 
-    public string | null $homePage = '';
+    public ?string $gitLabToken = '';
 
-    public function mount() {
+    public ?string $homePage = '';
+
+    public ?string $googleAnalyticsId = '';
+
+    public function mount(): void
+    {
         $settings = Setting::get();
 
         // Decrypt the GitLab token when retrieving it
@@ -25,36 +29,47 @@ class SettingsPage extends Component
         $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
 
         $this->homePage = $settings->firstWhere('key', 'homePage')?->value ?? '';
+        $this->googleAnalyticsId = $settings->firstWhere('key', 'google_analytics_id')?->value ?? '';
     }
 
-    public function save() {
+    public function save(): void
+    {
         $validated = $this->validate([
             'gitLabToken' => 'nullable|string',
             'homePage' => 'nullable|string',
+            'googleAnalyticsId' => 'nullable|string|regex:/^G-[A-Z0-9]+$/',
+        ], [
+            'googleAnalyticsId.regex' => 'The Google Analytics ID must be in the format G-XXXXXXXXXX',
         ]);
 
-       if ($validated) {
-           // Encrypt the GitLab token before storing it for security
-           $tokenValue = !empty($validated['gitLabToken'])
-               ? encrypt($validated['gitLabToken'])
-               : null;
+        if ($validated) {
+            // Encrypt the GitLab token before storing it for security
+            $tokenValue = ! empty($validated['gitLabToken'])
+                ? encrypt($validated['gitLabToken'])
+                : null;
 
-           Setting::updateOrCreate(
-               ['key' => 'gitlab_token'],
-               ['value' => $tokenValue]
-           );
+            Setting::updateOrCreate(
+                ['key' => 'gitlab_token'],
+                ['value' => $tokenValue]
+            );
 
-           Setting::updateOrCreate(
-             ['key' => 'homePage'],
-             ['value' => $validated['homePage']]
-           );
-       }
+            Setting::updateOrCreate(
+                ['key' => 'homePage'],
+                ['value' => $validated['homePage']]
+            );
 
-       $this->success('Settings saved successfully', 'success');
+            Setting::updateOrCreate(
+                ['key' => 'google_analytics_id'],
+                ['value' => $validated['googleAnalyticsId']]
+            );
+        }
+
+        $this->success('Settings saved successfully', 'success');
     }
 
     #[Computed]
-    public function pages() {
+    public function pages()
+    {
         return Page::all();
     }
 

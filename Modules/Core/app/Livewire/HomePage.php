@@ -17,6 +17,8 @@ class HomePage extends Component
 
     public string $content = '';
 
+    public string $metaDescription = '';
+
     public array $tableOfContents = [];
 
     public function mount(): void
@@ -28,6 +30,7 @@ class HomePage extends Component
 
             if ($this->page) {
                 $this->title = $this->page->title;
+                $this->metaDescription = $this->page->meta_description ?? '';
 
                 // Sanitize content first with kses
                 $sanitizedContent = kses($this->page->content);
@@ -44,6 +47,10 @@ class HomePage extends Component
 
     public function render()
     {
-        return view('core::livewire.home-page');
+        return view('core::livewire.home-page')
+            ->layoutData([
+                'title' => $this->title,
+                'metaDescription' => $this->metaDescription,
+            ]);
     }
 }

@@ -17,6 +17,8 @@ class Page extends Component
 
     public string $content = '';
 
+    public string $metaDescription = '';
+
     public array $tableOfContents = [];
 
     public function mount(string $slug, ?string $parentSlug = null): void
@@ -41,6 +43,7 @@ class Page extends Component
         }
 
         $this->title = $this->page->title;
+        $this->metaDescription = $this->page->meta_description ?? '';
 
         // Sanitize content first with kses
         $sanitizedContent = kses($this->page->content);
@@ -55,6 +58,10 @@ class Page extends Component
 
     public function render()
     {
-        return view('pages::livewire.public.page');
+        return view('pages::livewire.public.page')
+            ->layoutData([
+                'title' => $this->title,
+                'metaDescription' => $this->metaDescription,
+            ]);
     }
 }

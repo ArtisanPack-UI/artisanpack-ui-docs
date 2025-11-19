@@ -27,6 +27,8 @@
                         <x-artisanpack-input type="number" wire:model.live="menu_order" label="Order" />
 
                         <x-artisanpack-input wire:model.live="icon" label="Icon" />
+
+                        <x-artisanpack-textarea wire:model="meta_description" label="Meta Description" hint="SEO description (max 160 characters)" maxlength="160" rows="3" />
                     </div>
 
                     <x-slot:actions>
