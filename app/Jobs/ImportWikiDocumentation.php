@@ -66,6 +66,9 @@ class ImportWikiDocumentation implements ShouldQueue
                 $gitlabTitle = $fullPage['title'] ?? $wikiPage['title'] ?? null;
                 $title = $yamlTitle ?? $h1Title ?? ($gitlabTitle ? $this->toTitleCase($gitlabTitle) : $wikiPage['slug']);
 
+                // Generate meta description from content
+                $metaDescription = $this->generateMetaDescription($cleanedContent);
+
                 // Create or update documentation
                 Documentation::updateOrCreate(
                     [
@@ -75,6 +78,7 @@ class ImportWikiDocumentation implements ShouldQueue
                     [
                         'title' => $title,
                         'content' => $cleanedContent,
+                        'meta_description' => $metaDescription,
                         'parent' => null, // Will be set in the next step
                     ]
                 );
@@ -191,6 +195,47 @@ class ImportWikiDocumentation implements ShouldQueue
 
             return "[{$linkText}]({$newUrl})";
         }, $content);
+    }
+
+    /**
+     * Generate a meta description from content by stripping tags and truncating
+     */
+    protected function generateMetaDescription(string $content): string
+    {
+        // Convert markdown to plain text
+        $text = $content;
+
+        // Remove markdown headers
+        $text = preg_replace('/^#+\s+.+$/m', '', $text);
+
+        // Remove markdown links but keep text
+        $text = preg_replace('/\[([^\]]+)\]\([^)]+\)/', '$1', $text);
+
+        // Remove markdown bold/italic
+        $text = preg_replace('/[*_]{1,3}([^*_]+)[*_]{1,3}/', '$1', $text);
+
+        // Remove code blocks
+        $text = preg_replace('/```[\s\S]*?```/', '', $text);
+        $text = preg_replace('/`[^`]+`/', '', $text);
+
+        // Remove HTML tags
+        $text = strip_tags($text);
+
+        // Normalize whitespace
+        $text = preg_replace('/\s+/', ' ', $text);
+        $text = trim($text);
+
+        // Truncate to 155 characters on word boundary
+        if (strlen($text) > 155) {
+            $text = substr($text, 0, 155);
+            $lastSpace = strrpos($text, ' ');
+            if ($lastSpace !== false) {
+                $text = substr($text, 0, $lastSpace);
+            }
+            $text = rtrim($text, '.,;:!?').'...';
+        }
+
+        return $text;
     }
 
     /**

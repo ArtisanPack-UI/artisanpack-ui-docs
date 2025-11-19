@@ -20,17 +20,20 @@ class Documentation extends Component
     public string $content = '';
 
     public array $tableOfContents = [];
-	public string $packageName = '';
-	public string $version = '';
 
+    public string $packageName = '';
+
+    public string $version = '';
+
+    public string $metaDescription = '';
 
     public function mount(string $package, string $slug): void
     {
         // Find the package by slug
         $this->packageModel = Package::where('slug', $package)->firstOrFail();
 
-		$this->packageName = $this->packageModel->name ?? '';
-		$this->version = $this->packageModel->version ?? '';
+        $this->packageName = $this->packageModel->name ?? '';
+        $this->version = $this->packageModel->version ?? '';
 
         // Find the documentation by slug and package
         $this->documentation = DocumentationModel::where('slug', $slug)
@@ -38,6 +41,7 @@ class Documentation extends Component
             ->firstOrFail();
 
         $this->title = $this->documentation->title;
+        $this->metaDescription = $this->documentation->meta_description ?? '';
 
         // Process content and extract table of contents
         $tocService = new TableOfContentsService;
@@ -50,6 +54,10 @@ class Documentation extends Component
 
     public function render()
     {
-        return view('packages::livewire.public.documentation');
+        return view('packages::livewire.public.documentation')
+            ->layoutData([
+                'title' => $this->title,
+                'metaDescription' => $this->metaDescription,
+            ]);
     }
 }
