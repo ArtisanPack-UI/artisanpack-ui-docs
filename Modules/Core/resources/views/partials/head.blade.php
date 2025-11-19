@@ -6,6 +6,7 @@
     $pageTitle = isset($title) && $title ? $title . ' - ' . config('app.name') : config('app.name');
     $pageDescription = isset($metaDescription) && $metaDescription ? $metaDescription : config('app.description', 'ArtisanPack UI documentation and guides for Laravel packages.');
     $canonicalUrl = url()->current();
+    $gaId = \Modules\Core\Setting::where('key', 'google_analytics_id')->first()?->value;
 @endphp
 
 <title>{{ $pageTitle }}</title>
@@ -26,6 +27,17 @@
 <meta name="twitter:url" content="{{ $canonicalUrl }}">
 <meta name="twitter:title" content="{{ $pageTitle }}">
 <meta name="twitter:description" content="{{ $pageDescription }}">
+
+<!-- Google Analytics (only for non-logged-in users) -->
+@if($gaId && !auth()->check())
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ $gaId }}');
+</script>
+@endif
 <link rel="icon" type="image/png" href="{{ asset('images/favicon-96x96.png') }}" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}" />
 <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}" />
