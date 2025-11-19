@@ -89,7 +89,7 @@ test('reorderDocumentation updates menu order correctly', function () {
 
     Livewire::actingAs($user)
         ->test(ManageDocumentation::class, ['package' => $package])
-        ->call('reorderDocumentation', 1, 0)
+        ->call('reorderDocumentation', [$doc2->id, $doc1->id])
         ->assertHasNoErrors();
 
     expect(Documentation::find($doc2->id)->menu_order)->toBe(0);
@@ -127,7 +127,7 @@ test('reorderDocumentation only reorders top level items', function () {
 
     Livewire::actingAs($user)
         ->test(ManageDocumentation::class, ['package' => $package])
-        ->call('reorderDocumentation', 1, 0)
+        ->call('reorderDocumentation', [$parent2->id, $parent1->id])
         ->assertHasNoErrors();
 
     $updatedParent1 = Documentation::find($parent1->id);
@@ -146,4 +146,43 @@ test('component displays no documentation message when package has no docs', fun
     Livewire::actingAs($user)
         ->test(ManageDocumentation::class, ['package' => $package])
         ->assertSee('No documentation pages found for this package.');
+});
+
+test('reorderChildDocumentation updates child menu order correctly', function () {
+    $user = User::factory()->create();
+    $package = Package::factory()->create();
+
+    $parent = Documentation::create([
+        'title' => 'Parent Documentation',
+        'slug' => 'parent',
+        'package_id' => $package->id,
+        'content' => 'Parent content',
+        'menu_order' => 0,
+    ]);
+
+    $child1 = Documentation::create([
+        'title' => 'Child 1',
+        'slug' => 'child-1',
+        'parent' => $parent->id,
+        'package_id' => $package->id,
+        'content' => 'Child 1 content',
+        'menu_order' => 0,
+    ]);
+
+    $child2 = Documentation::create([
+        'title' => 'Child 2',
+        'slug' => 'child-2',
+        'parent' => $parent->id,
+        'package_id' => $package->id,
+        'content' => 'Child 2 content',
+        'menu_order' => 1,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ManageDocumentation::class, ['package' => $package])
+        ->call('reorderChildDocumentation', $parent->id, [$child2->id, $child1->id])
+        ->assertHasNoErrors();
+
+    expect(Documentation::find($child2->id)->menu_order)->toBe(0);
+    expect(Documentation::find($child1->id)->menu_order)->toBe(1);
 });

@@ -78,7 +78,7 @@ test('reorderPages updates menu order correctly', function () {
 
     Livewire::actingAs($user)
         ->test(ManagePageOrder::class)
-        ->call('reorderPages', 1, 0)
+        ->call('reorderPages', [$page2->id, $page1->id])
         ->assertHasNoErrors();
 
     expect(Page::find($page2->id)->menu_order)->toBe(0);
@@ -112,7 +112,7 @@ test('reorderPages only reorders top level items', function () {
 
     Livewire::actingAs($user)
         ->test(ManagePageOrder::class)
-        ->call('reorderPages', 1, 0)
+        ->call('reorderPages', [$parent2->id, $parent1->id])
         ->assertHasNoErrors();
 
     $updatedParent1 = Page::find($parent1->id);
@@ -130,4 +130,39 @@ test('component displays no pages message when there are no pages', function () 
     Livewire::actingAs($user)
         ->test(ManagePageOrder::class)
         ->assertSee('No pages found.');
+});
+
+test('reorderChildPages updates child menu order correctly', function () {
+    $user = User::factory()->create();
+
+    $parent = Page::create([
+        'title' => 'Parent Page',
+        'slug' => 'parent',
+        'content' => 'Parent content',
+        'menu_order' => 0,
+    ]);
+
+    $child1 = Page::create([
+        'title' => 'Child 1',
+        'slug' => 'child-1',
+        'parent' => $parent->id,
+        'content' => 'Child 1 content',
+        'menu_order' => 0,
+    ]);
+
+    $child2 = Page::create([
+        'title' => 'Child 2',
+        'slug' => 'child-2',
+        'parent' => $parent->id,
+        'content' => 'Child 2 content',
+        'menu_order' => 1,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ManagePageOrder::class)
+        ->call('reorderChildPages', $parent->id, [$child2->id, $child1->id])
+        ->assertHasNoErrors();
+
+    expect(Page::find($child2->id)->menu_order)->toBe(0);
+    expect(Page::find($child1->id)->menu_order)->toBe(1);
 });

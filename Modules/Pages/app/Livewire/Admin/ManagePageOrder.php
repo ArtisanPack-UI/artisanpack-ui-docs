@@ -59,34 +59,29 @@ class ManagePageOrder extends Component
         return $branch;
     }
 
-    public function reorderPages(int $oldIndex, int $newIndex): void
+    public function reorderPages(array $orderedIds): void
     {
-        // Get all top-level pages (not children)
-        $pages = Page::whereNull('parent')
-            ->orderBy('menu_order')
-            ->orderBy('id')
-            ->get()
-            ->toArray();
-
-        // Validate indices
-        if ($oldIndex < 0 || $oldIndex >= count($pages) || $newIndex < 0 || $newIndex >= count($pages)) {
-            return;
-        }
-
-        // Remove item from old position
-        $item = array_splice($pages, $oldIndex, 1)[0];
-
-        // Insert item at new position
-        array_splice($pages, $newIndex, 0, [$item]);
-
-        // Update menu_order for all items
-        foreach ($pages as $index => $page) {
-            Page::where('id', $page['id'])
+        // Update menu_order for all items based on their position in the ordered array
+        foreach ($orderedIds as $index => $id) {
+            Page::where('id', $id)
                 ->update(['menu_order' => $index]);
         }
 
         $this->loadPages();
         $this->success('Page order updated successfully!');
+    }
+
+    public function reorderChildPages(int $parentId, array $orderedIds): void
+    {
+        // Update menu_order for all child items based on their position in the ordered array
+        foreach ($orderedIds as $index => $id) {
+            Page::where('id', $id)
+                ->where('parent', $parentId)
+                ->update(['menu_order' => $index]);
+        }
+
+        $this->loadPages();
+        $this->success('Child page order updated successfully!');
     }
 
     public function render()

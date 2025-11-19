@@ -25,13 +25,13 @@
                 <div
                     x-data="{
                         handleReorder: function(event) {
-                            const { oldIndex, newIndex } = event.detail;
-                            if (oldIndex !== newIndex) {
-                                $wire.reorderPages(oldIndex, newIndex);
+                            const { orderedIds } = event.detail;
+                            if (orderedIds && orderedIds.length > 0) {
+                                $wire.reorderPages(orderedIds);
                             }
                         }
                     }"
-                    x-drag-context="handleReorder"
+                    x-drag-context
                     @drag:end="handleReorder($event)"
                     class="space-y-2"
                     role="list"
@@ -40,7 +40,7 @@
                     @foreach($pages as $index => $page)
                         <div
                             wire:key="page-{{ $page['id'] }}"
-                            x-drag-item="{{ json_encode(['id' => $page['id'], 'index' => $index, 'title' => $page['title']]) }}"
+                            x-drag-item="{{ $page['id'] }}"
                             class="flex items-center gap-3 p-3 bg-base-200 rounded-lg cursor-move hover:bg-base-300 transition-colors"
                             role="listitem"
                         >
@@ -54,11 +54,27 @@
                         </div>
 
                         @if(isset($page['children']) && count($page['children']) > 0)
-                            <div class="ml-8 space-y-2">
+                            <div
+                                x-data="{
+                                    handleChildReorder: function(event) {
+                                        const { orderedIds } = event.detail;
+                                        if (orderedIds && orderedIds.length > 0) {
+                                            $wire.reorderChildPages({{ $page['id'] }}, orderedIds);
+                                        }
+                                    }
+                                }"
+                                x-drag-context
+                                @drag:end="handleChildReorder($event)"
+                                class="ml-8 space-y-2"
+                                role="list"
+                                aria-label="Draggable child page list for {{ $page['title'] }}"
+                            >
                                 @foreach($page['children'] as $childIndex => $child)
                                     <div
                                         wire:key="page-child-{{ $child['id'] }}"
-                                        class="flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-75"
+                                        x-drag-item="{{ $child['id'] }}"
+                                        class="flex items-center gap-3 p-3 bg-base-200 rounded-lg cursor-move hover:bg-base-300 transition-colors"
+                                        role="listitem"
                                     >
                                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>

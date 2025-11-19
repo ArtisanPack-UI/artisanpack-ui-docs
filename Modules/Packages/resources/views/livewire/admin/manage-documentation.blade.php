@@ -25,13 +25,13 @@
                 <div
                     x-data="{
                         handleReorder: function(event) {
-                            const { oldIndex, newIndex } = event.detail;
-                            if (oldIndex !== newIndex) {
-                                $wire.reorderDocumentation(oldIndex, newIndex);
+                            const { orderedIds } = event.detail;
+                            if (orderedIds && orderedIds.length > 0) {
+                                $wire.reorderDocumentation(orderedIds);
                             }
                         }
                     }"
-                    x-drag-context="handleReorder"
+                    x-drag-context
                     @drag:end="handleReorder($event)"
                     class="space-y-2"
                     role="list"
@@ -40,7 +40,7 @@
                     @foreach($documentation as $index => $doc)
                         <div
                             wire:key="doc-{{ $doc['id'] }}"
-                            x-drag-item="{{ json_encode(['id' => $doc['id'], 'index' => $index, 'title' => $doc['title']]) }}"
+                            x-drag-item="{{ $doc['id'] }}"
                             class="flex items-center gap-3 p-3 bg-base-200 rounded-lg cursor-move hover:bg-base-300 transition-colors"
                             role="listitem"
                         >
@@ -54,11 +54,27 @@
                         </div>
 
                         @if(isset($doc['children']) && count($doc['children']) > 0)
-                            <div class="ml-8 space-y-2">
+                            <div
+                                x-data="{
+                                    handleChildReorder: function(event) {
+                                        const { orderedIds } = event.detail;
+                                        if (orderedIds && orderedIds.length > 0) {
+                                            $wire.reorderChildDocumentation({{ $doc['id'] }}, orderedIds);
+                                        }
+                                    }
+                                }"
+                                x-drag-context
+                                @drag:end="handleChildReorder($event)"
+                                class="ml-8 space-y-2"
+                                role="list"
+                                aria-label="Draggable child documentation list for {{ $doc['title'] }}"
+                            >
                                 @foreach($doc['children'] as $childIndex => $child)
                                     <div
                                         wire:key="doc-child-{{ $child['id'] }}"
-                                        class="flex items-center gap-3 p-3 bg-base-200 rounded-lg opacity-75"
+                                        x-drag-item="{{ $child['id'] }}"
+                                        class="flex items-center gap-3 p-3 bg-base-200 rounded-lg cursor-move hover:bg-base-300 transition-colors"
+                                        role="listitem"
                                     >
                                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>

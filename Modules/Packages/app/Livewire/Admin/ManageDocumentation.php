@@ -64,35 +64,29 @@ class ManageDocumentation extends Component
         return $branch;
     }
 
-    public function reorderDocumentation(int $oldIndex, int $newIndex): void
+    public function reorderDocumentation(array $orderedIds): void
     {
-        // Get all top-level documentation (not children) for this package
-        $docs = Documentation::where('package_id', $this->package->id)
-            ->whereNull('parent')
-            ->orderBy('menu_order')
-            ->orderBy('id')
-            ->get()
-            ->toArray();
-
-        // Validate indices
-        if ($oldIndex < 0 || $oldIndex >= count($docs) || $newIndex < 0 || $newIndex >= count($docs)) {
-            return;
-        }
-
-        // Remove item from old position
-        $item = array_splice($docs, $oldIndex, 1)[0];
-
-        // Insert item at new position
-        array_splice($docs, $newIndex, 0, [$item]);
-
-        // Update menu_order for all items
-        foreach ($docs as $index => $doc) {
-            Documentation::where('id', $doc['id'])
+        // Update menu_order for all items based on their position in the ordered array
+        foreach ($orderedIds as $index => $id) {
+            Documentation::where('id', $id)
                 ->update(['menu_order' => $index]);
         }
 
         $this->loadDocumentation();
         $this->success('Documentation order updated successfully!');
+    }
+
+    public function reorderChildDocumentation(int $parentId, array $orderedIds): void
+    {
+        // Update menu_order for all child items based on their position in the ordered array
+        foreach ($orderedIds as $index => $id) {
+            Documentation::where('id', $id)
+                ->where('parent', $parentId)
+                ->update(['menu_order' => $index]);
+        }
+
+        $this->loadDocumentation();
+        $this->success('Child documentation order updated successfully!');
     }
 
     public function render()
