@@ -1,2 +1,14 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Block admin and API routes
+Disallow: /dashboard
+Disallow: /dashboard/*
+Disallow: /api/
+Disallow: /login
+Disallow: /logout
+Disallow: /settings
+Disallow: /settings/*
+
+# Sitemap
+Sitemap: https://docs.artisanpack.io/sitemap.xml

@@ -19,6 +19,7 @@ class Documentation extends Model
         'menu_order',
         'package_id',
         'content',
+        'meta_description',
     ];
 
     public function package(): BelongsTo
@@ -26,7 +27,8 @@ class Documentation extends Model
         return $this->belongsTo(Package::class);
     }
 
-	public function isPackageHome() {
-		return intval($this->package()->homepage) === intval($this->id);
-	}
+    public function isPackageHome()
+    {
+        return intval($this->package()->homepage) === intval($this->id);
+    }
 }

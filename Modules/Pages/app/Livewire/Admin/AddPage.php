@@ -11,41 +11,51 @@ use Modules\Pages\Page;
 #[Layout('admin::layouts.admin')]
 class AddPage extends Component
 {
-	use Toast;
+    use Toast;
 
-	public string $title = '';
-	public string $slug = '';
-	public string $content = '';
-	public int $parent = 0;
-	public int $menu_order = 0;
-	public string $icon = '';
+    public string $title = '';
 
-	public function save()
-	{
-		$validated = $this->validate([
-			'title' => 'required|string',
-			'slug' => 'required|string',
-			'content' => 'required|string',
-			'parent' => 'nullable|integer',
-			'menu_order' => 'nullable|integer',
-			'icon' => 'nullable|string',
-		]);
+    public string $slug = '';
 
-		$page = Page::create($validated);
+    public string $content = '';
 
-		$this->success('Page created successfully.');
+    public string $meta_description = '';
 
-        $this->redirect(route('dashboard.pages.edit', [ 'page' => $page->id ]));
-	}
+    public int $parent = 0;
 
-	#[Computed]
-	public function pages() {
-		return Page::all();
-	}
+    public int $menu_order = 0;
 
-	public function updatedTitle() {
-		$this->slug = strtolower(str_replace(' ', '-', $this->title));
-	}
+    public string $icon = '';
+
+    public function save()
+    {
+        $validated = $this->validate([
+            'title' => 'required|string',
+            'slug' => 'required|string',
+            'content' => 'required|string',
+            'meta_description' => 'nullable|string|max:160',
+            'parent' => 'nullable|integer',
+            'menu_order' => 'nullable|integer',
+            'icon' => 'nullable|string',
+        ]);
+
+        $page = Page::create($validated);
+
+        $this->success('Page created successfully.');
+
+        $this->redirect(route('dashboard.pages.edit', ['page' => $page->id]));
+    }
+
+    #[Computed]
+    public function pages()
+    {
+        return Page::all();
+    }
+
+    public function updatedTitle()
+    {
+        $this->slug = strtolower(str_replace(' ', '-', $this->title));
+    }
 
     public function render()
     {

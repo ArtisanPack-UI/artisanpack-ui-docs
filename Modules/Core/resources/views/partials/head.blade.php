@@ -1,7 +1,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ isset($title) ? $title.' - '.config('app.name') : config('app.name') }}</title>
+
+@php
+    $pageTitle = isset($title) && $title ? $title . ' - ' . config('app.name') : config('app.name');
+    $pageDescription = isset($metaDescription) && $metaDescription ? $metaDescription : config('app.description', 'ArtisanPack UI documentation and guides for Laravel packages.');
+    $canonicalUrl = url()->current();
+@endphp
+
+<title>{{ $pageTitle }}</title>
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="{{ $pageDescription }}">
+<link rel="canonical" href="{{ $canonicalUrl }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ $canonicalUrl }}">
+<meta property="og:title" content="{{ $pageTitle }}">
+<meta property="og:description" content="{{ $pageDescription }}">
+<meta property="og:site_name" content="{{ config('app.name') }}">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:url" content="{{ $canonicalUrl }}">
+<meta name="twitter:title" content="{{ $pageTitle }}">
+<meta name="twitter:description" content="{{ $pageDescription }}">
 <link rel="icon" type="image/png" href="{{ asset('images/favicon-96x96.png') }}" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}" />
 <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}" />
