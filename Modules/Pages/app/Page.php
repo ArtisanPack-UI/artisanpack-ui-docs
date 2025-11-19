@@ -16,9 +16,10 @@ class Page extends Model
         'title',
         'slug',
         'content',
+        'meta_description',
         'parent',
-		'menu_order',
-		'icon'
+        'menu_order',
+        'icon',
     ];
 
     public function parentPage(): BelongsTo
@@ -31,7 +32,8 @@ class Page extends Model
         return $this->hasMany(Page::class, 'parent');
     }
 
-	public function isHomePage(): bool {
-		return intval(Setting::where('key', 'homePage')->first()->value) === intval($this->id);
-	}
+    public function isHomePage(): bool
+    {
+        return intval(Setting::where('key', 'homePage')->first()->value) === intval($this->id);
+    }
 }
