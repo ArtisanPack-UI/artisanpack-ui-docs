@@ -21,9 +21,9 @@ class EditPage extends Component
 
     public string $meta_description = '';
 
-    public int $parent = 0;
+    public ?int $parent = 0;
 
-    public int $menu_order = 0;
+    public ?int $menu_order = 0;
 
     public ?string $icon = '';
 
