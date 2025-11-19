@@ -11,4 +11,4 @@ Disallow: /settings
 Disallow: /settings/*
 
 # Sitemap
-Sitemap: https://docs.artisanpack.io/sitemap.xml
+Sitemap: https://docs.artisanpack.dev/sitemap.xml
