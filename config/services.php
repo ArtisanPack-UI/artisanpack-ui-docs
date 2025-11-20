@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'google' => [
+        'credentials_path' => env('GOOGLE_APPLICATION_CREDENTIALS'),
+        'analytics_property_id' => env('GOOGLE_ANALYTICS_PROPERTY_ID'),
+        'search_console_site_url' => env('GOOGLE_SEARCH_CONSOLE_SITE_URL'),
+    ],
+
 ];

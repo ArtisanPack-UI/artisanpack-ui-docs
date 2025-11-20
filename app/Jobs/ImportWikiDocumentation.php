@@ -89,6 +89,9 @@ class ImportWikiDocumentation implements ShouldQueue
             // Set up parent relationships for subpages
             $this->setParentRelationships();
 
+            // Update the docs_imported_at timestamp
+            $this->package->update(['docs_imported_at' => now()]);
+
             Log::info('Successfully imported {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),
                 'package' => $this->package->name,

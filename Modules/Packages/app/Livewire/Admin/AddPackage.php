@@ -11,23 +11,34 @@ use Modules\Packages\Package;
 class AddPackage extends Component
 {
     use Toast;
-    public string $name = '';
-    public string $slug = '';
-    public int|null $home = null;
-    public string $wiki_url = '';
-    public string $changelog_url = '';
-	public string $icon = '';
-	public ?string $version = '';
 
-    public function addPackage() {
+    public string $name = '';
+
+    public string $slug = '';
+
+    public ?int $home = null;
+
+    public string $wiki_url = '';
+
+    public string $changelog_url = '';
+
+    public string $icon = '';
+
+    public ?string $version = '';
+
+    public ?string $package_registry = null;
+
+    public function addPackage()
+    {
         $validated = $this->validate([
             'name' => 'required|string',
             'slug' => 'required|string',
             'home' => 'nullable|integer',
             'wiki_url' => 'nullable|string',
             'changelog_url' => 'nullable|string',
-			'icon' => 'nullable|string',
-			'version' => 'nullable|string',
+            'icon' => 'nullable|string',
+            'version' => 'nullable|string',
+            'package_registry' => 'nullable|in:packagist,npm',
         ]);
 
         $package = Package::create($validated);
@@ -37,7 +48,8 @@ class AddPackage extends Component
         $this->redirectRoute('dashboard.packages.edit', ['package' => $package->id]);
     }
 
-    public function updatedName() {
+    public function updatedName()
+    {
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
     }
 

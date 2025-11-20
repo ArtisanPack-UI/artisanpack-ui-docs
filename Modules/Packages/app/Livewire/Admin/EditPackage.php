@@ -30,7 +30,10 @@ class EditPackage extends Component
     public ?string $icon = '';
 
     public array $pages = [];
-	public ?string $version = '';
+
+    public ?string $version = '';
+
+    public ?string $package_registry = null;
 
     public function mount(Package $package)
     {
@@ -42,7 +45,8 @@ class EditPackage extends Component
         $this->changelog_url = $package->changelog_url;
         $this->icon = $package->icon;
         $this->pages = $package->documentation()->get()->toArray();
-		$this->version = $package->version;
+        $this->version = $package->version;
+        $this->package_registry = $package->package_registry;
     }
 
     public function updatePackage()
@@ -54,7 +58,8 @@ class EditPackage extends Component
             'wiki_url' => 'nullable|string',
             'changelog_url' => 'nullable|string',
             'icon' => 'nullable|string',
-			'version' => 'nullable|string',
+            'version' => 'nullable|string',
+            'package_registry' => 'nullable|in:packagist,npm',
         ]);
 
         $this->package->update($validated);
