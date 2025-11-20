@@ -25,6 +25,19 @@
                         <x-artisanpack-input wire:model="icon" label="Icon" />
 
                         <x-artisanpack-input wire:model="version" label="Version" />
+
+                        <x-artisanpack-select
+                            wire:model="package_registry"
+                            label="Package Registry"
+                            placeholder="Select registry type"
+                            :options="[
+                                ['id' => 'packagist', 'name' => 'Packagist (Composer)'],
+                                ['id' => 'npm', 'name' => 'NPM (JavaScript)'],
+                            ]"
+                            option-value="id"
+                            option-label="name"
+                            hint="Package name will be auto-generated from slug"
+                        />
                     </div>
 
                     <x-slot:actions>

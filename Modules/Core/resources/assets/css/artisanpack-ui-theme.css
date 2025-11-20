@@ -105,6 +105,9 @@
     --background-image-primary-accent-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
     --background-image-secondary-accent-gradient: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
     --background-image-primary-secondary-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    --background-image-secondary-primary-gradient: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+    --background-image-accent-primary-gradient: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary) 100%);
+    --background-image-accent-secondary-gradient: linear-gradient(135deg, var(--color-accent) 0%, var(--color-secondary) 100%);
 }
 
 /**
