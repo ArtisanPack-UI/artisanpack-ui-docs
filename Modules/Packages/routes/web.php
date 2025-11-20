@@ -14,6 +14,15 @@ Route::get('/documentation/test', function () {
     return 'Documentation route is working!';
 });
 
+// Redirect old changelog documentation pages to changelogs section
+Route::get('/documentation/{package}/changelog', function ($package) {
+    return redirect()->route('changelog.show', ['package' => $package], 301);
+});
+
+Route::get('/documentation/{package}/changelogs', function ($package) {
+    return redirect()->route('changelog.show', ['package' => $package], 301);
+});
+
 // Public documentation route
 Route::get('/documentation/{package}/{slug}', Documentation::class)
     ->where('slug', '.*')

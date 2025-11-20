@@ -5,45 +5,48 @@
     {{-- Stats Row --}}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {{-- Total Packages --}}
-        <div class="p-[1px] rounded-lg bg-primary-accent-gradient flex">
+        <div class="p-[1px] rounded-lg bg-primary-accent-gradient flex items-center justify-center">
             <x-artisanpack-stat
                 title="Total Packages"
                 :value="$this->packages->count()"
                 icon="ap.puzzle"
                 color="text-primary"
-                class="fill-base-content mb-0"
+                class="fill-base-content mb-0 h-full flex items-center justify-center"
             />
         </div>
 
         {{-- Total Documentation --}}
-        <div class="p-[1px] rounded-lg bg-secondary-accent-gradient flex">
+        <div class="p-[1px] rounded-lg bg-secondary-accent-gradient flex items-center justify-center">
             <x-artisanpack-stat
                 title="Documentation Pages"
                 :value="$this->totalDocumentation"
                 icon="fas.file-lines"
                 color="text-secondary"
+                class="h-full flex items-center justify-center"
             />
         </div>
 
         {{-- Total Downloads --}}
-        <div class="p-[1px] rounded-lg bg-primary-secondary-gradient flex">
+        <div class="p-[1px] rounded-lg bg-primary-secondary-gradient flex items-center justify-center">
             <x-artisanpack-stat
                 title="Total Downloads"
                 :value="$this->formatNumber($this->totalDownloads)"
                 icon="fas.download"
                 color="text-accent"
                 description="Packagist + NPM"
+                class="h-full flex items-center justify-center"
             />
         </div>
 
         {{-- Needs Re-import Alert --}}
-        <div class="p-[1px] rounded-lg bg-secondary-primary-gradient flex">
+        <div class="p-[1px] rounded-lg bg-secondary-primary-gradient flex items-center justify-center">
             <x-artisanpack-stat
                 title="Needs Re-import"
                 :value="$this->packagesNeedingReimport"
                 icon="fas.rotate"
                 :color="$this->packagesNeedingReimport > 0 ? 'text-warning' : 'text-success'"
                 :description="$this->packagesNeedingReimport > 0 ? 'Packages with stale docs' : 'All packages up to date'"
+                class="h-full flex items-center justify-center"
             />
         </div>
     </div>

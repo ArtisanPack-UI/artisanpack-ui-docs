@@ -23,7 +23,9 @@
       "WebFetch(domain:mary-ui.com)",
       "WebFetch(domain:laravelmodules.com)",
       "Bash(php:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__laravel-boost__list-available-env-vars",
+      "mcp__laravel-boost__get-config"
     ]
   },
   "enableAllProjectMcpServers": true,

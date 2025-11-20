@@ -36,7 +36,11 @@ return [
     ],
 
     'google' => [
-        'credentials_path' => env('GOOGLE_APPLICATION_CREDENTIALS'),
+        'credentials_path' => env('GOOGLE_APPLICATION_CREDENTIALS')
+            ? (str_starts_with(env('GOOGLE_APPLICATION_CREDENTIALS'), '/')
+                ? env('GOOGLE_APPLICATION_CREDENTIALS')
+                : storage_path(env('GOOGLE_APPLICATION_CREDENTIALS')))
+            : null,
         'analytics_property_id' => env('GOOGLE_ANALYTICS_PROPERTY_ID'),
         'search_console_site_url' => env('GOOGLE_SEARCH_CONSOLE_SITE_URL'),
     ],
