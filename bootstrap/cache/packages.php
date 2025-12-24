@@ -21,6 +21,19 @@
       0 => 'ArtisanPackUI\\Core\\CoreServiceProvider',
     ),
   ),
+  'artisanpack-ui/hooks' => 
+  array (
+    'aliases' => 
+    array (
+      'Action' => 'ArtisanPackUI\\Hooks\\Facades\\Action',
+      'Filter' => 'ArtisanPackUI\\Hooks\\Facades\\Filter',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Hooks\\Providers\\HooksServiceProvider',
+      1 => 'ArtisanPackUI\\Hooks\\Providers\\BladeDirectiveServiceProvider',
+    ),
+  ),
   'artisanpack-ui/icons' => 
   array (
     'providers' => 
@@ -197,18 +210,6 @@
     'providers' => 
     array (
       0 => 'Spatie\\LaravelMarkdown\\MarkdownServiceProvider',
-    ),
-  ),
-  'tormjens/eventy' => 
-  array (
-    'aliases' => 
-    array (
-      'Eventy' => 'TorMorten\\Eventy\\Facades\\Events',
-    ),
-    'providers' => 
-    array (
-      0 => 'TorMorten\\Eventy\\EventServiceProvider',
-      1 => 'TorMorten\\Eventy\\EventBladeServiceProvider',
     ),
   ),
 );
