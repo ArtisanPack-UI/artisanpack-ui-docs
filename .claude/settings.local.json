@@ -25,7 +25,9 @@
       "Bash(php:*)",
       "Bash(find:*)",
       "mcp__laravel-boost__list-available-env-vars",
-      "mcp__laravel-boost__get-config"
+      "mcp__laravel-boost__get-config",
+      "Bash(vendor/bin/pest:*)",
+      "mcp__laravel-boost__search-docs"
     ]
   },
   "enableAllProjectMcpServers": true,
