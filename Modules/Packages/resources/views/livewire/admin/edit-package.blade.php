@@ -56,10 +56,7 @@
                         <a href="{{ route('dashboard.packages.documentation', $package) }}" class="btn btn-secondary">
                             Manage Order
                         </a>
-                        <x-artisanpack-button wire:click="importDocumentation" class="btn-secondary" wire:loading.attr="disabled">
-                            <span wire:loading.remove wire:target="importDocumentation">Import Documentation</span>
-                            <span wire:loading wire:target="importDocumentation">Importing...</span>
-                        </x-artisanpack-button>
+                        <x-artisanpack-button wire:click="importDocumentation" class="btn-secondary" spinner="1" loading="Importing..." label="Import Documentation" />
                     </x-slot:actions>
                 </x-artisanpack-card>
 
@@ -71,10 +68,7 @@
                     </div>
 
                     <x-slot:actions>
-                        <x-artisanpack-button wire:click="importChangelog" class="btn-secondary" wire:loading.attr="disabled">
-                            <span wire:loading.remove wire:target="importChangelog">Import Changelog</span>
-                            <span wire:loading wire:target="importChangelog">Importing...</span>
-                        </x-artisanpack-button>
+                        <x-artisanpack-button wire:click="importChangelog" class="btn-secondary" spinner="1" loading="Importing..." label="Import Changelog" />
                     </x-slot:actions>
                 </x-artisanpack-card>
             </div>
