@@ -92,7 +92,9 @@ test('extractRepoPath parses GitHub URLs correctly', function () {
     expect($method->invoke($service, 'https://github.com/owner/repo/wiki'))->toBe('owner/repo')
         ->and($method->invoke($service, 'https://github.com/owner/repo/wiki/Page-Name'))->toBe('owner/repo')
         ->and($method->invoke($service, 'https://github.com/owner/repo/blob/main/file.md'))->toBe('owner/repo')
-        ->and($method->invoke($service, 'https://github.com/owner/repo'))->toBe('owner/repo');
+        ->and($method->invoke($service, 'https://github.com/owner/repo'))->toBe('owner/repo')
+        ->and($method->invoke($service, 'https://github.com/owner/repo.git'))->toBe('owner/repo')
+        ->and($method->invoke($service, 'https://github.com/owner/repo.wiki.git'))->toBe('owner/repo');
 });
 
 test('extractRepoPath throws exception for invalid URL', function () {

@@ -119,6 +119,9 @@ class GitHubService
         // Example URL formats:
         // https://github.com/owner/repo/blob/main/CHANGELOG.md
         // https://github.com/owner/repo/blob/develop/docs/CHANGELOG.md
+        // Note: Branch names with slashes (e.g., feature/branch) are ambiguous
+        // in GitHub URLs and cannot be reliably parsed without an API call to
+        // resolve the ref. This pattern assumes single-segment branch names.
 
         $pattern = '/github\.com\/([^\/]+\/[^\/]+)\/blob\/([^\/]+)\/(.+)/';
         if (preg_match($pattern, $fileUrl, $matches)) {
@@ -147,7 +150,7 @@ class GitHubService
             'X-GitHub-Api-Version' => '2022-11-28',
         ], $additionalHeaders);
 
-        $response = Http::withHeaders($headers)->get("{$this->baseUrl}/{$endpoint}");
+        $response = Http::withHeaders($headers)->timeout(30)->get("{$this->baseUrl}/{$endpoint}");
 
         if ($response->status() === 403 && $response->header('X-RateLimit-Remaining') === '0') {
             $resetTime = (int) $response->header('X-RateLimit-Reset');
