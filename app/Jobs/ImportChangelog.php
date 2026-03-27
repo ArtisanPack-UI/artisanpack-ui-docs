@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Services\GitHubService;
+use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -34,22 +34,13 @@ class ImportChangelog implements ShouldQueue
     public function handle(): void
     {
         try {
-            $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
+            $factory = app()->make(WikiServiceFactory::class);
+            $source = $factory->detectSource($this->package->changelog_url);
+            $token = $this->resolveToken($source);
+            $wikiService = $factory->make($this->package->changelog_url, $token);
 
-            try {
-                $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
-            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                $githubToken = null;
-            }
-
-            if (empty($githubToken)) {
-                throw new \Exception('GitHub token not configured or could not be decrypted');
-            }
-
-            $githubService = app()->make(GitHubService::class, ['token' => $githubToken]);
-
-            // Fetch the changelog content from GitHub
-            $content = $githubService->getFileContent($this->package->changelog_url);
+            // Fetch the changelog content
+            $content = $wikiService->getFileContent($this->package->changelog_url);
 
             // Remove the first H1 header if it exists
             $content = $this->removeFirstH1Header($content);
@@ -79,6 +70,35 @@ class ImportChangelog implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    /**
+     * Resolve the API token from encrypted settings based on the detected source
+     *
+     * @throws \Exception
+     */
+    protected function resolveToken(string $source): string
+    {
+        $settingKey = "{$source}_token";
+        $brandName = match ($source) {
+            'github' => 'GitHub',
+            'gitlab' => 'GitLab',
+            default => ucfirst($source),
+        };
+
+        $encryptedToken = Setting::where('key', $settingKey)->first()?->value;
+
+        try {
+            $token = $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            $token = null;
+        }
+
+        if (empty($token)) {
+            throw new \Exception("{$brandName} token not configured or could not be decrypted");
+        }
+
+        return $token;
     }
 
     /**

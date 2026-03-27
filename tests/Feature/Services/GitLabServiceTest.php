@@ -1,10 +1,10 @@
 <?php
 
-use App\Services\GitLabService;
+use App\Services\GitLabWikiService;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
-    $this->service = new GitLabService('test-token');
+    $this->service = new GitLabWikiService('test-token');
 });
 
 test('getWikiPages fetches wiki pages successfully', function () {
@@ -56,7 +56,7 @@ test('getWikiPage throws exception on failure', function () {
 })->throws(\Exception::class, "Failed to fetch wiki page 'nonexistent'");
 
 test('extractProjectPath parses GitLab wiki URL correctly', function () {
-    $service = new GitLabService('test-token');
+    $service = new GitLabWikiService('test-token');
     $reflection = new ReflectionClass($service);
     $method = $reflection->getMethod('extractProjectPath');
     $method->setAccessible(true);
@@ -68,7 +68,7 @@ test('extractProjectPath parses GitLab wiki URL correctly', function () {
 });
 
 test('extractProjectPath throws exception for invalid URL', function () {
-    $service = new GitLabService('test-token');
+    $service = new GitLabWikiService('test-token');
     $reflection = new ReflectionClass($service);
     $method = $reflection->getMethod('extractProjectPath');
     $method->setAccessible(true);
