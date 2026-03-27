@@ -32,9 +32,13 @@ class GitHubService
             $pages = $this->parseWikiDirectory($clonePath);
 
             return array_map(function (array $page) use ($clonePath) {
-                $pageData = $this->readWikiPage($clonePath, $page['slug']);
+                $pageData = $this->readWikiPage($clonePath, $page['file']);
 
-                return array_merge($page, ['content' => $pageData['content']]);
+                return [
+                    'slug' => $page['slug'],
+                    'title' => $page['title'],
+                    'content' => $pageData['content'],
+                ];
             }, $pages);
         } finally {
             $this->removeDirectory($clonePath);
@@ -77,7 +81,7 @@ class GitHubService
     protected function cloneWikiRepo(string $wikiUrl): string
     {
         $repoPath = $this->extractRepoPath($wikiUrl);
-        $clonePath = sys_get_temp_dir().'/wiki-'.md5($repoPath.time());
+        $clonePath = sys_get_temp_dir().'/wiki-'.bin2hex(random_bytes(8));
         $cloneUrl = "https://github.com/{$repoPath}.wiki.git";
 
         // Create a temporary GIT_ASKPASS script that echoes the token
@@ -103,12 +107,49 @@ class GitHubService
                 throw new \Exception('Failed to start git clone process');
             }
 
-            $stderr = stream_get_contents($pipes[2]);
+            // Enforce a 120-second timeout on the clone
+            $timeoutSeconds = 120;
+            $startTime = time();
+            $timedOut = false;
+
+            // Set stderr to non-blocking so we can poll
+            stream_set_blocking($pipes[2], false);
+            stream_set_blocking($pipes[1], false);
+
+            $stderr = '';
+            while (true) {
+                $status = proc_get_status($process);
+                if (! $status['running']) {
+                    // Process finished — read remaining stderr
+                    $stderr .= stream_get_contents($pipes[2]);
+
+                    break;
+                }
+
+                if ((time() - $startTime) >= $timeoutSeconds) {
+                    $timedOut = true;
+                    proc_terminate($process, 9);
+
+                    break;
+                }
+
+                $stderr .= stream_get_contents($pipes[2]);
+                usleep(100_000); // 100ms
+            }
+
             fclose($pipes[1]);
             fclose($pipes[2]);
             $exitCode = proc_close($process);
 
+            if ($timedOut) {
+                $this->removeDirectory($clonePath);
+
+                throw new \Exception("Git clone timed out after {$timeoutSeconds} seconds for '{$repoPath}'");
+            }
+
             if ($exitCode !== 0) {
+                $this->removeDirectory($clonePath);
+
                 // Redact any token-like strings from stderr before throwing
                 $sanitizedStderr = preg_replace('/gh[pousr]_[A-Za-z0-9]+/', '[REDACTED]', $stderr);
 
@@ -124,7 +165,7 @@ class GitHubService
     /**
      * Parse all markdown files in the cloned wiki directory
      *
-     * @return array<int, array{slug: string, title: string}>
+     * @return array<int, array{slug: string, title: string, file: string}>
      */
     protected function parseWikiDirectory(string $clonePath): array
     {
@@ -134,7 +175,7 @@ class GitHubService
         );
 
         foreach ($iterator as $file) {
-            if ($file->getExtension() !== 'md') {
+            if (strtolower($file->getExtension()) !== 'md') {
                 continue;
             }
 
@@ -145,8 +186,8 @@ class GitHubService
                 continue;
             }
 
-            // Convert filename to slug (remove .md extension)
-            $slug = preg_replace('/\.md$/', '', $relativePath);
+            // Convert filename to slug (remove .md/.MD extension, case-insensitive)
+            $slug = preg_replace('/\.md$/i', '', $relativePath);
 
             // Convert filename to title (replace hyphens with spaces)
             $title = str_replace('-', ' ', basename($slug));
@@ -154,6 +195,7 @@ class GitHubService
             $pages[] = [
                 'slug' => $slug,
                 'title' => $title,
+                'file' => $relativePath,
             ];
         }
 
@@ -163,32 +205,30 @@ class GitHubService
     /**
      * Read a specific wiki page from the cloned directory
      *
-     * @return array{slug: string, title: string, content: string}
+     * @param  string  $clonePath  The clone directory path
+     * @param  string  $relativeFile  The relative file path within the clone (e.g., "guides/usage.md")
+     * @return array{content: string}
      *
      * @throws \Exception
      */
-    protected function readWikiPage(string $clonePath, string $slug): array
+    protected function readWikiPage(string $clonePath, string $relativeFile): array
     {
-        $filePath = "{$clonePath}/{$slug}.md";
+        $filePath = "{$clonePath}/{$relativeFile}";
 
         $cloneReal = realpath($clonePath);
         $fileReal = realpath($filePath);
 
         if ($fileReal === false || $cloneReal === false || ! str_starts_with($fileReal, $cloneReal.DIRECTORY_SEPARATOR)) {
-            throw new \Exception("Wiki page '{$slug}' not found or path is outside repository");
+            throw new \Exception("Wiki page '{$relativeFile}' not found or path is outside repository");
         }
 
         $content = file_get_contents($fileReal);
 
         if ($content === false) {
-            throw new \Exception("Failed to read wiki page '{$slug}' at '{$fileReal}'");
+            throw new \Exception("Failed to read wiki page '{$relativeFile}' at '{$fileReal}'");
         }
 
-        $title = str_replace('-', ' ', basename($slug));
-
         return [
-            'slug' => $slug,
-            'title' => $title,
             'content' => $content,
         ];
     }

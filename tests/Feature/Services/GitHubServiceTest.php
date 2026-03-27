@@ -81,6 +81,29 @@ test('getWikiPagesWithContent handles subdirectories', function () {
     expect($childPage['content'])->toBe('# Usage Guide');
 });
 
+test('readWikiPage rejects symlinks pointing outside clone directory', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir($this->tempDir, 0777, true);
+
+    // Create a file outside the clone directory
+    $outsideDir = sys_get_temp_dir().'/test-wiki-outside-'.uniqid();
+    mkdir($outsideDir, 0777, true);
+    file_put_contents("{$outsideDir}/secret.md", 'SECRET DATA');
+
+    // Create a symlink inside the clone pointing to the outside file
+    symlink("{$outsideDir}/secret.md", "{$this->tempDir}/evil.md");
+
+    $service = createFakeWikiService($this->tempDir);
+
+    // The symlinked page resolves outside the clone — readWikiPage should throw
+    expect(fn () => $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki'))
+        ->toThrow(\Exception::class, 'not found or path is outside repository');
+
+    // Clean up outside dir
+    unlink("{$outsideDir}/secret.md");
+    rmdir($outsideDir);
+});
+
 test('getWikiPagesWithContent throws exception when clone fails', function () {
     $service = new class('test-token') extends GitHubService
     {
@@ -187,6 +210,7 @@ test('request sends correct authentication headers', function () {
 
     Http::assertSent(function ($request) {
         return $request->hasHeader('Authorization', 'Bearer test-token')
-            && $request->hasHeader('X-GitHub-Api-Version', '2022-11-28');
+            && $request->hasHeader('X-GitHub-Api-Version', '2022-11-28')
+            && $request->hasHeader('Accept', 'application/vnd.github.raw+json');
     });
 });
