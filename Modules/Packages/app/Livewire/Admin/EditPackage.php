@@ -75,19 +75,14 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
-
-        try {
-            $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            $githubToken = null;
-        }
-
-        if (empty($githubToken)) {
+        if (empty($this->resolveGithubToken())) {
             $this->error('GitHub token not configured in settings.');
 
             return;
         }
+
+        // Persist current form values so the queued job uses the latest URL
+        $this->package->update(['wiki_url' => $this->wiki_url]);
 
         ImportWikiDocumentation::dispatch($this->package);
 
@@ -102,18 +97,16 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
-
-        // Decrypt the token (it's stored encrypted for security)
-        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
-
-        if (empty($gitlabToken)) {
-            $this->error('GitLab token not configured in settings.');
+        if (empty($this->resolveGithubToken())) {
+            $this->error('GitHub token not configured in settings.');
 
             return;
         }
 
-        ImportChangelog::dispatch($this->package, $gitlabToken);
+        // Persist current form values so the queued job uses the latest URL
+        $this->package->update(['changelog_url' => $this->changelog_url]);
+
+        ImportChangelog::dispatch($this->package);
 
         $this->success('Changelog import started! This may take a few moments.');
     }
@@ -121,6 +114,20 @@ class EditPackage extends Component
     public function updatedName()
     {
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
+    }
+
+    /**
+     * Resolve the GitHub token from encrypted settings
+     */
+    protected function resolveGithubToken(): ?string
+    {
+        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
+
+        try {
+            return $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            return null;
+        }
     }
 
     public function render()
