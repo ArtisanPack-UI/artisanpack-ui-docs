@@ -3,6 +3,7 @@
 namespace Modules\Admin\Livewire;
 
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -16,6 +17,8 @@ class SettingsPage extends Component
 
     public ?string $gitLabToken = '';
 
+    public ?string $gitHubToken = '';
+
     public ?string $homePage = '';
 
     public ?string $googleAnalyticsId = '';
@@ -24,9 +27,19 @@ class SettingsPage extends Component
     {
         $settings = Setting::get();
 
-        // Decrypt the GitLab token when retrieving it
         $encryptedToken = $settings->firstWhere('key', 'gitlab_token')?->value;
-        $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
+        try {
+            $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
+        } catch (DecryptException) {
+            $this->gitLabToken = '';
+        }
+
+        $encryptedGitHubToken = $settings->firstWhere('key', 'github_token')?->value;
+        try {
+            $this->gitHubToken = $encryptedGitHubToken ? decrypt($encryptedGitHubToken) : '';
+        } catch (DecryptException) {
+            $this->gitHubToken = '';
+        }
 
         $this->homePage = $settings->firstWhere('key', 'homePage')?->value ?? '';
         $this->googleAnalyticsId = $settings->firstWhere('key', 'google_analytics_id')?->value ?? '';
@@ -36,14 +49,15 @@ class SettingsPage extends Component
     {
         $validated = $this->validate([
             'gitLabToken' => 'nullable|string',
+            'gitHubToken' => ['nullable', 'string', 'regex:/^(ghp_|github_pat_)[a-zA-Z0-9_]+$/'],
             'homePage' => 'nullable|string',
             'googleAnalyticsId' => 'nullable|string|regex:/^G-[A-Z0-9]+$/',
         ], [
+            'gitHubToken.regex' => 'The GitHub token must be a valid personal access token (starts with ghp_ or github_pat_).',
             'googleAnalyticsId.regex' => 'The Google Analytics ID must be in the format G-XXXXXXXXXX',
         ]);
 
         if ($validated) {
-            // Encrypt the GitLab token before storing it for security
             $tokenValue = ! empty($validated['gitLabToken'])
                 ? encrypt($validated['gitLabToken'])
                 : null;
@@ -51,6 +65,15 @@ class SettingsPage extends Component
             Setting::updateOrCreate(
                 ['key' => 'gitlab_token'],
                 ['value' => $tokenValue]
+            );
+
+            $gitHubTokenValue = ! empty($validated['gitHubToken'])
+                ? encrypt($validated['gitHubToken'])
+                : null;
+
+            Setting::updateOrCreate(
+                ['key' => 'github_token'],
+                ['value' => $gitHubTokenValue]
             );
 
             Setting::updateOrCreate(
