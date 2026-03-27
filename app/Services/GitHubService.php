@@ -13,49 +13,32 @@ class GitHubService
     ) {}
 
     /**
-     * Get all wiki pages for a repository
+     * Get all wiki pages with their content by cloning the wiki Git repo once
      *
-     * GitHub wikis are Git repositories accessible via the repos API.
-     * This clones the wiki repo contents listing.
+     * GitHub wikis are separate Git repositories (repo.wiki.git) that are not
+     * accessible via the REST API. This clones the wiki repo to a temp directory,
+     * parses the markdown files, and returns all pages with content in a single operation.
      *
      * @param  string  $wikiUrl  The URL to the GitHub wiki (e.g., https://github.com/owner/repo/wiki)
-     * @return array<int, array{slug: string, title: string}>
+     * @return array<int, array{slug: string, title: string, content: string}>
      *
      * @throws \Exception
      */
-    public function getWikiPages(string $wikiUrl): array
+    public function getWikiPagesWithContent(string $wikiUrl): array
     {
-        $repoPath = $this->extractRepoPath($wikiUrl);
+        $clonePath = $this->cloneWikiRepo($wikiUrl);
 
-        $response = $this->request("repos/{$repoPath}/wiki/pages");
+        try {
+            $pages = $this->parseWikiDirectory($clonePath);
 
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch wiki pages: {$response->body()}");
+            return array_map(function (array $page) use ($clonePath) {
+                $pageData = $this->readWikiPage($clonePath, $page['slug']);
+
+                return array_merge($page, ['content' => $pageData['content']]);
+            }, $pages);
+        } finally {
+            $this->removeDirectory($clonePath);
         }
-
-        return $response->json();
-    }
-
-    /**
-     * Get a specific wiki page content
-     *
-     * @param  string  $wikiUrl  The URL to the GitHub wiki
-     * @param  string  $slug  The wiki page slug
-     *
-     * @throws \Exception
-     */
-    public function getWikiPage(string $wikiUrl, string $slug): array
-    {
-        $repoPath = $this->extractRepoPath($wikiUrl);
-        $encodedSlug = urlencode($slug);
-
-        $response = $this->request("repos/{$repoPath}/wiki/pages/{$encodedSlug}");
-
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch wiki page '{$slug}': {$response->body()}");
-        }
-
-        return $response->json();
     }
 
     /**
@@ -81,6 +64,128 @@ class GitHubService
         }
 
         return $response->body();
+    }
+
+    /**
+     * Clone the wiki Git repository to a temporary directory
+     *
+     * @throws \Exception
+     */
+    protected function cloneWikiRepo(string $wikiUrl): string
+    {
+        $repoPath = $this->extractRepoPath($wikiUrl);
+        $clonePath = sys_get_temp_dir().'/wiki-'.md5($repoPath.time());
+        $cloneUrl = "https://{$this->token}@github.com/{$repoPath}.wiki.git";
+
+        $process = proc_open(
+            ['git', 'clone', '--depth', '1', $cloneUrl, $clonePath],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes
+        );
+
+        if (! is_resource($process)) {
+            throw new \Exception('Failed to start git clone process');
+        }
+
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $exitCode = proc_close($process);
+
+        if ($exitCode !== 0) {
+            throw new \Exception("Failed to clone wiki repository for '{$repoPath}': {$stderr}");
+        }
+
+        return $clonePath;
+    }
+
+    /**
+     * Parse all markdown files in the cloned wiki directory
+     *
+     * @return array<int, array{slug: string, title: string}>
+     */
+    protected function parseWikiDirectory(string $clonePath): array
+    {
+        $pages = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($clonePath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->getExtension() !== 'md') {
+                continue;
+            }
+
+            $relativePath = str_replace($clonePath.'/', '', $file->getPathname());
+
+            // Skip hidden files and the .git directory
+            if (str_starts_with($relativePath, '.')) {
+                continue;
+            }
+
+            // Convert filename to slug (remove .md extension)
+            $slug = preg_replace('/\.md$/', '', $relativePath);
+
+            // Convert filename to title (replace hyphens with spaces)
+            $title = str_replace('-', ' ', basename($slug));
+
+            $pages[] = [
+                'slug' => $slug,
+                'title' => $title,
+            ];
+        }
+
+        return $pages;
+    }
+
+    /**
+     * Read a specific wiki page from the cloned directory
+     *
+     * @return array{slug: string, title: string, content: string}
+     *
+     * @throws \Exception
+     */
+    protected function readWikiPage(string $clonePath, string $slug): array
+    {
+        $filePath = "{$clonePath}/{$slug}.md";
+
+        if (! file_exists($filePath)) {
+            throw new \Exception("Wiki page '{$slug}' not found");
+        }
+
+        $content = file_get_contents($filePath);
+        $title = str_replace('-', ' ', basename($slug));
+
+        return [
+            'slug' => $slug,
+            'title' => $title,
+            'content' => $content,
+        ];
+    }
+
+    /**
+     * Recursively remove a directory
+     */
+    protected function removeDirectory(string $path): void
+    {
+        if (! is_dir($path)) {
+            return;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getPathname());
+            } else {
+                unlink($item->getPathname());
+            }
+        }
+
+        rmdir($path);
     }
 
     /**

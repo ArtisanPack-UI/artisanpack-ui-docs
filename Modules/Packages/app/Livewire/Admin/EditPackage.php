@@ -75,18 +75,18 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
+        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
 
         // Decrypt the token (it's stored encrypted for security)
-        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
+        $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
 
-        if (empty($gitlabToken)) {
-            $this->error('GitLab token not configured in settings.');
+        if (empty($githubToken)) {
+            $this->error('GitHub token not configured in settings.');
 
             return;
         }
 
-        ImportWikiDocumentation::dispatch($this->package, $gitlabToken);
+        ImportWikiDocumentation::dispatch($this->package, $githubToken);
 
         $this->success('Documentation import started! This may take a few moments.');
     }

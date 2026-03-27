@@ -1,13 +1,20 @@
 <?php
 
 use App\Jobs\ImportWikiDocumentation;
+use App\Services\GitHubService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Packages\Documentation;
 use Modules\Packages\Package;
 
 uses(RefreshDatabase::class);
+
+function mockWikiPages(array $pages): void
+{
+    $mock = Mockery::mock(GitHubService::class);
+    $mock->shouldReceive('getWikiPagesWithContent')->andReturn($pages);
+    app()->bind(GitHubService::class, fn () => $mock);
+}
 
 test('imports wiki documentation successfully', function () {
     Log::shouldReceive('info')->times(4);
@@ -15,24 +22,12 @@ test('imports wiki documentation successfully', function () {
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'Home'],
-            ['slug' => 'installation', 'title' => 'Installation'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'Home',
-            'content' => "# Welcome to the Documentation\n\nSome content here.",
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/installation' => Http::response([
-            'slug' => 'installation',
-            'title' => 'Installation',
-            'content' => "# Installation Guide\n\nInstallation steps.",
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "# Welcome to the Documentation\n\nSome content here."],
+        ['slug' => 'installation', 'title' => 'installation', 'content' => "# Installation Guide\n\nInstallation steps."],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -58,7 +53,7 @@ test('updates existing documentation when re-importing', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
     Documentation::create([
@@ -68,15 +63,8 @@ test('updates existing documentation when re-importing', function () {
         'package_id' => $package->id,
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'Home'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'Updated Title',
-            'content' => 'Updated content',
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'Updated Title', 'content' => 'Updated content'],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -94,12 +82,13 @@ test('logs error and throws exception on failure', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response(['error' => 'Not found'], 404),
-    ]);
+    $mock = Mockery::mock(GitHubService::class);
+    $mock->shouldReceive('getWikiPagesWithContent')
+        ->andThrow(new \Exception('Failed to clone wiki repository'));
+    app()->bind(GitHubService::class, fn () => $mock);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
     $job->handle();
@@ -111,18 +100,11 @@ test('extracts title from YAML front matter', function () {
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'Home'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'Home',
-            'content' => "---\ntitle: Custom Title\n---\n\n# Welcome to the Documentation\n\nContent here.",
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "---\ntitle: Custom Title\n---\n\n# Welcome to the Documentation\n\nContent here."],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -137,28 +119,17 @@ test('extracts title from YAML front matter', function () {
 });
 
 test('sets parent relationships for subpages and keeps full slugs', function () {
+    Log::shouldReceive('info')->zeroOrMoreTimes();
+
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'guides', 'title' => 'Guides'],
-            ['slug' => 'guides/usage', 'title' => 'Usage'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/guides' => Http::response([
-            'slug' => 'guides',
-            'title' => 'Guides',
-            'content' => '# Guides Overview',
-        ], 200),
-        // URL encoded slug: guides/usage becomes guides%2Fusage
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/guides%2Fusage' => Http::response([
-            'slug' => 'guides/usage',
-            'title' => 'Usage',
-            'content' => '# How to use',
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'guides', 'title' => 'guides', 'content' => '# Guides Overview'],
+        ['slug' => 'guides/usage', 'title' => 'usage', 'content' => '# How to use'],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -184,18 +155,11 @@ test('updates internal documentation links', function () {
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'Home'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'Home',
-            'content' => 'Check out the [installation guide](installation) and [usage guide](guides/usage).',
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'Check out the [installation guide](installation) and [usage guide](guides/usage).'],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -213,18 +177,11 @@ test('extracts title from H1 header when no YAML front matter', function () {
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'GitLab Title'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'GitLab Title',
-            'content' => "# Welcome to the Documentation\n\nThis is the content.",
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "# Welcome to the Documentation\n\nThis is the content."],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -236,24 +193,17 @@ test('extracts title from H1 header when no YAML front matter', function () {
         ->and($homeDoc->content)->toContain('This is the content.');
 });
 
-test('uses title case GitLab title when no YAML or H1 exists', function () {
+test('uses title case GitHub title when no YAML or H1 exists', function () {
     Log::shouldReceive('info')->times(3);
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'getting started with the package'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'getting started with the package',
-            'content' => 'This is the content without any headers.',
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'getting started with the package', 'content' => 'This is the content without any headers.'],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');
@@ -270,18 +220,11 @@ test('YAML title takes precedence over H1 header', function () {
     $package = Package::factory()->create([
         'name' => 'Test Package',
         'slug' => 'test-package',
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
-            ['slug' => 'home', 'title' => 'Home'],
-        ], 200),
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'Home',
-            'content' => "---\ntitle: YAML Title\n---\n\n# H1 Title\n\nContent here.",
-        ], 200),
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "---\ntitle: YAML Title\n---\n\n# H1 Title\n\nContent here."],
     ]);
 
     $job = new ImportWikiDocumentation($package, 'test-token');

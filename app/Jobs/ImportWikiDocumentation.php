@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Services\GitLabService;
+use App\Services\GitHubService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class ImportWikiDocumentation implements ShouldQueue
      */
     public function __construct(
         public Package $package,
-        public string $gitlabToken
+        public string $githubToken
     ) {}
 
     /**
@@ -35,10 +35,10 @@ class ImportWikiDocumentation implements ShouldQueue
     public function handle(): void
     {
         try {
-            $gitlabService = new GitLabService($this->gitlabToken);
+            $githubService = app()->make(GitHubService::class, ['token' => $this->githubToken]);
 
-            // Get all wiki pages
-            $wikiPages = $gitlabService->getWikiPages($this->package->wiki_url);
+            // Get all wiki pages with content in a single clone operation
+            $wikiPages = $githubService->getWikiPagesWithContent($this->package->wiki_url);
 
             Log::info('Found {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),
@@ -46,10 +46,7 @@ class ImportWikiDocumentation implements ShouldQueue
             ]);
 
             foreach ($wikiPages as $wikiPage) {
-                // Get full content for each page
-                $fullPage = $gitlabService->getWikiPage($this->package->wiki_url, $wikiPage['slug']);
-
-                $content = $fullPage['content'] ?? '';
+                $content = $wikiPage['content'] ?? '';
 
                 // Extract title from YAML front matter and remove it
                 $yamlTitle = $this->extractTitleFromYaml($content);
@@ -62,9 +59,9 @@ class ImportWikiDocumentation implements ShouldQueue
                 // Clean and update links
                 $cleanedContent = $this->updateInternalLinks($content);
 
-                // Title priority: YAML > H1 > Title case GitLab title > slug
-                $gitlabTitle = $fullPage['title'] ?? $wikiPage['title'] ?? null;
-                $title = $yamlTitle ?? $h1Title ?? ($gitlabTitle ? $this->toTitleCase($gitlabTitle) : $wikiPage['slug']);
+                // Title priority: YAML > H1 > Title case GitHub title > slug
+                $githubTitle = $wikiPage['title'] ?? null;
+                $title = $yamlTitle ?? $h1Title ?? ($githubTitle ? $this->toTitleCase($githubTitle) : $wikiPage['slug']);
 
                 // Generate meta description from content
                 $metaDescription = $this->generateMetaDescription($cleanedContent);
