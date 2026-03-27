@@ -75,15 +75,7 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
-
-        try {
-            $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            $githubToken = null;
-        }
-
-        if (empty($githubToken)) {
+        if (empty($this->resolveGithubToken())) {
             $this->error('GitHub token not configured in settings.');
 
             return;
@@ -102,15 +94,7 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
-
-        try {
-            $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            $githubToken = null;
-        }
-
-        if (empty($githubToken)) {
+        if (empty($this->resolveGithubToken())) {
             $this->error('GitHub token not configured in settings.');
 
             return;
@@ -124,6 +108,20 @@ class EditPackage extends Component
     public function updatedName()
     {
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
+    }
+
+    /**
+     * Resolve the GitHub token from encrypted settings
+     */
+    protected function resolveGithubToken(): ?string
+    {
+        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
+
+        try {
+            return $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            return null;
+        }
     }
 
     public function render()

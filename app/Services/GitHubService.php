@@ -294,12 +294,24 @@ class GitHubService
         // Example URL formats:
         // https://github.com/owner/repo/blob/main/CHANGELOG.md
         // https://github.com/owner/repo/blob/develop/docs/CHANGELOG.md
+        // https://raw.githubusercontent.com/owner/repo/main/CHANGELOG.md
         // Note: Branch names with slashes (e.g., feature/branch) are ambiguous
         // in GitHub URLs and cannot be reliably parsed without an API call to
         // resolve the ref. This pattern assumes single-segment branch names.
 
-        $pattern = '/github\.com\/([^\/]+\/[^\/]+)\/blob\/([^\/]+)\/(.+)/';
-        if (preg_match($pattern, $fileUrl, $matches)) {
+        // Match github.com blob URLs
+        $blobPattern = '/github\.com\/([^\/]+\/[^\/]+)\/blob\/([^\/]+)\/(.+)/';
+        if (preg_match($blobPattern, $fileUrl, $matches)) {
+            return [
+                $matches[1], // repo path (owner/repo)
+                $matches[3], // file path
+                $matches[2], // ref (branch)
+            ];
+        }
+
+        // Match raw.githubusercontent.com URLs
+        $rawPattern = '/raw\.githubusercontent\.com\/([^\/]+\/[^\/]+)\/([^\/]+)\/(.+)/';
+        if (preg_match($rawPattern, $fileUrl, $matches)) {
             return [
                 $matches[1], // repo path (owner/repo)
                 $matches[3], // file path

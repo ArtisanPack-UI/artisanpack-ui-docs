@@ -110,6 +110,20 @@ test('throws exception when github token is not configured', function () {
     $job->handle();
 })->throws(\Exception::class, 'GitHub token not configured');
 
+test('throws exception when github token is malformed', function () {
+    Log::shouldReceive('error')->once();
+
+    Setting::where('key', 'github_token')->update(['value' => 'not-encrypted']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+    ]);
+
+    $job = new ImportChangelog($package);
+    $job->handle();
+})->throws(\Exception::class, 'GitHub token not configured');
+
 test('handles changelog in subdirectory', function () {
     Log::shouldReceive('info')->once();
 

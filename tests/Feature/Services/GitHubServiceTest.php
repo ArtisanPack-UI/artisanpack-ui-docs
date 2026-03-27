@@ -126,6 +126,16 @@ test('getFileContent fetches raw file content successfully', function () {
     expect($result)->toBe('# Changelog content');
 });
 
+test('getFileContent handles raw.githubusercontent.com URLs', function () {
+    Http::fake([
+        'https://api.github.com/repos/owner/repo/contents/CHANGELOG.md?ref=main' => Http::response('# Raw changelog', 200),
+    ]);
+
+    $result = $this->service->getFileContent('https://raw.githubusercontent.com/owner/repo/main/CHANGELOG.md');
+
+    expect($result)->toBe('# Raw changelog');
+});
+
 test('getFileContent fetches nested file content successfully', function () {
     Http::fake([
         'https://api.github.com/repos/owner/repo/contents/docs/CHANGELOG.md?ref=develop' => Http::response('# Nested changelog', 200),
@@ -177,6 +187,12 @@ test('extractFilePathFromUrl parses GitHub file URLs correctly', function () {
     expect($result)->toBe(['owner/repo', 'CHANGELOG.md', 'main']);
 
     $result = $method->invoke($service, 'https://github.com/owner/repo/blob/develop/docs/CHANGELOG.md');
+    expect($result)->toBe(['owner/repo', 'docs/CHANGELOG.md', 'develop']);
+
+    $result = $method->invoke($service, 'https://raw.githubusercontent.com/owner/repo/main/CHANGELOG.md');
+    expect($result)->toBe(['owner/repo', 'CHANGELOG.md', 'main']);
+
+    $result = $method->invoke($service, 'https://raw.githubusercontent.com/owner/repo/develop/docs/CHANGELOG.md');
     expect($result)->toBe(['owner/repo', 'docs/CHANGELOG.md', 'develop']);
 });
 
