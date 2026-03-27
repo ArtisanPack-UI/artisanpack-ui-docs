@@ -25,27 +25,19 @@ test('it mounts with decrypted github token when setting exists', function () {
         ->assertSet('gitHubToken', 'ghp_testtoken123');
 });
 
-test('it saves github token encrypted', function () {
+test('it saves github token encrypted', function (string $token) {
     Livewire::test(SettingsPage::class)
-        ->set('gitHubToken', 'ghp_testtoken123')
+        ->set('gitHubToken', $token)
         ->call('save')
         ->assertHasNoErrors();
 
     $setting = Setting::where('key', 'github_token')->first();
     expect($setting)->not->toBeNull();
-    expect(decrypt($setting->value))->toBe('ghp_testtoken123');
-});
-
-test('it saves github pat token with github_pat_ prefix', function () {
-    Livewire::test(SettingsPage::class)
-        ->set('gitHubToken', 'github_pat_abc123XYZ')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    $setting = Setting::where('key', 'github_token')->first();
-    expect($setting)->not->toBeNull();
-    expect(decrypt($setting->value))->toBe('github_pat_abc123XYZ');
-});
+    expect(decrypt($setting->value))->toBe($token);
+})->with([
+    'classic token' => 'ghp_testtoken123',
+    'fine-grained token' => 'github_pat_abc123XYZ',
+]);
 
 test('it saves null when github token is empty', function () {
     Livewire::test(SettingsPage::class)

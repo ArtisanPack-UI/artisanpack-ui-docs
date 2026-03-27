@@ -3,6 +3,7 @@
 namespace Modules\Admin\Livewire;
 
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -26,13 +27,19 @@ class SettingsPage extends Component
     {
         $settings = Setting::get();
 
-        // Decrypt the GitLab token when retrieving it
         $encryptedToken = $settings->firstWhere('key', 'gitlab_token')?->value;
-        $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
+        try {
+            $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
+        } catch (DecryptException) {
+            $this->gitLabToken = '';
+        }
 
-        // Decrypt the GitHub token when retrieving it
         $encryptedGitHubToken = $settings->firstWhere('key', 'github_token')?->value;
-        $this->gitHubToken = $encryptedGitHubToken ? decrypt($encryptedGitHubToken) : '';
+        try {
+            $this->gitHubToken = $encryptedGitHubToken ? decrypt($encryptedGitHubToken) : '';
+        } catch (DecryptException) {
+            $this->gitHubToken = '';
+        }
 
         $this->homePage = $settings->firstWhere('key', 'homePage')?->value ?? '';
         $this->googleAnalyticsId = $settings->firstWhere('key', 'google_analytics_id')?->value ?? '';
@@ -51,7 +58,6 @@ class SettingsPage extends Component
         ]);
 
         if ($validated) {
-            // Encrypt the GitLab token before storing it for security
             $tokenValue = ! empty($validated['gitLabToken'])
                 ? encrypt($validated['gitLabToken'])
                 : null;
@@ -61,7 +67,6 @@ class SettingsPage extends Component
                 ['value' => $tokenValue]
             );
 
-            // Encrypt the GitHub token before storing it for security
             $gitHubTokenValue = ! empty($validated['gitHubToken'])
                 ? encrypt($validated['gitHubToken'])
                 : null;
