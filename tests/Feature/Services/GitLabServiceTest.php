@@ -9,10 +9,10 @@ beforeEach(function () {
 
 test('getWikiPages fetches wiki pages successfully', function () {
     Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
+        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis*' => Http::response([
             ['slug' => 'home', 'title' => 'Home'],
             ['slug' => 'installation', 'title' => 'Installation'],
-        ], 200),
+        ], 200, ['X-Next-Page' => '']),
     ]);
 
     $result = $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');
@@ -25,7 +25,7 @@ test('getWikiPages fetches wiki pages successfully', function () {
 
 test('getWikiPages throws exception on failure', function () {
     Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response(['error' => 'Not found'], 404),
+        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis*' => Http::response(['error' => 'Not found'], 404),
     ]);
 
     $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');

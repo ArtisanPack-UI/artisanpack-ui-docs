@@ -122,7 +122,7 @@ test('throws exception when github token is not configured', function () {
 
     $job = new ImportChangelog($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured');
+})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('throws exception when github token is malformed', function () {
     Log::shouldReceive('error')->once();
@@ -136,7 +136,7 @@ test('throws exception when github token is malformed', function () {
 
     $job = new ImportChangelog($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured');
+})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('handles changelog in subdirectory', function () {
     Log::shouldReceive('info')->once();

@@ -2,17 +2,18 @@
 
 namespace App\Jobs;
 
+use App\Concerns\ResolvesServiceTokens;
 use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Setting;
 use Modules\Packages\Changelog;
 use Modules\Packages\Package;
 
 class ImportChangelog implements ShouldQueue
 {
     use Queueable;
+    use ResolvesServiceTokens;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -70,35 +71,6 @@ class ImportChangelog implements ShouldQueue
 
             throw $e;
         }
-    }
-
-    /**
-     * Resolve the API token from encrypted settings based on the detected source
-     *
-     * @throws \Exception
-     */
-    protected function resolveToken(string $source): string
-    {
-        $settingKey = "{$source}_token";
-        $brandName = match ($source) {
-            'github' => 'GitHub',
-            'gitlab' => 'GitLab',
-            default => ucfirst($source),
-        };
-
-        $encryptedToken = Setting::where('key', $settingKey)->first()?->value;
-
-        try {
-            $token = $encryptedToken ? decrypt($encryptedToken) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            $token = null;
-        }
-
-        if (empty($token)) {
-            throw new \Exception("{$brandName} token not configured or could not be decrypted");
-        }
-
-        return $token;
     }
 
     /**

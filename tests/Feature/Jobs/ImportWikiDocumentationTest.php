@@ -123,7 +123,7 @@ test('throws exception when github token is not configured', function () {
 
     $job = new ImportWikiDocumentation($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured');
+})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('extracts title from YAML front matter', function () {
     Log::shouldReceive('info')->times(3);

@@ -51,15 +51,30 @@ class GitLabWikiService implements WikiServiceInterface
         $projectPath = $this->extractProjectPath($wikiUrl);
         $encodedPath = urlencode($projectPath);
 
-        $response = Http::withHeaders([
-            'PRIVATE-TOKEN' => $this->token,
-        ])->get("{$this->baseUrl}/projects/{$encodedPath}/wikis");
+        $allPages = [];
+        $page = 1;
+        $perPage = 100;
 
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch wiki pages: {$response->body()}");
-        }
+        do {
+            $response = Http::withHeaders([
+                'PRIVATE-TOKEN' => $this->token,
+            ])->get("{$this->baseUrl}/projects/{$encodedPath}/wikis", [
+                'page' => $page,
+                'per_page' => $perPage,
+            ]);
 
-        return $response->json();
+            if (! $response->successful()) {
+                throw new \Exception("Failed to fetch wiki pages: {$response->body()}");
+            }
+
+            $pages = $response->json();
+            $allPages = array_merge($allPages, $pages);
+
+            $nextPage = $response->header('X-Next-Page');
+            $page++;
+        } while (! empty($nextPage));
+
+        return $allPages;
     }
 
     /**
@@ -101,7 +116,7 @@ class GitLabWikiService implements WikiServiceInterface
         $encodedPath = urlencode($projectPath);
         $encodedFilePath = urlencode($filePath);
 
-        $encodedRef = rawurlencode($ref);
+        $encodedRef = rawurlencode(rawurldecode($ref));
 
         $response = Http::withHeaders([
             'PRIVATE-TOKEN' => $this->token,
