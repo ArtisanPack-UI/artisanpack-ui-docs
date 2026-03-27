@@ -13,6 +13,8 @@
                 <div class="space-y-4">
                     <x-artisanpack-input wire:model="gitLabToken" label="GitLab Token" type="password" />
 
+                    <x-artisanpack-input wire:model="gitHubToken" label="GitHub Token" type="password" hint="A GitHub personal access token (PAT) with the repo scope. Create one at GitHub → Settings → Developer settings → Personal access tokens." />
+
                     <x-artisanpack-input wire:model="googleAnalyticsId" label="Google Analytics ID" placeholder="G-XXXXXXXXXX" hint="Your GA4 Measurement ID (e.g., G-ABC123XYZ)" />
                 </div>
             </x-artisanpack-card>

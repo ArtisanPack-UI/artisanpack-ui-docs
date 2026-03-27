@@ -16,6 +16,8 @@ class SettingsPage extends Component
 
     public ?string $gitLabToken = '';
 
+    public ?string $gitHubToken = '';
+
     public ?string $homePage = '';
 
     public ?string $googleAnalyticsId = '';
@@ -28,6 +30,10 @@ class SettingsPage extends Component
         $encryptedToken = $settings->firstWhere('key', 'gitlab_token')?->value;
         $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
 
+        // Decrypt the GitHub token when retrieving it
+        $encryptedGitHubToken = $settings->firstWhere('key', 'github_token')?->value;
+        $this->gitHubToken = $encryptedGitHubToken ? decrypt($encryptedGitHubToken) : '';
+
         $this->homePage = $settings->firstWhere('key', 'homePage')?->value ?? '';
         $this->googleAnalyticsId = $settings->firstWhere('key', 'google_analytics_id')?->value ?? '';
     }
@@ -36,9 +42,11 @@ class SettingsPage extends Component
     {
         $validated = $this->validate([
             'gitLabToken' => 'nullable|string',
+            'gitHubToken' => ['nullable', 'string', 'regex:/^(ghp_|github_pat_)[a-zA-Z0-9_]+$/'],
             'homePage' => 'nullable|string',
             'googleAnalyticsId' => 'nullable|string|regex:/^G-[A-Z0-9]+$/',
         ], [
+            'gitHubToken.regex' => 'The GitHub token must be a valid personal access token (starts with ghp_ or github_pat_).',
             'googleAnalyticsId.regex' => 'The Google Analytics ID must be in the format G-XXXXXXXXXX',
         ]);
 
@@ -51,6 +59,16 @@ class SettingsPage extends Component
             Setting::updateOrCreate(
                 ['key' => 'gitlab_token'],
                 ['value' => $tokenValue]
+            );
+
+            // Encrypt the GitHub token before storing it for security
+            $gitHubTokenValue = ! empty($validated['gitHubToken'])
+                ? encrypt($validated['gitHubToken'])
+                : null;
+
+            Setting::updateOrCreate(
+                ['key' => 'github_token'],
+                ['value' => $gitHubTokenValue]
             );
 
             Setting::updateOrCreate(
