@@ -49,7 +49,7 @@ class GitLabWikiService implements WikiServiceInterface
     public function getWikiPages(string $wikiUrl): array
     {
         $projectPath = $this->extractProjectPath($wikiUrl);
-        $encodedPath = urlencode($projectPath);
+        $encodedPath = rawurlencode($projectPath);
 
         $allPages = [];
         $page = 1;
@@ -89,8 +89,8 @@ class GitLabWikiService implements WikiServiceInterface
     public function getWikiPage(string $wikiUrl, string $slug): array
     {
         $projectPath = $this->extractProjectPath($wikiUrl);
-        $encodedPath = urlencode($projectPath);
-        $encodedSlug = urlencode($slug);
+        $encodedPath = rawurlencode($projectPath);
+        $encodedSlug = rawurlencode($slug);
 
         $response = Http::withHeaders([
             'PRIVATE-TOKEN' => $this->token,
@@ -113,8 +113,8 @@ class GitLabWikiService implements WikiServiceInterface
     public function getFileContent(string $fileUrl): string
     {
         [$projectPath, $filePath, $ref] = $this->extractFilePathFromUrl($fileUrl);
-        $encodedPath = urlencode($projectPath);
-        $encodedFilePath = urlencode($filePath);
+        $encodedPath = rawurlencode($projectPath);
+        $encodedFilePath = rawurlencode($filePath);
 
         $encodedRef = rawurlencode(rawurldecode($ref));
 

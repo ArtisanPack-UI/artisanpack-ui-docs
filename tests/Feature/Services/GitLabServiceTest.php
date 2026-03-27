@@ -23,6 +23,32 @@ test('getWikiPages fetches wiki pages successfully', function () {
         ->and($result[1]['slug'])->toBe('installation');
 });
 
+test('getWikiPages handles pagination across multiple pages', function () {
+    $requestCount = 0;
+
+    Http::fake(function ($request) use (&$requestCount) {
+        $requestCount++;
+
+        if ($requestCount === 1) {
+            return Http::response([
+                ['slug' => 'home', 'title' => 'Home'],
+            ], 200, ['X-Next-Page' => '2']);
+        }
+
+        return Http::response([
+            ['slug' => 'installation', 'title' => 'Installation'],
+        ], 200, ['X-Next-Page' => '']);
+    });
+
+    $result = $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');
+
+    expect($result)->toBeArray()
+        ->toHaveCount(2)
+        ->and($result[0]['slug'])->toBe('home')
+        ->and($result[1]['slug'])->toBe('installation')
+        ->and($requestCount)->toBe(2);
+});
+
 test('getWikiPages throws exception on failure', function () {
     Http::fake([
         'https://gitlab.com/api/v4/projects/group%2Fproject/wikis*' => Http::response(['error' => 'Not found'], 404),
