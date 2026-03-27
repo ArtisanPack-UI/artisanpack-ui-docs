@@ -15,12 +15,12 @@ test('import documentation dispatches job when wiki url and token are present', 
     Queue::fake();
 
     $package = Package::factory()->create([
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -28,7 +28,7 @@ test('import documentation dispatches job when wiki url and token are present', 
         ->assertHasNoErrors();
 
     Queue::assertPushed(ImportWikiDocumentation::class, function ($job) use ($package) {
-        return $job->package->id === $package->id && $job->gitlabToken === 'test-token-123';
+        return $job->package->id === $package->id;
     });
 });
 
@@ -40,8 +40,8 @@ test('import documentation does not dispatch job when wiki url is missing', func
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -51,11 +51,11 @@ test('import documentation does not dispatch job when wiki url is missing', func
     Queue::assertNothingPushed();
 });
 
-test('import documentation does not dispatch job when gitlab token is not configured', function () {
+test('import documentation does not dispatch job when github token is not configured', function () {
     Queue::fake();
 
     $package = Package::factory()->create([
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -74,7 +74,7 @@ test('import changelog dispatches job when changelog url and token are present',
 
     Setting::create([
         'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -95,7 +95,7 @@ test('import changelog does not dispatch job when changelog url is missing', fun
 
     Setting::create([
         'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])

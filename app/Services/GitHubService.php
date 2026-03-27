@@ -13,49 +13,36 @@ class GitHubService
     ) {}
 
     /**
-     * Get all wiki pages for a repository
+     * Get all wiki pages with their content by cloning the wiki Git repo once
      *
-     * GitHub wikis are Git repositories accessible via the repos API.
-     * This clones the wiki repo contents listing.
+     * GitHub wikis are separate Git repositories (repo.wiki.git) that are not
+     * accessible via the REST API. This clones the wiki repo to a temp directory,
+     * parses the markdown files, and returns all pages with content in a single operation.
      *
      * @param  string  $wikiUrl  The URL to the GitHub wiki (e.g., https://github.com/owner/repo/wiki)
-     * @return array<int, array{slug: string, title: string}>
+     * @return array<int, array{slug: string, title: string, content: string}>
      *
      * @throws \Exception
      */
-    public function getWikiPages(string $wikiUrl): array
+    public function getWikiPagesWithContent(string $wikiUrl): array
     {
-        $repoPath = $this->extractRepoPath($wikiUrl);
+        $clonePath = $this->cloneWikiRepo($wikiUrl);
 
-        $response = $this->request("repos/{$repoPath}/wiki/pages");
+        try {
+            $pages = $this->parseWikiDirectory($clonePath);
 
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch wiki pages: {$response->body()}");
+            return array_map(function (array $page) use ($clonePath) {
+                $pageData = $this->readWikiPage($clonePath, $page['file']);
+
+                return [
+                    'slug' => $page['slug'],
+                    'title' => $page['title'],
+                    'content' => $pageData['content'],
+                ];
+            }, $pages);
+        } finally {
+            $this->removeDirectory($clonePath);
         }
-
-        return $response->json();
-    }
-
-    /**
-     * Get a specific wiki page content
-     *
-     * @param  string  $wikiUrl  The URL to the GitHub wiki
-     * @param  string  $slug  The wiki page slug
-     *
-     * @throws \Exception
-     */
-    public function getWikiPage(string $wikiUrl, string $slug): array
-    {
-        $repoPath = $this->extractRepoPath($wikiUrl);
-        $encodedSlug = urlencode($slug);
-
-        $response = $this->request("repos/{$repoPath}/wiki/pages/{$encodedSlug}");
-
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch wiki page '{$slug}': {$response->body()}");
-        }
-
-        return $response->json();
     }
 
     /**
@@ -81,6 +68,194 @@ class GitHubService
         }
 
         return $response->body();
+    }
+
+    /**
+     * Clone the wiki Git repository to a temporary directory
+     *
+     * Uses GIT_ASKPASS to supply credentials securely instead of embedding
+     * the token in the clone URL.
+     *
+     * @throws \Exception
+     */
+    protected function cloneWikiRepo(string $wikiUrl): string
+    {
+        $repoPath = $this->extractRepoPath($wikiUrl);
+        $clonePath = sys_get_temp_dir().'/wiki-'.bin2hex(random_bytes(8));
+        $cloneUrl = "https://github.com/{$repoPath}.wiki.git";
+
+        // Create a temporary GIT_ASKPASS script that echoes the token
+        $askpassScript = tempnam(sys_get_temp_dir(), 'git-askpass-');
+        file_put_contents($askpassScript, "#!/bin/sh\necho '{$this->token}'\n");
+        chmod($askpassScript, 0700);
+
+        try {
+            $env = [
+                'GIT_ASKPASS' => $askpassScript,
+                'GIT_TERMINAL_PROMPT' => '0',
+            ];
+
+            $process = proc_open(
+                ['git', 'clone', '--depth', '1', $cloneUrl, $clonePath],
+                [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                $pipes,
+                null,
+                $env
+            );
+
+            if (! is_resource($process)) {
+                throw new \Exception('Failed to start git clone process');
+            }
+
+            // Enforce a 120-second timeout on the clone
+            $timeoutSeconds = 120;
+            $startTime = time();
+            $timedOut = false;
+
+            // Set stderr to non-blocking so we can poll
+            stream_set_blocking($pipes[2], false);
+            stream_set_blocking($pipes[1], false);
+
+            $stderr = '';
+            while (true) {
+                $status = proc_get_status($process);
+                if (! $status['running']) {
+                    // Process finished — read remaining stderr
+                    $stderr .= stream_get_contents($pipes[2]);
+
+                    break;
+                }
+
+                if ((time() - $startTime) >= $timeoutSeconds) {
+                    $timedOut = true;
+                    proc_terminate($process, 9);
+
+                    break;
+                }
+
+                $stderr .= stream_get_contents($pipes[2]);
+                usleep(100_000); // 100ms
+            }
+
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $exitCode = proc_close($process);
+
+            if ($timedOut) {
+                $this->removeDirectory($clonePath);
+
+                throw new \Exception("Git clone timed out after {$timeoutSeconds} seconds for '{$repoPath}'");
+            }
+
+            if ($exitCode !== 0) {
+                $this->removeDirectory($clonePath);
+
+                // Redact any token-like strings from stderr before throwing
+                $sanitizedStderr = preg_replace('/gh[pousr]_[A-Za-z0-9]+/', '[REDACTED]', $stderr);
+
+                throw new \Exception("Failed to clone wiki repository for '{$repoPath}': {$sanitizedStderr}");
+            }
+
+            return $clonePath;
+        } finally {
+            @unlink($askpassScript);
+        }
+    }
+
+    /**
+     * Parse all markdown files in the cloned wiki directory
+     *
+     * @return array<int, array{slug: string, title: string, file: string}>
+     */
+    protected function parseWikiDirectory(string $clonePath): array
+    {
+        $pages = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($clonePath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (strtolower($file->getExtension()) !== 'md') {
+                continue;
+            }
+
+            $relativePath = str_replace($clonePath.'/', '', $file->getPathname());
+
+            // Skip hidden files and the .git directory
+            if (str_starts_with($relativePath, '.')) {
+                continue;
+            }
+
+            // Convert filename to slug (remove .md/.MD extension, case-insensitive)
+            $slug = preg_replace('/\.md$/i', '', $relativePath);
+
+            // Convert filename to title (replace hyphens with spaces)
+            $title = str_replace('-', ' ', basename($slug));
+
+            $pages[] = [
+                'slug' => $slug,
+                'title' => $title,
+                'file' => $relativePath,
+            ];
+        }
+
+        return $pages;
+    }
+
+    /**
+     * Read a specific wiki page from the cloned directory
+     *
+     * @param  string  $clonePath  The clone directory path
+     * @param  string  $relativeFile  The relative file path within the clone (e.g., "guides/usage.md")
+     * @return array{content: string}
+     *
+     * @throws \Exception
+     */
+    protected function readWikiPage(string $clonePath, string $relativeFile): array
+    {
+        $filePath = "{$clonePath}/{$relativeFile}";
+
+        $cloneReal = realpath($clonePath);
+        $fileReal = realpath($filePath);
+
+        if ($fileReal === false || $cloneReal === false || ! str_starts_with($fileReal, $cloneReal.DIRECTORY_SEPARATOR)) {
+            throw new \Exception("Wiki page '{$relativeFile}' not found or path is outside repository");
+        }
+
+        $content = file_get_contents($fileReal);
+
+        if ($content === false) {
+            throw new \Exception("Failed to read wiki page '{$relativeFile}' at '{$fileReal}'");
+        }
+
+        return [
+            'content' => $content,
+        ];
+    }
+
+    /**
+     * Recursively remove a directory
+     */
+    protected function removeDirectory(string $path): void
+    {
+        if (! is_dir($path)) {
+            return;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getPathname());
+            } else {
+                unlink($item->getPathname());
+            }
+        }
+
+        rmdir($path);
     }
 
     /**

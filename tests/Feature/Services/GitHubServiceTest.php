@@ -5,55 +5,116 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->service = new GitHubService('test-token');
+    $this->tempDir = null;
 });
 
-test('getWikiPages fetches wiki pages successfully', function () {
-    Http::fake([
-        'https://api.github.com/repos/owner/repo/wiki/pages' => Http::response([
-            ['slug' => 'home', 'title' => 'Home'],
-            ['slug' => 'installation', 'title' => 'Installation'],
-        ], 200),
-    ]);
+afterEach(function () {
+    if ($this->tempDir && is_dir($this->tempDir)) {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
 
-    $result = $this->service->getWikiPages('https://github.com/owner/repo/wiki');
+        foreach ($iterator as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+        }
+
+        rmdir($this->tempDir);
+    }
+});
+
+function createFakeWikiService(string $tempDir): GitHubService
+{
+    return new class('test-token', $tempDir) extends GitHubService
+    {
+        private string $fakePath;
+
+        public function __construct(string $token, string $fakePath)
+        {
+            parent::__construct($token);
+            $this->fakePath = $fakePath;
+        }
+
+        protected function cloneWikiRepo(string $wikiUrl): string
+        {
+            return $this->fakePath;
+        }
+
+        protected function removeDirectory(string $path): void {}
+    };
+}
+
+test('getWikiPagesWithContent clones wiki and returns pages with content', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir($this->tempDir, 0777, true);
+    file_put_contents("{$this->tempDir}/home.md", "# Welcome\n\nHome content.");
+    file_put_contents("{$this->tempDir}/installation.md", "# Installation\n\nInstall steps.");
+
+    $service = createFakeWikiService($this->tempDir);
+    $result = $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
 
     expect($result)->toBeArray()
-        ->toHaveCount(2)
-        ->and($result[0]['slug'])->toBe('home')
-        ->and($result[1]['slug'])->toBe('installation');
+        ->toHaveCount(2);
+
+    $slugs = array_column($result, 'slug');
+    expect($slugs)->toContain('home')
+        ->toContain('installation');
+
+    $homePage = collect($result)->firstWhere('slug', 'home');
+    expect($homePage['content'])->toBe("# Welcome\n\nHome content.");
 });
 
-test('getWikiPages throws exception on failure', function () {
-    Http::fake([
-        'https://api.github.com/repos/owner/repo/wiki/pages' => Http::response(['message' => 'Not Found'], 404),
-    ]);
+test('getWikiPagesWithContent handles subdirectories', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir("{$this->tempDir}/guides", 0777, true);
+    file_put_contents("{$this->tempDir}/guides.md", '# Guides');
+    file_put_contents("{$this->tempDir}/guides/usage.md", '# Usage Guide');
 
-    $this->service->getWikiPages('https://github.com/owner/repo/wiki');
-})->throws(\Exception::class, 'Failed to fetch wiki pages');
+    $service = createFakeWikiService($this->tempDir);
+    $result = $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
 
-test('getWikiPage fetches specific wiki page successfully', function () {
-    Http::fake([
-        'https://api.github.com/repos/owner/repo/wiki/pages/home' => Http::response([
-            'slug' => 'home',
-            'title' => 'Home',
-            'content' => '# Welcome',
-        ], 200),
-    ]);
+    $slugs = array_column($result, 'slug');
+    expect($slugs)->toContain('guides')
+        ->toContain('guides/usage');
 
-    $result = $this->service->getWikiPage('https://github.com/owner/repo/wiki', 'home');
-
-    expect($result)->toBeArray()
-        ->and($result['slug'])->toBe('home')
-        ->and($result['content'])->toBe('# Welcome');
+    $childPage = collect($result)->firstWhere('slug', 'guides/usage');
+    expect($childPage['content'])->toBe('# Usage Guide');
 });
 
-test('getWikiPage throws exception on failure', function () {
-    Http::fake([
-        'https://api.github.com/repos/owner/repo/wiki/pages/nonexistent' => Http::response(['message' => 'Not Found'], 404),
-    ]);
+test('readWikiPage rejects symlinks pointing outside clone directory', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir($this->tempDir, 0777, true);
 
-    $this->service->getWikiPage('https://github.com/owner/repo/wiki', 'nonexistent');
-})->throws(\Exception::class, "Failed to fetch wiki page 'nonexistent'");
+    // Create a file outside the clone directory
+    $outsideDir = sys_get_temp_dir().'/test-wiki-outside-'.uniqid();
+    mkdir($outsideDir, 0777, true);
+    file_put_contents("{$outsideDir}/secret.md", 'SECRET DATA');
+
+    // Create a symlink inside the clone pointing to the outside file
+    symlink("{$outsideDir}/secret.md", "{$this->tempDir}/evil.md");
+
+    $service = createFakeWikiService($this->tempDir);
+
+    // The symlinked page resolves outside the clone — readWikiPage should throw
+    expect(fn () => $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki'))
+        ->toThrow(\Exception::class, 'not found or path is outside repository');
+
+    // Clean up outside dir
+    unlink("{$outsideDir}/secret.md");
+    rmdir($outsideDir);
+});
+
+test('getWikiPagesWithContent throws exception when clone fails', function () {
+    $service = new class('test-token') extends GitHubService
+    {
+        protected function cloneWikiRepo(string $wikiUrl): string
+        {
+            throw new \Exception("Failed to clone wiki repository for 'owner/repo': remote: Repository not found.");
+        }
+    };
+
+    $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
+})->throws(\Exception::class, 'Failed to clone wiki repository');
 
 test('getFileContent fetches raw file content successfully', function () {
     Http::fake([
@@ -130,26 +191,26 @@ test('extractFilePathFromUrl throws exception for invalid URL', function () {
 
 test('request handles rate limiting', function () {
     Http::fake([
-        'https://api.github.com/repos/owner/repo/wiki/pages' => Http::response(
+        'https://api.github.com/repos/owner/repo/contents/test.md?ref=main' => Http::response(
             ['message' => 'API rate limit exceeded'],
             403,
             ['X-RateLimit-Remaining' => '0', 'X-RateLimit-Reset' => (string) (time() + 60)]
         ),
     ]);
 
-    $this->service->getWikiPages('https://github.com/owner/repo/wiki');
+    $this->service->getFileContent('https://github.com/owner/repo/blob/main/test.md');
 })->throws(\Exception::class, 'GitHub API rate limit exceeded');
 
 test('request sends correct authentication headers', function () {
     Http::fake([
-        'https://api.github.com/repos/owner/repo/wiki/pages' => Http::response([], 200),
+        'https://api.github.com/repos/owner/repo/contents/test.md?ref=main' => Http::response('content', 200),
     ]);
 
-    $this->service->getWikiPages('https://github.com/owner/repo/wiki');
+    $this->service->getFileContent('https://github.com/owner/repo/blob/main/test.md');
 
     Http::assertSent(function ($request) {
         return $request->hasHeader('Authorization', 'Bearer test-token')
-            && $request->hasHeader('Accept', 'application/vnd.github+json')
-            && $request->hasHeader('X-GitHub-Api-Version', '2022-11-28');
+            && $request->hasHeader('X-GitHub-Api-Version', '2022-11-28')
+            && $request->hasHeader('Accept', 'application/vnd.github.raw+json');
     });
 });
