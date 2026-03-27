@@ -1,18 +1,18 @@
 <?php
 
-use App\Services\GitLabService;
+use App\Services\GitLabWikiService;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
-    $this->service = new GitLabService('test-token');
+    $this->service = new GitLabWikiService('test-token');
 });
 
 test('getWikiPages fetches wiki pages successfully', function () {
     Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response([
+        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis*' => Http::response([
             ['slug' => 'home', 'title' => 'Home'],
             ['slug' => 'installation', 'title' => 'Installation'],
-        ], 200),
+        ], 200, ['X-Next-Page' => '']),
     ]);
 
     $result = $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');
@@ -23,9 +23,35 @@ test('getWikiPages fetches wiki pages successfully', function () {
         ->and($result[1]['slug'])->toBe('installation');
 });
 
+test('getWikiPages handles pagination across multiple pages', function () {
+    $requestCount = 0;
+
+    Http::fake(function ($request) use (&$requestCount) {
+        $requestCount++;
+
+        if ($requestCount === 1) {
+            return Http::response([
+                ['slug' => 'home', 'title' => 'Home'],
+            ], 200, ['X-Next-Page' => '2']);
+        }
+
+        return Http::response([
+            ['slug' => 'installation', 'title' => 'Installation'],
+        ], 200, ['X-Next-Page' => '']);
+    });
+
+    $result = $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');
+
+    expect($result)->toBeArray()
+        ->toHaveCount(2)
+        ->and($result[0]['slug'])->toBe('home')
+        ->and($result[1]['slug'])->toBe('installation')
+        ->and($requestCount)->toBe(2);
+});
+
 test('getWikiPages throws exception on failure', function () {
     Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis' => Http::response(['error' => 'Not found'], 404),
+        'https://gitlab.com/api/v4/projects/group%2Fproject/wikis*' => Http::response(['error' => 'Not found'], 404),
     ]);
 
     $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');
@@ -56,7 +82,7 @@ test('getWikiPage throws exception on failure', function () {
 })->throws(\Exception::class, "Failed to fetch wiki page 'nonexistent'");
 
 test('extractProjectPath parses GitLab wiki URL correctly', function () {
-    $service = new GitLabService('test-token');
+    $service = new GitLabWikiService('test-token');
     $reflection = new ReflectionClass($service);
     $method = $reflection->getMethod('extractProjectPath');
     $method->setAccessible(true);
@@ -68,7 +94,7 @@ test('extractProjectPath parses GitLab wiki URL correctly', function () {
 });
 
 test('extractProjectPath throws exception for invalid URL', function () {
-    $service = new GitLabService('test-token');
+    $service = new GitLabWikiService('test-token');
     $reflection = new ReflectionClass($service);
     $method = $reflection->getMethod('extractProjectPath');
     $method->setAccessible(true);

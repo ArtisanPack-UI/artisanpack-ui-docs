@@ -2,17 +2,18 @@
 
 namespace App\Jobs;
 
-use App\Services\GitHubService;
+use App\Concerns\ResolvesServiceTokens;
+use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Setting;
 use Modules\Packages\Changelog;
 use Modules\Packages\Package;
 
 class ImportChangelog implements ShouldQueue
 {
     use Queueable;
+    use ResolvesServiceTokens;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -34,22 +35,13 @@ class ImportChangelog implements ShouldQueue
     public function handle(): void
     {
         try {
-            $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
+            $factory = app()->make(WikiServiceFactory::class);
+            $source = $factory->detectSource($this->package->changelog_url);
+            $token = $this->resolveToken($source);
+            $wikiService = $factory->make($this->package->changelog_url, $token);
 
-            try {
-                $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
-            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                $githubToken = null;
-            }
-
-            if (empty($githubToken)) {
-                throw new \Exception('GitHub token not configured or could not be decrypted');
-            }
-
-            $githubService = app()->make(GitHubService::class, ['token' => $githubToken]);
-
-            // Fetch the changelog content from GitHub
-            $content = $githubService->getFileContent($this->package->changelog_url);
+            // Fetch the changelog content
+            $content = $wikiService->getFileContent($this->package->changelog_url);
 
             // Remove the first H1 header if it exists
             $content = $this->removeFirstH1Header($content);

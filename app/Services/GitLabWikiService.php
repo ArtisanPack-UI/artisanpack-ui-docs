@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\WikiServiceInterface;
 use Illuminate\Support\Facades\Http;
 
-class GitLabService
+class GitLabWikiService implements WikiServiceInterface
 {
     public function __construct(
         private string $token,
@@ -12,26 +13,68 @@ class GitLabService
     ) {}
 
     /**
+     * Get all wiki pages with their content
+     *
+     * Fetches the page list from the GitLab API, then retrieves each page's
+     * content individually to return a unified format.
+     *
+     * @param  string  $wikiUrl  The URL to the GitLab wiki (e.g., https://gitlab.com/group/project/-/wikis)
+     * @return array<int, array{slug: string, title: string, content: string}>
+     *
+     * @throws \Exception
+     */
+    public function getWikiPagesWithContent(string $wikiUrl): array
+    {
+        $pages = $this->getWikiPages($wikiUrl);
+
+        return array_map(function (array $page) use ($wikiUrl) {
+            $fullPage = $this->getWikiPage($wikiUrl, $page['slug']);
+
+            return [
+                'slug' => $page['slug'],
+                'title' => $page['title'],
+                'content' => $fullPage['content'] ?? '',
+            ];
+        }, $pages);
+    }
+
+    /**
      * Get all wiki pages for a project
      *
      * @param  string  $wikiUrl  The URL to the GitLab wiki (e.g., https://gitlab.com/group/project/-/wikis)
+     * @return array<int, array{slug: string, title: string}>
      *
      * @throws \Exception
      */
     public function getWikiPages(string $wikiUrl): array
     {
         $projectPath = $this->extractProjectPath($wikiUrl);
-        $encodedPath = urlencode($projectPath);
+        $encodedPath = rawurlencode($projectPath);
 
-        $response = Http::withHeaders([
-            'PRIVATE-TOKEN' => $this->token,
-        ])->get("{$this->baseUrl}/projects/{$encodedPath}/wikis");
+        $allPages = [];
+        $page = 1;
+        $perPage = 100;
 
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch wiki pages: {$response->body()}");
-        }
+        do {
+            $response = Http::withHeaders([
+                'PRIVATE-TOKEN' => $this->token,
+            ])->get("{$this->baseUrl}/projects/{$encodedPath}/wikis", [
+                'page' => $page,
+                'per_page' => $perPage,
+            ]);
 
-        return $response->json();
+            if (! $response->successful()) {
+                throw new \Exception("Failed to fetch wiki pages: {$response->body()}");
+            }
+
+            $pages = $response->json();
+            $allPages = array_merge($allPages, $pages);
+
+            $nextPage = $response->header('X-Next-Page');
+            $page++;
+        } while (! empty($nextPage));
+
+        return $allPages;
     }
 
     /**
@@ -39,14 +82,15 @@ class GitLabService
      *
      * @param  string  $wikiUrl  The URL to the GitLab wiki
      * @param  string  $slug  The wiki page slug
+     * @return array{slug: string, title: string, content: string}
      *
      * @throws \Exception
      */
     public function getWikiPage(string $wikiUrl, string $slug): array
     {
         $projectPath = $this->extractProjectPath($wikiUrl);
-        $encodedPath = urlencode($projectPath);
-        $encodedSlug = urlencode($slug);
+        $encodedPath = rawurlencode($projectPath);
+        $encodedSlug = rawurlencode($slug);
 
         $response = Http::withHeaders([
             'PRIVATE-TOKEN' => $this->token,
@@ -57,6 +101,32 @@ class GitLabService
         }
 
         return $response->json();
+    }
+
+    /**
+     * Get raw file content from a GitLab repository
+     *
+     * @param  string  $fileUrl  The URL to the GitLab file (e.g., https://gitlab.com/group/project/-/blob/main/CHANGELOG.md)
+     *
+     * @throws \Exception
+     */
+    public function getFileContent(string $fileUrl): string
+    {
+        [$projectPath, $filePath, $ref] = $this->extractFilePathFromUrl($fileUrl);
+        $encodedPath = rawurlencode($projectPath);
+        $encodedFilePath = rawurlencode($filePath);
+
+        $encodedRef = rawurlencode(rawurldecode($ref));
+
+        $response = Http::withHeaders([
+            'PRIVATE-TOKEN' => $this->token,
+        ])->get("{$this->baseUrl}/projects/{$encodedPath}/repository/files/{$encodedFilePath}/raw?ref={$encodedRef}");
+
+        if (! $response->successful()) {
+            throw new \Exception("Failed to fetch file content from '{$fileUrl}': {$response->body()}");
+        }
+
+        return $response->body();
     }
 
     /**
@@ -86,30 +156,6 @@ class GitLabService
         }
 
         throw new \Exception("Invalid GitLab wiki URL format: {$wikiUrl}");
-    }
-
-    /**
-     * Get raw file content from a GitLab repository
-     *
-     * @param  string  $fileUrl  The URL to the GitLab file (e.g., https://gitlab.com/group/project/-/blob/main/CHANGELOG.md)
-     *
-     * @throws \Exception
-     */
-    public function getFileContent(string $fileUrl): string
-    {
-        [$projectPath, $filePath, $ref] = $this->extractFilePathFromUrl($fileUrl);
-        $encodedPath = urlencode($projectPath);
-        $encodedFilePath = urlencode($filePath);
-
-        $response = Http::withHeaders([
-            'PRIVATE-TOKEN' => $this->token,
-        ])->get("{$this->baseUrl}/projects/{$encodedPath}/repository/files/{$encodedFilePath}/raw?ref={$ref}");
-
-        if (! $response->successful()) {
-            throw new \Exception("Failed to fetch file content from '{$fileUrl}': {$response->body()}");
-        }
-
-        return $response->body();
     }
 
     /**

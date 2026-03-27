@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\WikiServiceInterface;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
-class GitHubService
+class GitHubService implements WikiServiceInterface
 {
     public function __construct(
         private string $token,

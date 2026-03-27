@@ -2,18 +2,19 @@
 
 namespace App\Jobs;
 
-use App\Services\GitHubService;
+use App\Concerns\ResolvesServiceTokens;
+use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Setting;
 use Modules\Packages\Documentation;
 use Modules\Packages\Package;
 
 class ImportWikiDocumentation implements ShouldQueue
 {
     use Queueable;
+    use ResolvesServiceTokens;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -35,22 +36,13 @@ class ImportWikiDocumentation implements ShouldQueue
     public function handle(): void
     {
         try {
-            $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
+            $factory = app()->make(WikiServiceFactory::class);
+            $source = $factory->detectSource($this->package->wiki_url);
+            $token = $this->resolveToken($source);
+            $wikiService = $factory->make($this->package->wiki_url, $token);
 
-            try {
-                $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
-            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                $githubToken = null;
-            }
-
-            if (empty($githubToken)) {
-                throw new \Exception('GitHub token not configured or could not be decrypted');
-            }
-
-            $githubService = app()->make(GitHubService::class, ['token' => $githubToken]);
-
-            // Get all wiki pages with content in a single clone operation
-            $wikiPages = $githubService->getWikiPagesWithContent($this->package->wiki_url);
+            // Get all wiki pages with content
+            $wikiPages = $wikiService->getWikiPagesWithContent($this->package->wiki_url);
 
             Log::info('Found {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),

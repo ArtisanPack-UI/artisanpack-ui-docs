@@ -1,7 +1,8 @@
 <?php
 
+use App\Contracts\WikiServiceInterface;
 use App\Jobs\ImportWikiDocumentation;
-use App\Services\GitHubService;
+use App\Services\WikiServiceFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Modules\Core\Setting;
@@ -19,9 +20,13 @@ beforeEach(function () {
 
 function mockWikiPages(array $pages): void
 {
-    $mock = Mockery::mock(GitHubService::class);
+    $mock = Mockery::mock(WikiServiceInterface::class);
     $mock->shouldReceive('getWikiPagesWithContent')->andReturn($pages);
-    app()->bind(GitHubService::class, fn () => $mock);
+
+    $factory = Mockery::mock(WikiServiceFactory::class);
+    $factory->shouldReceive('detectSource')->andReturn('github');
+    $factory->shouldReceive('make')->andReturn($mock);
+    app()->bind(WikiServiceFactory::class, fn () => $factory);
 }
 
 test('imports wiki documentation successfully', function () {
@@ -93,10 +98,14 @@ test('logs error and throws exception on failure', function () {
         'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
-    $mock = Mockery::mock(GitHubService::class);
+    $mock = Mockery::mock(WikiServiceInterface::class);
     $mock->shouldReceive('getWikiPagesWithContent')
         ->andThrow(new \Exception('Failed to clone wiki repository'));
-    app()->bind(GitHubService::class, fn () => $mock);
+
+    $factory = Mockery::mock(WikiServiceFactory::class);
+    $factory->shouldReceive('detectSource')->andReturn('github');
+    $factory->shouldReceive('make')->andReturn($mock);
+    app()->bind(WikiServiceFactory::class, fn () => $factory);
 
     $job = new ImportWikiDocumentation($package);
     $job->handle();
@@ -114,7 +123,7 @@ test('throws exception when github token is not configured', function () {
 
     $job = new ImportWikiDocumentation($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured');
+})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('extracts title from YAML front matter', function () {
     Log::shouldReceive('info')->times(3);
