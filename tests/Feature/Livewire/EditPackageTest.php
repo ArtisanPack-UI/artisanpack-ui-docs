@@ -28,7 +28,7 @@ test('import documentation dispatches job when wiki url and token are present', 
         ->assertHasNoErrors();
 
     Queue::assertPushed(ImportWikiDocumentation::class, function ($job) use ($package) {
-        return $job->package->id === $package->id && $job->githubToken === 'test-token-123';
+        return $job->package->id === $package->id;
     });
 });
 

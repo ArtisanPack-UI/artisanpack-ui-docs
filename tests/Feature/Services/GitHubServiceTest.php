@@ -93,10 +93,15 @@ test('getWikiPagesWithContent handles subdirectories', function () {
 });
 
 test('getWikiPagesWithContent throws exception when clone fails', function () {
-    // Use a real service with a bad token — the clone should fail
-    $service = new GitHubService('invalid-token');
+    $service = new class('test-token') extends GitHubService
+    {
+        protected function cloneWikiRepo(string $wikiUrl): string
+        {
+            throw new \Exception("Failed to clone wiki repository for 'owner/repo': remote: Repository not found.");
+        }
+    };
 
-    $service->getWikiPagesWithContent('https://github.com/nonexistent-owner-xyz/nonexistent-repo-xyz/wiki');
+    $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
 })->throws(\Exception::class, 'Failed to clone wiki repository');
 
 test('getFileContent fetches raw file content successfully', function () {

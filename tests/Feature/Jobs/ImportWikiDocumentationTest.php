@@ -4,10 +4,18 @@ use App\Jobs\ImportWikiDocumentation;
 use App\Services\GitHubService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Modules\Core\Setting;
 use Modules\Packages\Documentation;
 use Modules\Packages\Package;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Setting::create([
+        'key' => 'github_token',
+        'value' => encrypt('test-token'),
+    ]);
+});
 
 function mockWikiPages(array $pages): void
 {
@@ -30,7 +38,7 @@ test('imports wiki documentation successfully', function () {
         ['slug' => 'installation', 'title' => 'installation', 'content' => "# Installation Guide\n\nInstallation steps."],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     expect(Documentation::count())->toBe(2);
@@ -67,7 +75,7 @@ test('updates existing documentation when re-importing', function () {
         ['slug' => 'home', 'title' => 'Updated Title', 'content' => 'Updated content'],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     expect(Documentation::count())->toBe(1);
@@ -90,9 +98,23 @@ test('logs error and throws exception on failure', function () {
         ->andThrow(new \Exception('Failed to clone wiki repository'));
     app()->bind(GitHubService::class, fn () => $mock);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 })->throws(\Exception::class);
+
+test('throws exception when github token is not configured', function () {
+    Log::shouldReceive('error')->once();
+
+    Setting::where('key', 'github_token')->delete();
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+})->throws(\Exception::class, 'GitHub token not configured');
 
 test('extracts title from YAML front matter', function () {
     Log::shouldReceive('info')->times(3);
@@ -107,7 +129,7 @@ test('extracts title from YAML front matter', function () {
         ['slug' => 'home', 'title' => 'home', 'content' => "---\ntitle: Custom Title\n---\n\n# Welcome to the Documentation\n\nContent here."],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     $homeDoc = Documentation::where('slug', 'home')->first();
@@ -132,7 +154,7 @@ test('sets parent relationships for subpages and keeps full slugs', function () 
         ['slug' => 'guides/usage', 'title' => 'usage', 'content' => '# How to use'],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     expect(Documentation::count())->toBe(2);
@@ -141,7 +163,6 @@ test('sets parent relationships for subpages and keeps full slugs', function () 
     expect($parent)->not->toBeNull()
         ->and($parent->parent)->toBeNull();
 
-    // Child should keep full slug "guides/usage", not shortened to "usage"
     $child = Documentation::where('slug', 'guides/usage')->first();
     expect($child)->not->toBeNull()
         ->and($child->parent)->toBe($parent->id);
@@ -162,13 +183,38 @@ test('updates internal documentation links', function () {
         ['slug' => 'home', 'title' => 'home', 'content' => 'Check out the [installation guide](installation) and [usage guide](guides/usage).'],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     $homeDoc = Documentation::where('slug', 'home')->first();
     expect($homeDoc->content)
         ->toContain('https://example.com/documentation/test-package/installation')
         ->toContain('https://example.com/documentation/test-package/guides/usage');
+});
+
+test('rewrites absolute GitHub wiki URLs to internal links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [page](https://github.com/owner/repo/wiki/Getting-Started) and [other](https://github.com/owner/repo/wiki/API-Reference).'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/Getting-Started')
+        ->toContain('https://example.com/documentation/test-package/API-Reference')
+        ->not->toContain('github.com');
 });
 
 test('extracts title from H1 header when no YAML front matter', function () {
@@ -184,7 +230,7 @@ test('extracts title from H1 header when no YAML front matter', function () {
         ['slug' => 'home', 'title' => 'home', 'content' => "# Welcome to the Documentation\n\nThis is the content."],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     $homeDoc = Documentation::where('slug', 'home')->first();
@@ -206,7 +252,7 @@ test('uses title case GitHub title when no YAML or H1 exists', function () {
         ['slug' => 'home', 'title' => 'getting started with the package', 'content' => 'This is the content without any headers.'],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     $homeDoc = Documentation::where('slug', 'home')->first();
@@ -227,7 +273,7 @@ test('YAML title takes precedence over H1 header', function () {
         ['slug' => 'home', 'title' => 'home', 'content' => "---\ntitle: YAML Title\n---\n\n# H1 Title\n\nContent here."],
     ]);
 
-    $job = new ImportWikiDocumentation($package, 'test-token');
+    $job = new ImportWikiDocumentation($package);
     $job->handle();
 
     $homeDoc = Documentation::where('slug', 'home')->first();

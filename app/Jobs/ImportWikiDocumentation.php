@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Core\Setting;
 use Modules\Packages\Documentation;
 use Modules\Packages\Package;
 
@@ -25,8 +26,7 @@ class ImportWikiDocumentation implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package,
-        public string $githubToken
+        public Package $package
     ) {}
 
     /**
@@ -35,7 +35,19 @@ class ImportWikiDocumentation implements ShouldQueue
     public function handle(): void
     {
         try {
-            $githubService = app()->make(GitHubService::class, ['token' => $this->githubToken]);
+            $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
+
+            try {
+                $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                $githubToken = null;
+            }
+
+            if (empty($githubToken)) {
+                throw new \Exception('GitHub token not configured or could not be decrypted');
+            }
+
+            $githubService = app()->make(GitHubService::class, ['token' => $githubToken]);
 
             // Get all wiki pages with content in a single clone operation
             $wikiPages = $githubService->getWikiPagesWithContent($this->package->wiki_url);
@@ -175,11 +187,29 @@ class ImportWikiDocumentation implements ShouldQueue
      */
     protected function updateInternalLinks(string $content): string
     {
-        // Get the site URL
         $siteUrl = rtrim(config('app.url'), '/');
 
-        // Pattern to match wiki links (both relative and absolute)
-        // This will match links like: [text](page-slug) or [text](parent/page-slug)
+        // Extract the wiki base URL from the package wiki_url for absolute link matching
+        // e.g., https://github.com/owner/repo/wiki -> matches https://github.com/owner/repo/wiki/Page-Name
+        $wikiBase = rtrim($this->package->wiki_url, '/');
+        $escapedWikiBase = preg_quote($wikiBase, '/');
+
+        // First, rewrite absolute GitHub wiki URLs
+        $content = preg_replace_callback(
+            '/\[([^\]]+)\]\(('.preg_quote($wikiBase, '/').'\/([^)#?\s]+))([^)]*)\)/',
+            function ($matches) use ($siteUrl) {
+                $linkText = $matches[1];
+                $pageName = $matches[3];
+                $suffix = $matches[4]; // anchors, query strings
+
+                $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$pageName}";
+
+                return "[{$linkText}]({$newUrl}{$suffix})";
+            },
+            $content
+        );
+
+        // Then, rewrite relative wiki links
         $pattern = '/\[([^\]]+)\]\((?!https?:\/\/)([^)]+)\)/';
 
         return preg_replace_callback($pattern, function ($matches) use ($siteUrl) {
@@ -190,7 +220,6 @@ class ImportWikiDocumentation implements ShouldQueue
             $path = ltrim($originalPath, '/');
             $path = preg_replace('/^(wikis?\/|\.\.?\/)/', '', $path);
 
-            // Build the new URL
             $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$path}";
 
             return "[{$linkText}]({$newUrl})";

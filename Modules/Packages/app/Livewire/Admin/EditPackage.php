@@ -77,8 +77,11 @@ class EditPackage extends Component
 
         $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
 
-        // Decrypt the token (it's stored encrypted for security)
-        $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
+        try {
+            $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            $githubToken = null;
+        }
 
         if (empty($githubToken)) {
             $this->error('GitHub token not configured in settings.');
@@ -86,7 +89,7 @@ class EditPackage extends Component
             return;
         }
 
-        ImportWikiDocumentation::dispatch($this->package, $githubToken);
+        ImportWikiDocumentation::dispatch($this->package);
 
         $this->success('Documentation import started! This may take a few moments.');
     }

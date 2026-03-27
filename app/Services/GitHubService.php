@@ -69,34 +69,56 @@ class GitHubService
     /**
      * Clone the wiki Git repository to a temporary directory
      *
+     * Uses GIT_ASKPASS to supply credentials securely instead of embedding
+     * the token in the clone URL.
+     *
      * @throws \Exception
      */
     protected function cloneWikiRepo(string $wikiUrl): string
     {
         $repoPath = $this->extractRepoPath($wikiUrl);
         $clonePath = sys_get_temp_dir().'/wiki-'.md5($repoPath.time());
-        $cloneUrl = "https://{$this->token}@github.com/{$repoPath}.wiki.git";
+        $cloneUrl = "https://github.com/{$repoPath}.wiki.git";
 
-        $process = proc_open(
-            ['git', 'clone', '--depth', '1', $cloneUrl, $clonePath],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes
-        );
+        // Create a temporary GIT_ASKPASS script that echoes the token
+        $askpassScript = tempnam(sys_get_temp_dir(), 'git-askpass-');
+        file_put_contents($askpassScript, "#!/bin/sh\necho '{$this->token}'\n");
+        chmod($askpassScript, 0700);
 
-        if (! is_resource($process)) {
-            throw new \Exception('Failed to start git clone process');
+        try {
+            $env = [
+                'GIT_ASKPASS' => $askpassScript,
+                'GIT_TERMINAL_PROMPT' => '0',
+            ];
+
+            $process = proc_open(
+                ['git', 'clone', '--depth', '1', $cloneUrl, $clonePath],
+                [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                $pipes,
+                null,
+                $env
+            );
+
+            if (! is_resource($process)) {
+                throw new \Exception('Failed to start git clone process');
+            }
+
+            $stderr = stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $exitCode = proc_close($process);
+
+            if ($exitCode !== 0) {
+                // Redact any token-like strings from stderr before throwing
+                $sanitizedStderr = preg_replace('/ghp_[A-Za-z0-9]+/', '[REDACTED]', $stderr);
+
+                throw new \Exception("Failed to clone wiki repository for '{$repoPath}': {$sanitizedStderr}");
+            }
+
+            return $clonePath;
+        } finally {
+            @unlink($askpassScript);
         }
-
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($process);
-
-        if ($exitCode !== 0) {
-            throw new \Exception("Failed to clone wiki repository for '{$repoPath}': {$stderr}");
-        }
-
-        return $clonePath;
     }
 
     /**
@@ -149,11 +171,14 @@ class GitHubService
     {
         $filePath = "{$clonePath}/{$slug}.md";
 
-        if (! file_exists($filePath)) {
-            throw new \Exception("Wiki page '{$slug}' not found");
+        $cloneReal = realpath($clonePath);
+        $fileReal = realpath($filePath);
+
+        if ($fileReal === false || $cloneReal === false || ! str_starts_with($fileReal, $cloneReal.DIRECTORY_SEPARATOR)) {
+            throw new \Exception("Wiki page '{$slug}' not found or path is outside repository");
         }
 
-        $content = file_get_contents($filePath);
+        $content = file_get_contents($fileReal);
         $title = str_replace('-', ' ', basename($slug));
 
         return [
