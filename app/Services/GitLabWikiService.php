@@ -42,7 +42,7 @@ class GitLabWikiService implements WikiServiceInterface
      * Get all wiki pages for a project
      *
      * @param  string  $wikiUrl  The URL to the GitLab wiki (e.g., https://gitlab.com/group/project/-/wikis)
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{slug: string, title: string}>
      *
      * @throws \Exception
      */
@@ -82,7 +82,7 @@ class GitLabWikiService implements WikiServiceInterface
      *
      * @param  string  $wikiUrl  The URL to the GitLab wiki
      * @param  string  $slug  The wiki page slug
-     * @return array<string, mixed>
+     * @return array{slug: string, title: string, content: string}
      *
      * @throws \Exception
      */
