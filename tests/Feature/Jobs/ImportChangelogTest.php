@@ -17,10 +17,13 @@ beforeEach(function () {
     ]);
 });
 
-function mockGitHubFileContent(string $content): void
+function mockGitHubFileContent(string $expectedUrl, string $content): void
 {
     $mock = Mockery::mock(GitHubService::class);
-    $mock->shouldReceive('getFileContent')->andReturn($content);
+    $mock->shouldReceive('getFileContent')
+        ->once()
+        ->with($expectedUrl)
+        ->andReturn($content);
     app()->bind(GitHubService::class, fn () => $mock);
 }
 
@@ -34,7 +37,7 @@ test('imports changelog successfully', function () {
 
     $changelogContent = "# Changelog\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    mockGitHubFileContent($changelogContent);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
     $job = new ImportChangelog($package);
     $job->handle();
@@ -65,7 +68,7 @@ test('updates existing changelog when re-importing', function () {
 
     $newContent = "# Changelog\n\n## [2.0.0] - 2025-02-01\n- Updated release";
 
-    mockGitHubFileContent($newContent);
+    mockGitHubFileContent($package->changelog_url, $newContent);
 
     $job = new ImportChangelog($package);
     $job->handle();
@@ -89,6 +92,8 @@ test('logs error and throws exception on failure', function () {
 
     $mock = Mockery::mock(GitHubService::class);
     $mock->shouldReceive('getFileContent')
+        ->once()
+        ->with($package->changelog_url)
         ->andThrow(new \Exception('Failed to fetch file content'));
     app()->bind(GitHubService::class, fn () => $mock);
 
@@ -134,7 +139,7 @@ test('handles changelog in subdirectory', function () {
 
     $changelogContent = "# Changelog\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    mockGitHubFileContent($changelogContent);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
     $job = new ImportChangelog($package);
     $job->handle();
@@ -159,7 +164,7 @@ test('removes only first H1 header and preserves rest of content', function () {
 
     $changelogContent = "# Changelog\n\nAll notable changes to this project.\n\n## [2.0.0] - 2025-02-01\n- New feature\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    mockGitHubFileContent($changelogContent);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
     $job = new ImportChangelog($package);
     $job->handle();
@@ -181,7 +186,7 @@ test('handles changelog without H1 header', function () {
 
     $changelogContent = "## [1.0.0] - 2025-01-01\n- Initial release";
 
-    mockGitHubFileContent($changelogContent);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
     $job = new ImportChangelog($package);
     $job->handle();
@@ -200,7 +205,7 @@ test('removes H1 header with leading whitespace', function () {
 
     $changelogContent = "  # Changelog\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    mockGitHubFileContent($changelogContent);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
     $job = new ImportChangelog($package);
     $job->handle();
@@ -221,7 +226,7 @@ test('removes long H1 header like Digital Shopfront CMS Accessibility Changelog'
 
     $changelogContent = "# Digital Shopfront CMS Accessibility Changelog\n\n## Version 1.0.0\n- Initial release";
 
-    mockGitHubFileContent($changelogContent);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
     $job = new ImportChangelog($package);
     $job->handle();

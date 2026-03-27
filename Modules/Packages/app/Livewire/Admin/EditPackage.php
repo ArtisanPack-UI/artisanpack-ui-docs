@@ -81,6 +81,9 @@ class EditPackage extends Component
             return;
         }
 
+        // Persist current form values so the queued job uses the latest URL
+        $this->package->update(['wiki_url' => $this->wiki_url]);
+
         ImportWikiDocumentation::dispatch($this->package);
 
         $this->success('Documentation import started! This may take a few moments.');
@@ -99,6 +102,9 @@ class EditPackage extends Component
 
             return;
         }
+
+        // Persist current form values so the queued job uses the latest URL
+        $this->package->update(['changelog_url' => $this->changelog_url]);
 
         ImportChangelog::dispatch($this->package);
 
