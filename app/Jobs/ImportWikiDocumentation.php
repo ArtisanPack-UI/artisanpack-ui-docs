@@ -196,7 +196,7 @@ class ImportWikiDocumentation implements ShouldQueue
 
         // First, rewrite absolute GitHub wiki URLs
         $content = preg_replace_callback(
-            '/\[([^\]]+)\]\(('.preg_quote($wikiBase, '/').'\/([^)#?\s]+))([^)]*)\)/',
+            '/\[([^\]]+)\]\(('.$escapedWikiBase.'\/([^)#?\s]+))([^)]*)\)/',
             function ($matches) use ($siteUrl) {
                 $linkText = $matches[1];
                 $pageName = $matches[3];

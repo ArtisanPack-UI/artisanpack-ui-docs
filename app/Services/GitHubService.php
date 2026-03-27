@@ -110,7 +110,7 @@ class GitHubService
 
             if ($exitCode !== 0) {
                 // Redact any token-like strings from stderr before throwing
-                $sanitizedStderr = preg_replace('/ghp_[A-Za-z0-9]+/', '[REDACTED]', $stderr);
+                $sanitizedStderr = preg_replace('/gh[pousr]_[A-Za-z0-9]+/', '[REDACTED]', $stderr);
 
                 throw new \Exception("Failed to clone wiki repository for '{$repoPath}': {$sanitizedStderr}");
             }
@@ -179,6 +179,11 @@ class GitHubService
         }
 
         $content = file_get_contents($fileReal);
+
+        if ($content === false) {
+            throw new \Exception("Failed to read wiki page '{$slug}' at '{$fileReal}'");
+        }
+
         $title = str_replace('-', ' ', basename($slug));
 
         return [

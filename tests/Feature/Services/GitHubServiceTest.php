@@ -5,60 +5,27 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->service = new GitHubService('test-token');
+    $this->tempDir = null;
 });
 
-test('getWikiPagesWithContent clones wiki and returns pages with content', function () {
-    // Create a mock subclass that overrides cloneWikiRepo to use a temp directory
-    $tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
-    mkdir($tempDir, 0777, true);
-    file_put_contents("{$tempDir}/home.md", "# Welcome\n\nHome content.");
-    file_put_contents("{$tempDir}/installation.md", "# Installation\n\nInstall steps.");
+afterEach(function () {
+    if ($this->tempDir && is_dir($this->tempDir)) {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->tempDir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
 
-    $service = new class('test-token', $tempDir) extends GitHubService
-    {
-        private string $fakePath;
-
-        public function __construct(string $token, string $fakePath)
-        {
-            parent::__construct($token);
-            $this->fakePath = $fakePath;
+        foreach ($iterator as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
 
-        protected function cloneWikiRepo(string $wikiUrl): string
-        {
-            return $this->fakePath;
-        }
-
-        protected function removeDirectory(string $path): void
-        {
-            // Don't remove during test — we'll clean up manually
-        }
-    };
-
-    $result = $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
-
-    expect($result)->toBeArray()
-        ->toHaveCount(2);
-
-    $slugs = array_column($result, 'slug');
-    expect($slugs)->toContain('home')
-        ->toContain('installation');
-
-    $homePage = collect($result)->firstWhere('slug', 'home');
-    expect($homePage['content'])->toBe("# Welcome\n\nHome content.");
-
-    // Clean up
-    array_map('unlink', glob("{$tempDir}/*.md"));
-    rmdir($tempDir);
+        rmdir($this->tempDir);
+    }
 });
 
-test('getWikiPagesWithContent handles subdirectories', function () {
-    $tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
-    mkdir("{$tempDir}/guides", 0777, true);
-    file_put_contents("{$tempDir}/guides.md", '# Guides');
-    file_put_contents("{$tempDir}/guides/usage.md", '# Usage Guide');
-
-    $service = new class('test-token', $tempDir) extends GitHubService
+function createFakeWikiService(string $tempDir): GitHubService
+{
+    return new class('test-token', $tempDir) extends GitHubService
     {
         private string $fakePath;
 
@@ -75,7 +42,35 @@ test('getWikiPagesWithContent handles subdirectories', function () {
 
         protected function removeDirectory(string $path): void {}
     };
+}
 
+test('getWikiPagesWithContent clones wiki and returns pages with content', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir($this->tempDir, 0777, true);
+    file_put_contents("{$this->tempDir}/home.md", "# Welcome\n\nHome content.");
+    file_put_contents("{$this->tempDir}/installation.md", "# Installation\n\nInstall steps.");
+
+    $service = createFakeWikiService($this->tempDir);
+    $result = $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
+
+    expect($result)->toBeArray()
+        ->toHaveCount(2);
+
+    $slugs = array_column($result, 'slug');
+    expect($slugs)->toContain('home')
+        ->toContain('installation');
+
+    $homePage = collect($result)->firstWhere('slug', 'home');
+    expect($homePage['content'])->toBe("# Welcome\n\nHome content.");
+});
+
+test('getWikiPagesWithContent handles subdirectories', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir("{$this->tempDir}/guides", 0777, true);
+    file_put_contents("{$this->tempDir}/guides.md", '# Guides');
+    file_put_contents("{$this->tempDir}/guides/usage.md", '# Usage Guide');
+
+    $service = createFakeWikiService($this->tempDir);
     $result = $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
 
     $slugs = array_column($result, 'slug');
@@ -84,12 +79,6 @@ test('getWikiPagesWithContent handles subdirectories', function () {
 
     $childPage = collect($result)->firstWhere('slug', 'guides/usage');
     expect($childPage['content'])->toBe('# Usage Guide');
-
-    // Clean up
-    unlink("{$tempDir}/guides.md");
-    unlink("{$tempDir}/guides/usage.md");
-    rmdir("{$tempDir}/guides");
-    rmdir($tempDir);
 });
 
 test('getWikiPagesWithContent throws exception when clone fails', function () {
