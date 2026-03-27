@@ -102,18 +102,21 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
+        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
 
-        // Decrypt the token (it's stored encrypted for security)
-        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
+        try {
+            $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            $githubToken = null;
+        }
 
-        if (empty($gitlabToken)) {
-            $this->error('GitLab token not configured in settings.');
+        if (empty($githubToken)) {
+            $this->error('GitHub token not configured in settings.');
 
             return;
         }
 
-        ImportChangelog::dispatch($this->package, $gitlabToken);
+        ImportChangelog::dispatch($this->package);
 
         $this->success('Changelog import started! This may take a few moments.');
     }

@@ -2,10 +2,11 @@
 
 namespace App\Jobs;
 
-use App\Services\GitLabService;
+use App\Services\GitHubService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Modules\Core\Setting;
 use Modules\Packages\Changelog;
 use Modules\Packages\Package;
 
@@ -24,8 +25,7 @@ class ImportChangelog implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package,
-        public string $gitlabToken
+        public Package $package
     ) {}
 
     /**
@@ -34,10 +34,22 @@ class ImportChangelog implements ShouldQueue
     public function handle(): void
     {
         try {
-            $gitlabService = new GitLabService($this->gitlabToken);
+            $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
 
-            // Fetch the changelog content from GitLab
-            $content = $gitlabService->getFileContent($this->package->changelog_url);
+            try {
+                $githubToken = $encryptedToken ? decrypt($encryptedToken) : null;
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                $githubToken = null;
+            }
+
+            if (empty($githubToken)) {
+                throw new \Exception('GitHub token not configured or could not be decrypted');
+            }
+
+            $githubService = app()->make(GitHubService::class, ['token' => $githubToken]);
+
+            // Fetch the changelog content from GitHub
+            $content = $githubService->getFileContent($this->package->changelog_url);
 
             // Remove the first H1 header if it exists
             $content = $this->removeFirstH1Header($content);

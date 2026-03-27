@@ -69,11 +69,11 @@ test('import changelog dispatches job when changelog url and token are present',
     Queue::fake();
 
     $package = Package::factory()->create([
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
+        'key' => 'github_token',
         'value' => encrypt('test-token-123'),
     ]);
 
@@ -82,7 +82,7 @@ test('import changelog dispatches job when changelog url and token are present',
         ->assertHasNoErrors();
 
     Queue::assertPushed(ImportChangelog::class, function ($job) use ($package) {
-        return $job->package->id === $package->id && $job->gitlabToken === 'test-token-123';
+        return $job->package->id === $package->id;
     });
 });
 
@@ -94,7 +94,7 @@ test('import changelog does not dispatch job when changelog url is missing', fun
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
+        'key' => 'github_token',
         'value' => encrypt('test-token-123'),
     ]);
 
@@ -105,11 +105,11 @@ test('import changelog does not dispatch job when changelog url is missing', fun
     Queue::assertNothingPushed();
 });
 
-test('import changelog does not dispatch job when gitlab token is not configured', function () {
+test('import changelog does not dispatch job when github token is not configured', function () {
     Queue::fake();
 
     $package = Package::factory()->create([
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
