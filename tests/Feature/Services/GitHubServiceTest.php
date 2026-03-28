@@ -81,6 +81,24 @@ test('getWikiPagesWithContent handles subdirectories', function () {
     expect($childPage['content'])->toBe('# Usage Guide');
 });
 
+test('getWikiPagesWithContent deduplicates dir/dir pages when dir exists at root', function () {
+    $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
+    mkdir("{$this->tempDir}/installation", 0777, true);
+    file_put_contents("{$this->tempDir}/installation.md", '# Installation Overview');
+    file_put_contents("{$this->tempDir}/installation/installation.md", '# Installation Overview (duplicate)');
+    file_put_contents("{$this->tempDir}/installation/configuration.md", '# Configuration');
+    file_put_contents("{$this->tempDir}/installation/requirements.md", '# Requirements');
+
+    $service = createFakeWikiService($this->tempDir);
+    $result = $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
+
+    $slugs = array_column($result, 'slug');
+    expect($slugs)->toContain('installation')
+        ->toContain('installation/configuration')
+        ->toContain('installation/requirements')
+        ->not->toContain('installation/installation');
+});
+
 test('readWikiPage rejects symlinks pointing outside clone directory', function () {
     $this->tempDir = sys_get_temp_dir().'/test-wiki-'.uniqid();
     mkdir($this->tempDir, 0777, true);

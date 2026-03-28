@@ -166,6 +166,9 @@ class GitHubService implements WikiServiceInterface
     /**
      * Parse all markdown files in the cloned wiki directory
      *
+     * Deduplicates pages where both section.md and section/section.md exist,
+     * keeping only the root-level file as the parent page.
+     *
      * @return array<int, array{slug: string, title: string, file: string}>
      */
     protected function parseWikiDirectory(string $clonePath): array
@@ -200,7 +203,27 @@ class GitHubService implements WikiServiceInterface
             ];
         }
 
-        return $pages;
+        // Collect root-level slugs to detect duplicates like section/section
+        $rootSlugs = [];
+        foreach ($pages as $page) {
+            if (! str_contains($page['slug'], '/')) {
+                $rootSlugs[] = $page['slug'];
+            }
+        }
+
+        // Filter out dir/dir duplicates when dir already exists at root
+        return array_values(array_filter($pages, function (array $page) use ($rootSlugs) {
+            if (! str_contains($page['slug'], '/')) {
+                return true;
+            }
+
+            $parts = explode('/', $page['slug']);
+            if (count($parts) === 2 && $parts[0] === $parts[1] && in_array($parts[0], $rootSlugs)) {
+                return false;
+            }
+
+            return true;
+        }));
     }
 
     /**

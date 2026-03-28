@@ -87,6 +87,19 @@ class ImportWikiDocumentation implements ShouldQueue
                 Log::info('Imported wiki page: {slug}', ['slug' => $wikiPage['slug']]);
             }
 
+            // Remove documentation pages that no longer exist in the wiki
+            $importedSlugs = array_column($wikiPages, 'slug');
+            $deleted = Documentation::where('package_id', $this->package->id)
+                ->whereNotIn('slug', $importedSlugs)
+                ->delete();
+
+            if ($deleted > 0) {
+                Log::info('Removed {count} stale documentation pages for package {package}', [
+                    'count' => $deleted,
+                    'package' => $this->package->name,
+                ]);
+            }
+
             // Set up parent relationships for subpages
             $this->setParentRelationships();
 
@@ -186,12 +199,27 @@ class ImportWikiDocumentation implements ShouldQueue
         $wikiBase = rtrim($this->package->wiki_url, '/');
         $escapedWikiBase = preg_quote($wikiBase, '/');
 
-        // First, rewrite absolute GitHub wiki URLs
+        // First, rewrite GitHub wiki [[Page Name]] and [[Page Name|Display Text]] wikilinks
+        $content = preg_replace_callback(
+            '/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/',
+            function ($matches) use ($siteUrl) {
+                $pageName = trim($matches[1]);
+                $displayText = isset($matches[2]) ? trim($matches[2]) : $pageName;
+                $slug = str_replace(' ', '-', $pageName);
+
+                $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$slug}";
+
+                return "[{$displayText}]({$newUrl})";
+            },
+            $content
+        );
+
+        // Then, rewrite absolute GitHub wiki URLs
         $content = preg_replace_callback(
             '/\[([^\]]+)\]\(('.$escapedWikiBase.'\/([^)#?\s]+))([^)]*)\)/',
             function ($matches) use ($siteUrl) {
                 $linkText = $matches[1];
-                $pageName = $matches[3];
+                $pageName = preg_replace('/\.md$/i', '', $matches[3]);
                 $suffix = $matches[4]; // anchors, query strings
 
                 $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$pageName}";
@@ -201,7 +229,7 @@ class ImportWikiDocumentation implements ShouldQueue
             $content
         );
 
-        // Then, rewrite relative wiki links
+        // Finally, rewrite relative wiki links
         $pattern = '/\[([^\]]+)\]\((?!https?:\/\/)([^)]+)\)/';
 
         return preg_replace_callback($pattern, function ($matches) use ($siteUrl) {
@@ -211,6 +239,9 @@ class ImportWikiDocumentation implements ShouldQueue
             // Remove any leading slashes or wiki-specific prefixes
             $path = ltrim($originalPath, '/');
             $path = preg_replace('/^(wikis?\/|\.\.?\/)/', '', $path);
+
+            // Strip .md extension
+            $path = preg_replace('/\.md$/i', '', $path);
 
             $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$path}";
 

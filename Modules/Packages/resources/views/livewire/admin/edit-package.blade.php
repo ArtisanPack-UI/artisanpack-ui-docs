@@ -48,7 +48,7 @@
                 <x-artisanpack-card title="Documentation">
                     <div class="space-y-4">
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Import documentation from the GitLab wiki repository. This will fetch all wiki pages and create or update documentation entries for this package.
+                            Import documentation from the wiki repository. This will fetch all wiki pages and create or update documentation entries for this package.
                         </p>
                     </div>
 
@@ -63,7 +63,7 @@
                 <x-artisanpack-card title="Changelog">
                     <div class="space-y-4">
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Import the changelog from the GitLab repository. This will fetch the changelog file and create or update the changelog entry for this package.
+                            Import the changelog from the repository. This will fetch the changelog file and create or update the changelog entry for this package.
                         </p>
                     </div>
 
