@@ -90,6 +90,40 @@ test('updates existing documentation when re-importing', function () {
         ->and($homeDoc->content)->toBe('Updated content');
 });
 
+test('removes stale documentation pages when re-importing', function () {
+    Log::shouldReceive('info')->zeroOrMoreTimes();
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    Documentation::create([
+        'slug' => 'home',
+        'title' => 'Home',
+        'content' => 'Home content',
+        'package_id' => $package->id,
+    ]);
+
+    Documentation::create([
+        'slug' => 'old-page',
+        'title' => 'Old Page',
+        'content' => 'This page no longer exists in the wiki',
+        'package_id' => $package->id,
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'Home', 'content' => 'Updated home content'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    expect(Documentation::where('package_id', $package->id)->count())->toBe(1)
+        ->and(Documentation::where('slug', 'home')->first())->not->toBeNull()
+        ->and(Documentation::where('slug', 'old-page')->first())->toBeNull();
+});
+
 test('logs error and throws exception on failure', function () {
     Log::shouldReceive('error')->once();
 
@@ -267,6 +301,225 @@ test('uses title case GitHub title when no YAML or H1 exists', function () {
     $homeDoc = Documentation::where('slug', 'home')->first();
     expect($homeDoc->title)->toBe('Getting Started with the Package')
         ->and($homeDoc->content)->toBe('This is the content without any headers.');
+});
+
+test('rewrites absolute GitHub wiki URLs with anchors to internal links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [section](https://github.com/owner/repo/wiki/Getting-Started#installation) for details.'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/Getting-Started#installation')
+        ->not->toContain('github.com');
+});
+
+test('rewrites relative wiki links with /wiki/ prefix to internal links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See the [guide](/wiki/Getting-Started) and [usage](../Usage-Guide) pages.'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/Getting-Started')
+        ->toContain('https://example.com/documentation/test-package/Usage-Guide');
+});
+
+test('preserves external non-wiki links unchanged', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'Visit [Laravel](https://laravel.com) and [PHP](https://php.net) for more info.'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://laravel.com')
+        ->toContain('https://php.net');
+});
+
+test('strips .md extension from relative links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [installation](installation.md) and [config](installation/configuration.md).'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/installation)')
+        ->toContain('https://example.com/documentation/test-package/installation/configuration)')
+        ->not->toContain('.md');
+});
+
+test('strips .md extension from relative links with anchors', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [setup](installation.md#setup) and [config](configuration.md?v=2).'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/installation#setup')
+        ->toContain('https://example.com/documentation/test-package/configuration?v=2')
+        ->not->toContain('.md');
+});
+
+test('strips .md extension from absolute wiki URLs', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [page](https://github.com/owner/repo/wiki/Getting-Started.md).'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/Getting-Started)')
+        ->not->toContain('.md');
+});
+
+test('rewrites [[Page Name]] wikilinks to internal links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [[Getting Started]] and [[API Reference]] for more.'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('[Getting Started](https://example.com/documentation/test-package/Getting-Started)')
+        ->toContain('[API Reference](https://example.com/documentation/test-package/API-Reference)');
+});
+
+test('rewrites [[Page Name|Display Text]] wikilinks to internal links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'Check the [[Getting Started|quick start guide]] and [[API Reference|API docs]].'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('[quick start guide](https://example.com/documentation/test-package/Getting-Started)')
+        ->toContain('[API docs](https://example.com/documentation/test-package/API-Reference)');
+});
+
+test('handles mixed wikilinks and standard markdown links', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [[Getting Started]], [the API](API-Reference), and [Laravel](https://laravel.com).'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('[Getting Started](https://example.com/documentation/test-package/Getting-Started)')
+        ->toContain('[the API](https://example.com/documentation/test-package/API-Reference)')
+        ->toContain('[Laravel](https://laravel.com)');
 });
 
 test('YAML title takes precedence over H1 header', function () {
