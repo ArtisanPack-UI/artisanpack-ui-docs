@@ -172,6 +172,14 @@ test('getFileContent throws exception on failure', function () {
     $this->service->getFileContent('https://github.com/owner/repo/blob/main/MISSING.md');
 })->throws(\Exception::class, 'Failed to fetch file content');
 
+test('getFileContent throws exception on server error', function () {
+    Http::fake([
+        'https://api.github.com/repos/owner/repo/contents/CHANGELOG.md?ref=main' => Http::response(['message' => 'Internal Server Error'], 500),
+    ]);
+
+    $this->service->getFileContent('https://github.com/owner/repo/blob/main/CHANGELOG.md');
+})->throws(\Exception::class, 'Failed to fetch file content');
+
 test('extractRepoPath parses GitHub URLs correctly', function () {
     $service = new GitHubService('test-token');
     $reflection = new ReflectionClass($service);

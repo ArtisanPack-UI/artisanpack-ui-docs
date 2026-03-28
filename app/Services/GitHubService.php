@@ -86,8 +86,10 @@ class GitHubService implements WikiServiceInterface
         $cloneUrl = "https://github.com/{$repoPath}.wiki.git";
 
         // Create a temporary GIT_ASKPASS script that echoes the token
+        // Escape single quotes in the token to prevent shell injection
+        $escapedToken = str_replace("'", "'\\''", $this->token);
         $askpassScript = tempnam(sys_get_temp_dir(), 'git-askpass-');
-        file_put_contents($askpassScript, "#!/bin/sh\necho '{$this->token}'\n");
+        file_put_contents($askpassScript, "#!/bin/sh\necho '{$escapedToken}'\n");
         chmod($askpassScript, 0700);
 
         try {
@@ -152,7 +154,7 @@ class GitHubService implements WikiServiceInterface
                 $this->removeDirectory($clonePath);
 
                 // Redact any token-like strings from stderr before throwing
-                $sanitizedStderr = preg_replace('/gh[pousr]_[A-Za-z0-9]+/', '[REDACTED]', $stderr);
+                $sanitizedStderr = preg_replace('/(?:gh[pousr]_|gha_|github_pat_)[A-Za-z0-9_]+/', '[REDACTED]', $stderr);
 
                 throw new \Exception("Failed to clone wiki repository for '{$repoPath}': {$sanitizedStderr}");
             }

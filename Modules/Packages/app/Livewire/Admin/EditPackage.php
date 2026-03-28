@@ -6,6 +6,7 @@ use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
 use App\Services\WikiServiceFactory;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -78,9 +79,10 @@ class EditPackage extends Component
             return;
         }
 
-        if (empty($this->resolveGithubToken())) {
-            $this->error('GitHub token not configured in settings.');
+        $this->validateOnly('wiki_url', $this->packageUrlRules(), $this->packageUrlMessages());
 
+        $token = $this->resolveTokenForUrl($this->wiki_url);
+        if ($token === null) {
             return;
         }
 
@@ -100,9 +102,10 @@ class EditPackage extends Component
             return;
         }
 
-        if (empty($this->resolveGithubToken())) {
-            $this->error('GitHub token not configured in settings.');
+        $this->validateOnly('changelog_url', $this->packageUrlRules(), $this->packageUrlMessages());
 
+        $token = $this->resolveTokenForUrl($this->changelog_url);
+        if ($token === null) {
             return;
         }
 
@@ -137,17 +140,42 @@ class EditPackage extends Component
     }
 
     /**
-     * Resolve the GitHub token from encrypted settings
+     * Resolve the appropriate token for the given URL based on detected source
+     *
+     * Shows an error toast and returns null if the token is not configured.
      */
-    protected function resolveGithubToken(): ?string
+    protected function resolveTokenForUrl(string $url): ?string
     {
-        $encryptedToken = Setting::where('key', 'github_token')->first()?->value;
-
         try {
-            return $encryptedToken ? decrypt($encryptedToken) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            $source = app(WikiServiceFactory::class)->detectSource($url);
+        } catch (\Exception) {
+            $this->error('Unable to detect source platform from URL.');
+
             return null;
         }
+
+        $settingKey = "{$source}_token";
+        $brandName = match ($source) {
+            'github' => 'GitHub',
+            'gitlab' => 'GitLab',
+            default => ucfirst($source),
+        };
+
+        $encryptedToken = Setting::query()->where('key', $settingKey)->value('value');
+
+        try {
+            $token = $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (DecryptException) {
+            $token = null;
+        }
+
+        if (empty($token)) {
+            $this->error("{$brandName} token not configured in settings.");
+
+            return null;
+        }
+
+        return $token;
     }
 
     public function render(): View

@@ -22,17 +22,25 @@ class WikiServiceFactory
     }
 
     /**
-     * Detect the source platform from a URL
+     * Detect the source platform from a URL by parsing the host
      *
      * @throws \Exception
      */
     public function detectSource(string $url): string
     {
-        if (str_contains($url, 'github.com') || str_contains($url, 'raw.githubusercontent.com')) {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if ($host === null || $host === false) {
+            throw new \Exception("Unable to detect wiki source from URL: {$url}");
+        }
+
+        $host = strtolower(ltrim($host, 'www.'));
+
+        if (in_array($host, ['github.com', 'raw.githubusercontent.com'], true)) {
             return 'github';
         }
 
-        if (str_contains($url, 'gitlab.com')) {
+        if ($host === 'gitlab.com') {
             return 'gitlab';
         }
 

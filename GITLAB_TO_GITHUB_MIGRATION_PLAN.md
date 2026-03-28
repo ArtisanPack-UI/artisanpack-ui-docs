@@ -112,7 +112,7 @@ The application currently:
 - Jobs depend on interface, not concrete implementations
 
 **Example structure**:
-```
+```text
 app/
 ├── Contracts/
 │   └── WikiServiceInterface.php

@@ -36,7 +36,7 @@ it('users can not authenticate with invalid password', function () {
         ->set('password', 'wrong-password')
         ->set('remember', false)
         ->call('login')
-        ->assertHasErrors();
+        ->assertHasErrors('email');
 
     $this->assertGuest();
 });

@@ -114,7 +114,7 @@ git remote -v
 Navigate to **Settings → Secrets and variables → Actions**
 
 **Repository Secrets** (for all environments):
-```
+```bash
 FLUX_USERNAME=<your-flux-username>
 FLUX_LICENSE_KEY=<your-flux-license-key>
 ```
@@ -386,7 +386,7 @@ Closes #
 - `feature_request.md`
 
 **Code Owners** - `.github/CODEOWNERS`:
-```
+```text
 # Default owners for everything
 *       @your-username
 

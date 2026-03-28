@@ -20,7 +20,7 @@ trait ResolvesServiceTokens
             default => ucfirst($source),
         };
 
-        $encryptedToken = Setting::where('key', $settingKey)->first()?->value;
+        $encryptedToken = Setting::query()->where('key', $settingKey)->value('value');
 
         try {
             $token = $encryptedToken ? decrypt($encryptedToken) : null;
