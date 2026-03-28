@@ -11,7 +11,9 @@
 
             <x-artisanpack-card title="Integrations">
                 <div class="space-y-4">
-                    <x-artisanpack-input wire:model="gitLabToken" label="GitLab Token" type="password" />
+                    <x-artisanpack-input wire:model="gitLabToken" label="GitLab Token" type="password" placeholder="{{ $hasGitLabToken ? '••••••••••••' : '' }}" hint="{{ $hasGitLabToken ? 'Token configured. Enter a new value to replace it.' : 'A GitLab personal access token with the read_api and read_repository scopes. Create one at GitLab → User Settings → Access Tokens.' }}" />
+
+                    <x-artisanpack-input wire:model="gitHubToken" label="GitHub Token" type="password" placeholder="{{ $hasGitHubToken ? '••••••••••••' : '' }}" hint="{{ $hasGitHubToken ? 'Token configured. Enter a new value to replace it.' : 'A GitHub personal access token (PAT) with the repo scope. Create one at GitHub → Settings → Developer settings → Personal access tokens.' }}" />
 
                     <x-artisanpack-input wire:model="googleAnalyticsId" label="Google Analytics ID" placeholder="G-XXXXXXXXXX" hint="Your GA4 Measurement ID (e.g., G-ABC123XYZ)" />
                 </div>

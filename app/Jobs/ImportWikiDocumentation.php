@@ -2,7 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Services\GitLabService;
+use App\Concerns\ResolvesServiceTokens;
+use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ use Modules\Packages\Package;
 class ImportWikiDocumentation implements ShouldQueue
 {
     use Queueable;
+    use ResolvesServiceTokens;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -25,8 +27,7 @@ class ImportWikiDocumentation implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package,
-        public string $gitlabToken
+        public Package $package
     ) {}
 
     /**
@@ -35,10 +36,13 @@ class ImportWikiDocumentation implements ShouldQueue
     public function handle(): void
     {
         try {
-            $gitlabService = new GitLabService($this->gitlabToken);
+            $factory = app()->make(WikiServiceFactory::class);
+            $source = $factory->detectSource($this->package->wiki_url);
+            $token = $this->resolveToken($source);
+            $wikiService = $factory->make($this->package->wiki_url, $token);
 
-            // Get all wiki pages
-            $wikiPages = $gitlabService->getWikiPages($this->package->wiki_url);
+            // Get all wiki pages with content
+            $wikiPages = $wikiService->getWikiPagesWithContent($this->package->wiki_url);
 
             Log::info('Found {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),
@@ -46,10 +50,7 @@ class ImportWikiDocumentation implements ShouldQueue
             ]);
 
             foreach ($wikiPages as $wikiPage) {
-                // Get full content for each page
-                $fullPage = $gitlabService->getWikiPage($this->package->wiki_url, $wikiPage['slug']);
-
-                $content = $fullPage['content'] ?? '';
+                $content = $wikiPage['content'] ?? '';
 
                 // Extract title from YAML front matter and remove it
                 $yamlTitle = $this->extractTitleFromYaml($content);
@@ -62,9 +63,9 @@ class ImportWikiDocumentation implements ShouldQueue
                 // Clean and update links
                 $cleanedContent = $this->updateInternalLinks($content);
 
-                // Title priority: YAML > H1 > Title case GitLab title > slug
-                $gitlabTitle = $fullPage['title'] ?? $wikiPage['title'] ?? null;
-                $title = $yamlTitle ?? $h1Title ?? ($gitlabTitle ? $this->toTitleCase($gitlabTitle) : $wikiPage['slug']);
+                // Title priority: YAML > H1 > Title case GitHub title > slug
+                $githubTitle = $wikiPage['title'] ?? null;
+                $title = $yamlTitle ?? $h1Title ?? ($githubTitle ? $this->toTitleCase($githubTitle) : $wikiPage['slug']);
 
                 // Generate meta description from content
                 $metaDescription = $this->generateMetaDescription($cleanedContent);
@@ -84,6 +85,19 @@ class ImportWikiDocumentation implements ShouldQueue
                 );
 
                 Log::info('Imported wiki page: {slug}', ['slug' => $wikiPage['slug']]);
+            }
+
+            // Remove documentation pages that no longer exist in the wiki
+            $importedSlugs = array_column($wikiPages, 'slug');
+            $deleted = Documentation::where('package_id', $this->package->id)
+                ->whereNotIn('slug', $importedSlugs)
+                ->delete();
+
+            if ($deleted > 0) {
+                Log::info('Removed {count} stale documentation pages for package {package}', [
+                    'count' => $deleted,
+                    'package' => $this->package->name,
+                ]);
             }
 
             // Set up parent relationships for subpages
@@ -178,11 +192,44 @@ class ImportWikiDocumentation implements ShouldQueue
      */
     protected function updateInternalLinks(string $content): string
     {
-        // Get the site URL
         $siteUrl = rtrim(config('app.url'), '/');
 
-        // Pattern to match wiki links (both relative and absolute)
-        // This will match links like: [text](page-slug) or [text](parent/page-slug)
+        // Extract the wiki base URL from the package wiki_url for absolute link matching
+        // e.g., https://github.com/owner/repo/wiki -> matches https://github.com/owner/repo/wiki/Page-Name
+        $wikiBase = rtrim($this->package->wiki_url, '/');
+        $escapedWikiBase = preg_quote($wikiBase, '/');
+
+        // First, rewrite GitHub wiki [[Page Name]] and [[Page Name|Display Text]] wikilinks
+        $content = preg_replace_callback(
+            '/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/',
+            function ($matches) use ($siteUrl) {
+                $pageName = trim($matches[1]);
+                $displayText = isset($matches[2]) ? trim($matches[2]) : $pageName;
+                $slug = str_replace(' ', '-', $pageName);
+
+                $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$slug}";
+
+                return "[{$displayText}]({$newUrl})";
+            },
+            $content
+        );
+
+        // Then, rewrite absolute GitHub wiki URLs
+        $content = preg_replace_callback(
+            '/\[([^\]]+)\]\(('.$escapedWikiBase.'\/([^)#?\s]+))([^)]*)\)/',
+            function ($matches) use ($siteUrl) {
+                $linkText = $matches[1];
+                $pageName = preg_replace('/\.md$/i', '', $matches[3]);
+                $suffix = $matches[4]; // anchors, query strings
+
+                $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$pageName}";
+
+                return "[{$linkText}]({$newUrl}{$suffix})";
+            },
+            $content
+        );
+
+        // Finally, rewrite relative wiki links
         $pattern = '/\[([^\]]+)\]\((?!https?:\/\/)([^)]+)\)/';
 
         return preg_replace_callback($pattern, function ($matches) use ($siteUrl) {
@@ -193,10 +240,18 @@ class ImportWikiDocumentation implements ShouldQueue
             $path = ltrim($originalPath, '/');
             $path = preg_replace('/^(wikis?\/|\.\.?\/)/', '', $path);
 
-            // Build the new URL
+            // Split off anchor/query suffix before stripping .md
+            $suffix = '';
+            if (preg_match('/^([^#?]+)([#?].*)$/', $path, $pathParts)) {
+                $path = $pathParts[1];
+                $suffix = $pathParts[2];
+            }
+
+            $path = preg_replace('/\.md$/i', '', $path);
+
             $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$path}";
 
-            return "[{$linkText}]({$newUrl})";
+            return "[{$linkText}]({$newUrl}{$suffix})";
         }, $content);
     }
 

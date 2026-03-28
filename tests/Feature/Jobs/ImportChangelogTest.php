@@ -1,29 +1,50 @@
 <?php
 
+use App\Contracts\WikiServiceInterface;
 use App\Jobs\ImportChangelog;
+use App\Services\WikiServiceFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Core\Setting;
 use Modules\Packages\Changelog;
 use Modules\Packages\Package;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Setting::create([
+        'key' => 'github_token',
+        'value' => encrypt('test-token'),
+    ]);
+});
+
+function mockGitHubFileContent(string $expectedUrl, string $content): void
+{
+    $mock = Mockery::mock(WikiServiceInterface::class);
+    $mock->shouldReceive('getFileContent')
+        ->once()
+        ->with($expectedUrl)
+        ->andReturn($content);
+
+    $factory = Mockery::mock(WikiServiceFactory::class);
+    $factory->shouldReceive('detectSource')->andReturn('github');
+    $factory->shouldReceive('make')->andReturn($mock);
+    app()->bind(WikiServiceFactory::class, fn () => $factory);
+}
 
 test('imports changelog successfully', function () {
     Log::shouldReceive('info')->once();
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     $changelogContent = "# Changelog\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response($changelogContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     expect(Changelog::count())->toBe(1);
@@ -41,7 +62,7 @@ test('updates existing changelog when re-importing', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     Changelog::create([
@@ -52,11 +73,9 @@ test('updates existing changelog when re-importing', function () {
 
     $newContent = "# Changelog\n\n## [2.0.0] - 2025-02-01\n- Updated release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response($newContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $newContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     expect(Changelog::count())->toBe(1);
@@ -73,32 +92,65 @@ test('logs error and throws exception on failure', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response(['error' => 'Not found'], 404),
-    ]);
+    $mock = Mockery::mock(WikiServiceInterface::class);
+    $mock->shouldReceive('getFileContent')
+        ->once()
+        ->with($package->changelog_url)
+        ->andThrow(new \Exception('Failed to fetch file content'));
 
-    $job = new ImportChangelog($package, 'test-token');
+    $factory = Mockery::mock(WikiServiceFactory::class);
+    $factory->shouldReceive('detectSource')->andReturn('github');
+    $factory->shouldReceive('make')->andReturn($mock);
+    app()->bind(WikiServiceFactory::class, fn () => $factory);
+
+    $job = new ImportChangelog($package);
     $job->handle();
 })->throws(\Exception::class);
+
+test('throws exception when github token is not configured', function () {
+    Log::shouldReceive('error')->once();
+
+    Setting::where('key', 'github_token')->delete();
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+    ]);
+
+    $job = new ImportChangelog($package);
+    $job->handle();
+})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
+
+test('throws exception when github token is malformed', function () {
+    Log::shouldReceive('error')->once();
+
+    Setting::where('key', 'github_token')->update(['value' => 'not-encrypted']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+    ]);
+
+    $job = new ImportChangelog($package);
+    $job->handle();
+})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('handles changelog in subdirectory', function () {
     Log::shouldReceive('info')->once();
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/develop/docs/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/develop/docs/CHANGELOG.md',
     ]);
 
     $changelogContent = "# Changelog\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/docs%2FCHANGELOG.md/raw?ref=develop' => Http::response($changelogContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     expect(Changelog::count())->toBe(1);
@@ -116,16 +168,14 @@ test('removes only first H1 header and preserves rest of content', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     $changelogContent = "# Changelog\n\nAll notable changes to this project.\n\n## [2.0.0] - 2025-02-01\n- New feature\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response($changelogContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     $changelog = Changelog::first();
@@ -140,16 +190,14 @@ test('handles changelog without H1 header', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     $changelogContent = "## [1.0.0] - 2025-01-01\n- Initial release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response($changelogContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     $changelog = Changelog::first();
@@ -161,16 +209,14 @@ test('removes H1 header with leading whitespace', function () {
 
     $package = Package::factory()->create([
         'name' => 'Test Package',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     $changelogContent = "  # Changelog\n\n## [1.0.0] - 2025-01-01\n- Initial release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response($changelogContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     $changelog = Changelog::first();
@@ -184,16 +230,14 @@ test('removes long H1 header like Digital Shopfront CMS Accessibility Changelog'
 
     $package = Package::factory()->create([
         'name' => 'Digital Shopfront CMS Accessibility',
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     $changelogContent = "# Digital Shopfront CMS Accessibility Changelog\n\n## Version 1.0.0\n- Initial release";
 
-    Http::fake([
-        'https://gitlab.com/api/v4/projects/group%2Fproject/repository/files/CHANGELOG.md/raw?ref=main' => Http::response($changelogContent, 200),
-    ]);
+    mockGitHubFileContent($package->changelog_url, $changelogContent);
 
-    $job = new ImportChangelog($package, 'test-token');
+    $job = new ImportChangelog($package);
     $job->handle();
 
     $changelog = Changelog::first();

@@ -16,6 +16,12 @@ class SettingsPage extends Component
 
     public ?string $gitLabToken = '';
 
+    public ?string $gitHubToken = '';
+
+    public bool $hasGitLabToken = false;
+
+    public bool $hasGitHubToken = false;
+
     public ?string $homePage = '';
 
     public ?string $googleAnalyticsId = '';
@@ -24,9 +30,11 @@ class SettingsPage extends Component
     {
         $settings = Setting::get();
 
-        // Decrypt the GitLab token when retrieving it
-        $encryptedToken = $settings->firstWhere('key', 'gitlab_token')?->value;
-        $this->gitLabToken = $encryptedToken ? decrypt($encryptedToken) : '';
+        $encryptedGitLabToken = $settings->firstWhere('key', 'gitlab_token')?->value;
+        $this->hasGitLabToken = ! empty($encryptedGitLabToken);
+
+        $encryptedGitHubToken = $settings->firstWhere('key', 'github_token')?->value;
+        $this->hasGitHubToken = ! empty($encryptedGitHubToken);
 
         $this->homePage = $settings->firstWhere('key', 'homePage')?->value ?? '';
         $this->googleAnalyticsId = $settings->firstWhere('key', 'google_analytics_id')?->value ?? '';
@@ -36,22 +44,31 @@ class SettingsPage extends Component
     {
         $validated = $this->validate([
             'gitLabToken' => 'nullable|string',
+            'gitHubToken' => ['nullable', 'string', 'regex:/^(ghp_|github_pat_)[a-zA-Z0-9_]+$/'],
             'homePage' => 'nullable|string',
             'googleAnalyticsId' => 'nullable|string|regex:/^G-[A-Z0-9]+$/',
         ], [
+            'gitHubToken.regex' => 'The GitHub token must be a valid personal access token (starts with ghp_ or github_pat_).',
             'googleAnalyticsId.regex' => 'The Google Analytics ID must be in the format G-XXXXXXXXXX',
         ]);
 
         if ($validated) {
-            // Encrypt the GitLab token before storing it for security
-            $tokenValue = ! empty($validated['gitLabToken'])
-                ? encrypt($validated['gitLabToken'])
-                : null;
+            // Only update tokens when a new value is provided
+            if (! empty($validated['gitLabToken'])) {
+                Setting::updateOrCreate(
+                    ['key' => 'gitlab_token'],
+                    ['value' => encrypt($validated['gitLabToken'])]
+                );
+                $this->hasGitLabToken = true;
+            }
 
-            Setting::updateOrCreate(
-                ['key' => 'gitlab_token'],
-                ['value' => $tokenValue]
-            );
+            if (! empty($validated['gitHubToken'])) {
+                Setting::updateOrCreate(
+                    ['key' => 'github_token'],
+                    ['value' => encrypt($validated['gitHubToken'])]
+                );
+                $this->hasGitHubToken = true;
+            }
 
             Setting::updateOrCreate(
                 ['key' => 'homePage'],
@@ -63,6 +80,10 @@ class SettingsPage extends Component
                 ['value' => $validated['googleAnalyticsId']]
             );
         }
+
+        // Clear token values from the public properties after saving
+        $this->gitLabToken = '';
+        $this->gitHubToken = '';
 
         $this->success('Settings saved successfully', 'success');
     }

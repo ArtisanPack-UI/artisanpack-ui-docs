@@ -15,12 +15,12 @@ test('import documentation dispatches job when wiki url and token are present', 
     Queue::fake();
 
     $package = Package::factory()->create([
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -28,7 +28,7 @@ test('import documentation dispatches job when wiki url and token are present', 
         ->assertHasNoErrors();
 
     Queue::assertPushed(ImportWikiDocumentation::class, function ($job) use ($package) {
-        return $job->package->id === $package->id && $job->gitlabToken === 'test-token-123';
+        return $job->package->id === $package->id;
     });
 });
 
@@ -40,8 +40,8 @@ test('import documentation does not dispatch job when wiki url is missing', func
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -51,11 +51,11 @@ test('import documentation does not dispatch job when wiki url is missing', func
     Queue::assertNothingPushed();
 });
 
-test('import documentation does not dispatch job when gitlab token is not configured', function () {
+test('import documentation does not dispatch job when github token is not configured', function () {
     Queue::fake();
 
     $package = Package::factory()->create([
-        'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -69,12 +69,12 @@ test('import changelog dispatches job when changelog url and token are present',
     Queue::fake();
 
     $package = Package::factory()->create([
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -82,7 +82,7 @@ test('import changelog dispatches job when changelog url and token are present',
         ->assertHasNoErrors();
 
     Queue::assertPushed(ImportChangelog::class, function ($job) use ($package) {
-        return $job->package->id === $package->id && $job->gitlabToken === 'test-token-123';
+        return $job->package->id === $package->id;
     });
 });
 
@@ -94,8 +94,8 @@ test('import changelog does not dispatch job when changelog url is missing', fun
     ]);
 
     Setting::create([
-        'key' => 'gitlab_token',
-        'value' => 'test-token-123',
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -105,11 +105,11 @@ test('import changelog does not dispatch job when changelog url is missing', fun
     Queue::assertNothingPushed();
 });
 
-test('import changelog does not dispatch job when gitlab token is not configured', function () {
+test('import changelog does not dispatch job when github token is not configured', function () {
     Queue::fake();
 
     $package = Package::factory()->create([
-        'changelog_url' => 'https://gitlab.com/group/project/-/blob/main/CHANGELOG.md',
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
     ]);
 
     Livewire::test(EditPackage::class, ['package' => $package])
@@ -117,4 +117,59 @@ test('import changelog does not dispatch job when gitlab token is not configured
         ->assertHasNoErrors();
 
     Queue::assertNothingPushed();
+});
+
+test('update package rejects unsupported url', function (string $field, string $url) {
+    $package = Package::factory()->create();
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->set('name', 'Updated Package')
+        ->set('slug', 'updated-package')
+        ->set('wiki_url', 'https://github.com/owner/repo/wiki')
+        ->set('changelog_url', 'https://github.com/owner/repo/blob/main/CHANGELOG.md')
+        ->set($field, $url)
+        ->call('updatePackage')
+        ->assertHasErrors([$field => 'regex']);
+})->with([
+    'bitbucket wiki url' => ['wiki_url', 'https://bitbucket.org/owner/repo/wiki'],
+    'bitbucket changelog url' => ['changelog_url', 'https://bitbucket.org/owner/repo/CHANGELOG.md'],
+]);
+
+test('update package accepts github and gitlab urls', function () {
+    $package = Package::factory()->create();
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->set('name', 'Updated Package')
+        ->set('slug', 'updated-package')
+        ->set('wiki_url', 'https://github.com/owner/repo/wiki')
+        ->set('changelog_url', 'https://gitlab.com/owner/repo/-/blob/main/CHANGELOG.md')
+        ->call('updatePackage')
+        ->assertHasNoErrors(['wiki_url', 'changelog_url']);
+});
+
+test('wiki source computed property returns github for github urls', function () {
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->assertSet('wikiSource', 'github');
+});
+
+test('wiki source computed property returns gitlab for gitlab urls', function () {
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://gitlab.com/owner/repo/-/wikis/home',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->assertSet('wikiSource', 'gitlab');
+});
+
+test('wiki source computed property returns null when wiki url is empty', function () {
+    $package = Package::factory()->create([
+        'wiki_url' => '',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->assertSet('wikiSource', null);
 });

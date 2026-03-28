@@ -12,9 +12,19 @@
 
                 <x-artisanpack-input wire:model.live="slug" label="Slug" required />
 
-                <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" required />
+                <div>
+                    <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" required hint="GitHub wiki URL (e.g. https://github.com/owner/repo/wiki) or GitLab wiki URL" />
 
-                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required />
+                    @if ($this->wikiSource)
+                        <div class="mt-2">
+                            <flux:badge size="sm" variant="pill" color="{{ $this->wikiSource === 'github' ? 'zinc' : 'orange' }}">
+                                {{ ucfirst($this->wikiSource) }}
+                            </flux:badge>
+                        </div>
+                    @endif
+                </div>
+
+                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md), raw GitHub URL (raw.githubusercontent.com), or GitLab file URL" />
             </div>
 
             <div class="flex-1 space-y-4">
@@ -48,7 +58,7 @@
                 <x-artisanpack-card title="Documentation">
                     <div class="space-y-4">
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Import documentation from the GitLab wiki repository. This will fetch all wiki pages and create or update documentation entries for this package.
+                            Import documentation from the wiki repository. This will fetch all wiki pages and create or update documentation entries for this package.
                         </p>
                     </div>
 
@@ -63,7 +73,7 @@
                 <x-artisanpack-card title="Changelog">
                     <div class="space-y-4">
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Import the changelog from the GitLab repository. This will fetch the changelog file and create or update the changelog entry for this package.
+                            Import the changelog from the repository. This will fetch the changelog file and create or update the changelog entry for this package.
                         </p>
                     </div>
 

@@ -2,7 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Services\GitLabService;
+use App\Concerns\ResolvesServiceTokens;
+use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,7 @@ use Modules\Packages\Package;
 class ImportChangelog implements ShouldQueue
 {
     use Queueable;
+    use ResolvesServiceTokens;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -24,8 +26,7 @@ class ImportChangelog implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package,
-        public string $gitlabToken
+        public Package $package
     ) {}
 
     /**
@@ -34,10 +35,13 @@ class ImportChangelog implements ShouldQueue
     public function handle(): void
     {
         try {
-            $gitlabService = new GitLabService($this->gitlabToken);
+            $factory = app()->make(WikiServiceFactory::class);
+            $source = $factory->detectSource($this->package->changelog_url);
+            $token = $this->resolveToken($source);
+            $wikiService = $factory->make($this->package->changelog_url, $token);
 
-            // Fetch the changelog content from GitLab
-            $content = $gitlabService->getFileContent($this->package->changelog_url);
+            // Fetch the changelog content
+            $content = $wikiService->getFileContent($this->package->changelog_url);
 
             // Remove the first H1 header if it exists
             $content = $this->removeFirstH1Header($content);

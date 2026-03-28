@@ -4,15 +4,21 @@ namespace Modules\Packages\Livewire\Admin;
 
 use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
+use App\Services\WikiServiceFactory;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Modules\Core\Setting;
+use Modules\Packages\Livewire\Admin\Concerns\HasPackageUrlValidation;
 use Modules\Packages\Package;
 
 #[Layout('admin::layouts.admin')]
 class EditPackage extends Component
 {
+    use HasPackageUrlValidation;
     use Toast;
 
     public Package $package;
@@ -51,16 +57,14 @@ class EditPackage extends Component
 
     public function updatePackage()
     {
-        $validated = $this->validate([
+        $validated = $this->validate(array_merge([
             'name' => 'required|string',
             'slug' => 'required|string',
             'homepage' => 'nullable|integer',
-            'wiki_url' => 'nullable|string',
-            'changelog_url' => 'nullable|string',
             'icon' => 'nullable|string',
             'version' => 'nullable|string',
             'package_registry' => 'nullable|in:packagist,npm',
-        ]);
+        ], $this->packageUrlRules()), $this->packageUrlMessages());
 
         $this->package->update($validated);
 
@@ -75,18 +79,17 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
+        $this->validateOnly('wiki_url', $this->packageUrlRules(), $this->packageUrlMessages());
 
-        // Decrypt the token (it's stored encrypted for security)
-        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
-
-        if (empty($gitlabToken)) {
-            $this->error('GitLab token not configured in settings.');
-
+        $token = $this->resolveTokenForUrl($this->wiki_url);
+        if ($token === null) {
             return;
         }
 
-        ImportWikiDocumentation::dispatch($this->package, $gitlabToken);
+        // Persist current form values so the queued job uses the latest URL
+        $this->package->update(['wiki_url' => $this->wiki_url]);
+
+        ImportWikiDocumentation::dispatch($this->package);
 
         $this->success('Documentation import started! This may take a few moments.');
     }
@@ -99,20 +102,36 @@ class EditPackage extends Component
             return;
         }
 
-        $encryptedToken = Setting::where('key', 'gitlab_token')->first()?->value;
+        $this->validateOnly('changelog_url', $this->packageUrlRules(), $this->packageUrlMessages());
 
-        // Decrypt the token (it's stored encrypted for security)
-        $gitlabToken = $encryptedToken ? decrypt($encryptedToken) : null;
-
-        if (empty($gitlabToken)) {
-            $this->error('GitLab token not configured in settings.');
-
+        $token = $this->resolveTokenForUrl($this->changelog_url);
+        if ($token === null) {
             return;
         }
 
-        ImportChangelog::dispatch($this->package, $gitlabToken);
+        // Persist current form values so the queued job uses the latest URL
+        $this->package->update(['changelog_url' => $this->changelog_url]);
+
+        ImportChangelog::dispatch($this->package);
 
         $this->success('Changelog import started! This may take a few moments.');
+    }
+
+    /**
+     * Detect the source platform (GitHub or GitLab) from the wiki URL
+     */
+    #[Computed]
+    public function wikiSource(): ?string
+    {
+        if (empty($this->wiki_url)) {
+            return null;
+        }
+
+        try {
+            return app(WikiServiceFactory::class)->detectSource($this->wiki_url);
+        } catch (\Exception) {
+            return null;
+        }
     }
 
     public function updatedName()
@@ -120,7 +139,46 @@ class EditPackage extends Component
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
     }
 
-    public function render()
+    /**
+     * Resolve the appropriate token for the given URL based on detected source
+     *
+     * Shows an error toast and returns null if the token is not configured.
+     */
+    protected function resolveTokenForUrl(string $url): ?string
+    {
+        try {
+            $source = app(WikiServiceFactory::class)->detectSource($url);
+        } catch (\Exception) {
+            $this->error('Unable to detect source platform from URL.');
+
+            return null;
+        }
+
+        $settingKey = "{$source}_token";
+        $brandName = match ($source) {
+            'github' => 'GitHub',
+            'gitlab' => 'GitLab',
+            default => ucfirst($source),
+        };
+
+        $encryptedToken = Setting::query()->where('key', $settingKey)->value('value');
+
+        try {
+            $token = $encryptedToken ? decrypt($encryptedToken) : null;
+        } catch (DecryptException) {
+            $token = null;
+        }
+
+        if (empty($token)) {
+            $this->error("{$brandName} token not configured in settings.");
+
+            return null;
+        }
+
+        return $token;
+    }
+
+    public function render(): View
     {
         return view('packages::livewire.admin.edit-package');
     }
