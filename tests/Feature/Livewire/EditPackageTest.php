@@ -119,27 +119,21 @@ test('import changelog does not dispatch job when github token is not configured
     Queue::assertNothingPushed();
 });
 
-test('update package rejects non-github and non-gitlab wiki url', function () {
+test('update package rejects unsupported url', function (string $field, string $url) {
     $package = Package::factory()->create();
 
     Livewire::test(EditPackage::class, ['package' => $package])
         ->set('name', 'Updated Package')
         ->set('slug', 'updated-package')
-        ->set('wiki_url', 'https://bitbucket.org/owner/repo/wiki')
+        ->set('wiki_url', 'https://github.com/owner/repo/wiki')
+        ->set('changelog_url', 'https://github.com/owner/repo/blob/main/CHANGELOG.md')
+        ->set($field, $url)
         ->call('updatePackage')
-        ->assertHasErrors(['wiki_url' => 'regex']);
-});
-
-test('update package rejects non-github and non-gitlab changelog url', function () {
-    $package = Package::factory()->create();
-
-    Livewire::test(EditPackage::class, ['package' => $package])
-        ->set('name', 'Updated Package')
-        ->set('slug', 'updated-package')
-        ->set('changelog_url', 'https://bitbucket.org/owner/repo/CHANGELOG.md')
-        ->call('updatePackage')
-        ->assertHasErrors(['changelog_url' => 'regex']);
-});
+        ->assertHasErrors([$field => 'regex']);
+})->with([
+    'bitbucket wiki url' => ['wiki_url', 'https://bitbucket.org/owner/repo/wiki'],
+    'bitbucket changelog url' => ['changelog_url', 'https://bitbucket.org/owner/repo/CHANGELOG.md'],
+]);
 
 test('update package accepts github and gitlab urls', function () {
     $package = Package::factory()->create();

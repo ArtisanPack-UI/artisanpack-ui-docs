@@ -3,13 +3,16 @@
 namespace Modules\Packages\Livewire\Admin;
 
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Modules\Packages\Livewire\Admin\Concerns\HasPackageUrlValidation;
 use Modules\Packages\Package;
 
 #[Layout('admin::layouts.admin')]
 class AddPackage extends Component
 {
+    use HasPackageUrlValidation;
     use Toast;
 
     public string $name = '';
@@ -30,19 +33,14 @@ class AddPackage extends Component
 
     public function addPackage()
     {
-        $validated = $this->validate([
+        $validated = $this->validate(array_merge([
             'name' => 'required|string',
             'slug' => 'required|string',
             'home' => 'nullable|integer',
-            'wiki_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
-            'changelog_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
             'icon' => 'nullable|string',
             'version' => 'nullable|string',
             'package_registry' => 'nullable|in:packagist,npm',
-        ], [
-            'wiki_url.regex' => 'The wiki URL must be a GitHub or GitLab URL.',
-            'changelog_url.regex' => 'The changelog URL must be a GitHub or GitLab URL.',
-        ]);
+        ], $this->packageUrlRules()), $this->packageUrlMessages());
 
         $package = Package::create($validated);
 
@@ -56,7 +54,7 @@ class AddPackage extends Component
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
     }
 
-    public function render()
+    public function render(): View
     {
         return view('packages::livewire.admin.add-package');
     }

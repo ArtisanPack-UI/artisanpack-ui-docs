@@ -64,35 +64,28 @@ test('add package rejects non-github and non-gitlab changelog url', function () 
         ->assertHasErrors(['changelog_url' => 'regex']);
 });
 
-test('add package accepts github wiki url', function () {
+test('add package accepts valid url combinations', function (string $wikiUrl, string $changelogUrl) {
     Livewire::test(AddPackage::class)
         ->set('name', 'Test Package')
         ->set('slug', 'test-package')
-        ->set('wiki_url', 'https://github.com/owner/repo/wiki')
-        ->set('changelog_url', 'https://github.com/owner/repo/blob/main/CHANGELOG.md')
+        ->set('wiki_url', $wikiUrl)
+        ->set('changelog_url', $changelogUrl)
         ->call('addPackage')
         ->assertHasNoErrors(['wiki_url', 'changelog_url']);
-});
-
-test('add package accepts gitlab wiki url', function () {
-    Livewire::test(AddPackage::class)
-        ->set('name', 'Test Package')
-        ->set('slug', 'test-package')
-        ->set('wiki_url', 'https://gitlab.com/owner/repo/-/wikis/home')
-        ->set('changelog_url', 'https://gitlab.com/owner/repo/-/blob/main/CHANGELOG.md')
-        ->call('addPackage')
-        ->assertHasNoErrors(['wiki_url', 'changelog_url']);
-});
-
-test('add package accepts raw githubusercontent url for changelog', function () {
-    Livewire::test(AddPackage::class)
-        ->set('name', 'Test Package')
-        ->set('slug', 'test-package')
-        ->set('wiki_url', 'https://github.com/owner/repo/wiki')
-        ->set('changelog_url', 'https://raw.githubusercontent.com/owner/repo/main/CHANGELOG.md')
-        ->call('addPackage')
-        ->assertHasNoErrors(['changelog_url']);
-});
+})->with([
+    'github wiki and changelog' => [
+        'https://github.com/owner/repo/wiki',
+        'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+    ],
+    'gitlab wiki and changelog' => [
+        'https://gitlab.com/owner/repo/-/wikis/home',
+        'https://gitlab.com/owner/repo/-/blob/main/CHANGELOG.md',
+    ],
+    'github wiki with raw githubusercontent changelog' => [
+        'https://github.com/owner/repo/wiki',
+        'https://raw.githubusercontent.com/owner/repo/main/CHANGELOG.md',
+    ],
+]);
 
 test('add package validates package registry is valid option', function () {
     Livewire::test(AddPackage::class)

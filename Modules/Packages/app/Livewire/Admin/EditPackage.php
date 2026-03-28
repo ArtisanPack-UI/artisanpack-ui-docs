@@ -6,15 +6,18 @@ use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
 use App\Services\WikiServiceFactory;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Modules\Core\Setting;
+use Modules\Packages\Livewire\Admin\Concerns\HasPackageUrlValidation;
 use Modules\Packages\Package;
 
 #[Layout('admin::layouts.admin')]
 class EditPackage extends Component
 {
+    use HasPackageUrlValidation;
     use Toast;
 
     public Package $package;
@@ -53,19 +56,14 @@ class EditPackage extends Component
 
     public function updatePackage()
     {
-        $validated = $this->validate([
+        $validated = $this->validate(array_merge([
             'name' => 'required|string',
             'slug' => 'required|string',
             'homepage' => 'nullable|integer',
-            'wiki_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
-            'changelog_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
             'icon' => 'nullable|string',
             'version' => 'nullable|string',
             'package_registry' => 'nullable|in:packagist,npm',
-        ], [
-            'wiki_url.regex' => 'The wiki URL must be a GitHub or GitLab URL.',
-            'changelog_url.regex' => 'The changelog URL must be a GitHub or GitLab URL.',
-        ]);
+        ], $this->packageUrlRules()), $this->packageUrlMessages());
 
         $this->package->update($validated);
 
@@ -152,7 +150,7 @@ class EditPackage extends Component
         }
     }
 
-    public function render()
+    public function render(): View
     {
         return view('packages::livewire.admin.edit-package');
     }

@@ -14,7 +14,7 @@
 
                 <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" required hint="GitHub wiki URL (e.g. https://github.com/owner/repo/wiki) or GitLab wiki URL" />
 
-                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md) or GitLab file URL" />
+                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md), raw GitHub URL (raw.githubusercontent.com), or GitLab file URL" />
             </div>
 
             <div class="flex-1">

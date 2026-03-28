@@ -44,9 +44,43 @@ body:
       required: true
 
   - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Relevant environment details.
+      placeholder: |
+        PHP version: 8.4
+        Laravel version: 12.x
+        Browser: Chrome 120
+        OS: macOS 15
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs/Error Messages
+      description: Any relevant log output, stack traces, or error messages.
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical (application crash or data loss)
+        - Major (feature broken, no workaround)
+        - Minor (feature broken, workaround exists)
+    validations:
+      required: false
+
+  - type: textarea
     id: context
     attributes:
       label: Additional Context
-      description: Any other context, screenshots, or log output relevant to the issue.
+      description: Any other context or screenshots relevant to the issue.
     validations:
       required: false

@@ -24,7 +24,7 @@
                     @endif
                 </div>
 
-                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md) or GitLab file URL" />
+                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md), raw GitHub URL (raw.githubusercontent.com), or GitLab file URL" />
             </div>
 
             <div class="flex-1 space-y-4">
