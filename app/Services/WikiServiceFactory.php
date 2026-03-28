@@ -34,7 +34,8 @@ class WikiServiceFactory
             throw new \Exception("Unable to detect wiki source from URL: {$url}");
         }
 
-        $host = strtolower(ltrim($host, 'www.'));
+        $host = strtolower($host);
+        $host = preg_replace('/^www\./i', '', $host);
 
         if (in_array($host, ['github.com', 'raw.githubusercontent.com'], true)) {
             return 'github';
