@@ -26,8 +26,8 @@
             <x-artisanpack-theme-toggle class="btn btn-sm md:btn-md" />
 
             <div class="border-l border-secondary flex items-center pl-2 gap-1 md:gap-2">
-                <a href="https://gitlab.com/jacob-martella-web-design/artisanpack-ui" target="_blank" class="hover:text-primary">
-                    <x-artisanpack-icon name="fab.gitlab" class="w-4 h-4 md:w-5 md:h-5" />
+                <a href="https://github.com/ArtisanPack-UI" target="_blank" class="hover:text-primary">
+                    <x-artisanpack-icon name="fab.github" class="w-4 h-4 md:w-5 md:h-5" />
                 </a>
                 <a href="https://bsky.app/profile/artisanpackui.dev" target="_blank" class="hover:text-primary">
                     <x-artisanpack-icon name="fab.bluesky" class="w-4 h-4 md:w-5 md:h-5" />
