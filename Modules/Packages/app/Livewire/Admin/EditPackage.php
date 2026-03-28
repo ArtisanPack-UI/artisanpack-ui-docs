@@ -4,7 +4,9 @@ namespace Modules\Packages\Livewire\Admin;
 
 use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
+use App\Services\WikiServiceFactory;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Modules\Core\Setting;
@@ -55,11 +57,14 @@ class EditPackage extends Component
             'name' => 'required|string',
             'slug' => 'required|string',
             'homepage' => 'nullable|integer',
-            'wiki_url' => 'nullable|string',
-            'changelog_url' => 'nullable|string',
+            'wiki_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
+            'changelog_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
             'icon' => 'nullable|string',
             'version' => 'nullable|string',
             'package_registry' => 'nullable|in:packagist,npm',
+        ], [
+            'wiki_url.regex' => 'The wiki URL must be a GitHub or GitLab URL.',
+            'changelog_url.regex' => 'The changelog URL must be a GitHub or GitLab URL.',
         ]);
 
         $this->package->update($validated);
@@ -109,6 +114,23 @@ class EditPackage extends Component
         ImportChangelog::dispatch($this->package);
 
         $this->success('Changelog import started! This may take a few moments.');
+    }
+
+    /**
+     * Detect the source platform (GitHub or GitLab) from the wiki URL
+     */
+    #[Computed]
+    public function wikiSource(): ?string
+    {
+        if (empty($this->wiki_url)) {
+            return null;
+        }
+
+        try {
+            return app(WikiServiceFactory::class)->detectSource($this->wiki_url);
+        } catch (\Exception) {
+            return null;
+        }
     }
 
     public function updatedName()

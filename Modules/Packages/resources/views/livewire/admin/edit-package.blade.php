@@ -12,9 +12,19 @@
 
                 <x-artisanpack-input wire:model.live="slug" label="Slug" required />
 
-                <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" required />
+                <div>
+                    <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" required hint="GitHub wiki URL (e.g. https://github.com/owner/repo/wiki) or GitLab wiki URL" />
 
-                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required />
+                    @if ($this->wikiSource)
+                        <div class="mt-2">
+                            <flux:badge size="sm" variant="pill" color="{{ $this->wikiSource === 'github' ? 'zinc' : 'orange' }}">
+                                {{ ucfirst($this->wikiSource) }}
+                            </flux:badge>
+                        </div>
+                    @endif
+                </div>
+
+                <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md) or GitLab file URL" />
             </div>
 
             <div class="flex-1 space-y-4">

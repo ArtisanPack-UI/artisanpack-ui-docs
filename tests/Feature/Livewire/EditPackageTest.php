@@ -118,3 +118,64 @@ test('import changelog does not dispatch job when github token is not configured
 
     Queue::assertNothingPushed();
 });
+
+test('update package rejects non-github and non-gitlab wiki url', function () {
+    $package = Package::factory()->create();
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->set('name', 'Updated Package')
+        ->set('slug', 'updated-package')
+        ->set('wiki_url', 'https://bitbucket.org/owner/repo/wiki')
+        ->call('updatePackage')
+        ->assertHasErrors(['wiki_url' => 'regex']);
+});
+
+test('update package rejects non-github and non-gitlab changelog url', function () {
+    $package = Package::factory()->create();
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->set('name', 'Updated Package')
+        ->set('slug', 'updated-package')
+        ->set('changelog_url', 'https://bitbucket.org/owner/repo/CHANGELOG.md')
+        ->call('updatePackage')
+        ->assertHasErrors(['changelog_url' => 'regex']);
+});
+
+test('update package accepts github and gitlab urls', function () {
+    $package = Package::factory()->create();
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->set('name', 'Updated Package')
+        ->set('slug', 'updated-package')
+        ->set('wiki_url', 'https://github.com/owner/repo/wiki')
+        ->set('changelog_url', 'https://gitlab.com/owner/repo/-/blob/main/CHANGELOG.md')
+        ->call('updatePackage')
+        ->assertHasNoErrors(['wiki_url', 'changelog_url']);
+});
+
+test('wiki source computed property returns github for github urls', function () {
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->assertSet('wikiSource', 'github');
+});
+
+test('wiki source computed property returns gitlab for gitlab urls', function () {
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://gitlab.com/owner/repo/-/wikis/home',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->assertSet('wikiSource', 'gitlab');
+});
+
+test('wiki source computed property returns null when wiki url is empty', function () {
+    $package = Package::factory()->create([
+        'wiki_url' => '',
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->assertSet('wikiSource', null);
+});

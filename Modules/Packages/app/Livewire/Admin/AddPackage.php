@@ -34,11 +34,14 @@ class AddPackage extends Component
             'name' => 'required|string',
             'slug' => 'required|string',
             'home' => 'nullable|integer',
-            'wiki_url' => 'nullable|string',
-            'changelog_url' => 'nullable|string',
+            'wiki_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
+            'changelog_url' => ['required', 'url', 'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//'],
             'icon' => 'nullable|string',
             'version' => 'nullable|string',
             'package_registry' => 'nullable|in:packagist,npm',
+        ], [
+            'wiki_url.regex' => 'The wiki URL must be a GitHub or GitLab URL.',
+            'changelog_url.regex' => 'The changelog URL must be a GitHub or GitLab URL.',
         ]);
 
         $package = Package::create($validated);
