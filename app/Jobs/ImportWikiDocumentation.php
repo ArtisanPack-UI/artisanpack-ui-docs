@@ -240,12 +240,18 @@ class ImportWikiDocumentation implements ShouldQueue
             $path = ltrim($originalPath, '/');
             $path = preg_replace('/^(wikis?\/|\.\.?\/)/', '', $path);
 
-            // Strip .md extension
+            // Split off anchor/query suffix before stripping .md
+            $suffix = '';
+            if (preg_match('/^([^#?]+)([#?].*)$/', $path, $pathParts)) {
+                $path = $pathParts[1];
+                $suffix = $pathParts[2];
+            }
+
             $path = preg_replace('/\.md$/i', '', $path);
 
             $newUrl = "{$siteUrl}/documentation/{$this->package->slug}/{$path}";
 
-            return "[{$linkText}]({$newUrl})";
+            return "[{$linkText}]({$newUrl}{$suffix})";
         }, $content);
     }
 

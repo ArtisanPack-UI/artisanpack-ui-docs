@@ -400,6 +400,31 @@ test('strips .md extension from relative links', function () {
         ->not->toContain('.md');
 });
 
+test('strips .md extension from relative links with anchors', function () {
+    Log::shouldReceive('info')->times(3);
+
+    config(['app.url' => 'https://example.com']);
+
+    $package = Package::factory()->create([
+        'name' => 'Test Package',
+        'slug' => 'test-package',
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => 'See [setup](installation.md#setup) and [config](configuration.md?v=2).'],
+    ]);
+
+    $job = new ImportWikiDocumentation($package);
+    $job->handle();
+
+    $homeDoc = Documentation::where('slug', 'home')->first();
+    expect($homeDoc->content)
+        ->toContain('https://example.com/documentation/test-package/installation#setup')
+        ->toContain('https://example.com/documentation/test-package/configuration?v=2')
+        ->not->toContain('.md');
+});
+
 test('strips .md extension from absolute wiki URLs', function () {
     Log::shouldReceive('info')->times(3);
 

@@ -218,7 +218,7 @@ class GitHubService implements WikiServiceInterface
             }
 
             $parts = explode('/', $page['slug']);
-            if (count($parts) === 2 && $parts[0] === $parts[1] && in_array($parts[0], $rootSlugs)) {
+            if (count($parts) === 2 && $parts[0] === $parts[1] && in_array($parts[0], $rootSlugs, true)) {
                 return false;
             }
 
