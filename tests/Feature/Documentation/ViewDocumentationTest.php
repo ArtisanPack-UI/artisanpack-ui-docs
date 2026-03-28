@@ -87,7 +87,7 @@ test('renders markdown content correctly', function () {
     $response = $this->get("/documentation/{$package->slug}/{$documentation->slug}");
 
     $response->assertStatus(200)
-        ->assertSee('<h2>Subtitle</h2>', false)
+        ->assertSee('<h2 id="subtitle">Subtitle</h2>', false)
         ->assertSee('<strong>bold</strong>', false)
         ->assertSee('<em>italic</em>', false)
         ->assertSee('<li>List item 1</li>', false);

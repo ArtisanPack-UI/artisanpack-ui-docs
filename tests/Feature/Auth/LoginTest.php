@@ -25,3 +25,28 @@ it('users can log in', function () {
 
     $this->assertAuthenticatedAs($user);
 });
+
+it('users can not authenticate with invalid password', function () {
+    $user = User::factory()->create([
+        'password' => bcrypt('password'),
+    ]);
+
+    Livewire::test(LoginComponent::class)
+        ->set('email', $user->email)
+        ->set('password', 'wrong-password')
+        ->set('remember', false)
+        ->call('login')
+        ->assertHasErrors();
+
+    $this->assertGuest();
+});
+
+it('users can logout', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post(route('logout'));
+
+    $response->assertRedirect(route('home'));
+
+    $this->assertGuest();
+});
