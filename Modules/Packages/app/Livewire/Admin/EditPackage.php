@@ -4,15 +4,20 @@ namespace Modules\Packages\Livewire\Admin;
 
 use App\Jobs\ImportChangelog;
 use App\Jobs\ImportWikiDocumentation;
+use App\Services\WikiServiceFactory;
 use ArtisanPack\LivewireUiComponents\Traits\Toast;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Modules\Core\Setting;
+use Modules\Packages\Livewire\Admin\Concerns\HasPackageUrlValidation;
 use Modules\Packages\Package;
 
 #[Layout('admin::layouts.admin')]
 class EditPackage extends Component
 {
+    use HasPackageUrlValidation;
     use Toast;
 
     public Package $package;
@@ -51,16 +56,14 @@ class EditPackage extends Component
 
     public function updatePackage()
     {
-        $validated = $this->validate([
+        $validated = $this->validate(array_merge([
             'name' => 'required|string',
             'slug' => 'required|string',
             'homepage' => 'nullable|integer',
-            'wiki_url' => 'nullable|string',
-            'changelog_url' => 'nullable|string',
             'icon' => 'nullable|string',
             'version' => 'nullable|string',
             'package_registry' => 'nullable|in:packagist,npm',
-        ]);
+        ], $this->packageUrlRules()), $this->packageUrlMessages());
 
         $this->package->update($validated);
 
@@ -111,6 +114,23 @@ class EditPackage extends Component
         $this->success('Changelog import started! This may take a few moments.');
     }
 
+    /**
+     * Detect the source platform (GitHub or GitLab) from the wiki URL
+     */
+    #[Computed]
+    public function wikiSource(): ?string
+    {
+        if (empty($this->wiki_url)) {
+            return null;
+        }
+
+        try {
+            return app(WikiServiceFactory::class)->detectSource($this->wiki_url);
+        } catch (\Exception) {
+            return null;
+        }
+    }
+
     public function updatedName()
     {
         $this->slug = strtolower(str_replace(' ', '-', $this->name));
@@ -130,7 +150,7 @@ class EditPackage extends Component
         }
     }
 
-    public function render()
+    public function render(): View
     {
         return view('packages::livewire.admin.edit-package');
     }
