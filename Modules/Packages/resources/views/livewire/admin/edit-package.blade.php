@@ -13,7 +13,7 @@
                 <x-artisanpack-input wire:model.live="slug" label="Slug" required />
 
                 <div>
-                    <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" required hint="GitHub wiki URL (e.g. https://github.com/owner/repo/wiki) or GitLab wiki URL" />
+                    <x-artisanpack-input wire:model.live="wiki_url" label="Wiki URL" type="url" hint="GitHub wiki URL (e.g. https://github.com/owner/repo/wiki) or GitLab wiki URL" />
 
                     @if ($this->wikiSource)
                         <div class="mt-2">
@@ -23,6 +23,8 @@
                         </div>
                     @endif
                 </div>
+
+                <x-artisanpack-input wire:model.live="docs_url" label="Docs URL" type="url" hint="GitHub repository or docs directory URL (e.g. https://github.com/owner/repo or https://github.com/owner/repo/tree/main/docs). Takes priority over the wiki URL when set." />
 
                 <x-artisanpack-input wire:model.live="changelog_url" label="Changelog URL" type="url" required hint="GitHub file URL (e.g. https://github.com/owner/repo/blob/main/CHANGELOG.md), raw GitHub URL (raw.githubusercontent.com), or GitLab file URL" />
             </div>

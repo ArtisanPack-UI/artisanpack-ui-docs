@@ -16,6 +16,7 @@ class Package extends Model
         'slug',
         'homepage',
         'wiki_url',
+        'docs_url',
         'changelog_url',
         'icon',
         'version',

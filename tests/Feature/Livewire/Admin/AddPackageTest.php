@@ -22,6 +22,41 @@ test('add package creates package with valid data', function () {
     expect(Package::where('slug', 'test-package')->exists())->toBeTrue();
 });
 
+test('add package creates package with docs url and no wiki url', function () {
+    Livewire::test(AddPackage::class)
+        ->set('name', 'Docs Package')
+        ->set('slug', 'docs-package')
+        ->set('wiki_url', '')
+        ->set('docs_url', 'https://github.com/owner/repo')
+        ->set('changelog_url', 'https://github.com/owner/repo/blob/main/CHANGELOG.md')
+        ->call('addPackage')
+        ->assertHasNoErrors();
+
+    expect(Package::where('slug', 'docs-package')->first()->docs_url)
+        ->toBe('https://github.com/owner/repo');
+});
+
+test('add package requires a wiki url or docs url', function () {
+    Livewire::test(AddPackage::class)
+        ->set('name', 'No Source')
+        ->set('slug', 'no-source')
+        ->set('wiki_url', '')
+        ->set('docs_url', '')
+        ->set('changelog_url', 'https://github.com/owner/repo/blob/main/CHANGELOG.md')
+        ->call('addPackage')
+        ->assertHasErrors(['wiki_url' => 'required_without', 'docs_url' => 'required_without']);
+});
+
+test('add package rejects a non-github docs url', function () {
+    Livewire::test(AddPackage::class)
+        ->set('name', 'Gitlab Docs')
+        ->set('slug', 'gitlab-docs')
+        ->set('docs_url', 'https://gitlab.com/owner/repo')
+        ->set('changelog_url', 'https://github.com/owner/repo/blob/main/CHANGELOG.md')
+        ->call('addPackage')
+        ->assertHasErrors(['docs_url' => 'regex']);
+});
+
 test('add package auto-generates slug from name', function () {
     Livewire::test(AddPackage::class)
         ->set('name', 'My Great Package')

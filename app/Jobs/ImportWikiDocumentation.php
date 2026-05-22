@@ -36,23 +36,36 @@ class ImportWikiDocumentation implements ShouldQueue
     public function handle(): void
     {
         try {
-            $factory = app()->make(WikiServiceFactory::class);
-            $source = $factory->detectSource($this->package->wiki_url);
-            $token = $this->resolveToken($source);
-            $wikiService = $factory->make($this->package->wiki_url, $token);
+            // A configured docs_url takes priority over wiki_url; wiki_url is the fallback.
+            $useDocsSource = ! empty($this->package->docs_url);
+            $sourceUrl = $useDocsSource ? $this->package->docs_url : $this->package->wiki_url;
 
-            // Get all wiki pages with content
-            $wikiPages = $wikiService->getWikiPagesWithContent($this->package->wiki_url);
+            $factory = app()->make(WikiServiceFactory::class);
+            $source = $factory->detectSource($sourceUrl);
+            $token = $this->resolveToken($source);
+            $wikiService = $useDocsSource
+                ? $factory->makeDocsService($sourceUrl, $token)
+                : $factory->make($sourceUrl, $token);
+
+            // Get all pages with content
+            $wikiPages = $wikiService->getWikiPagesWithContent($sourceUrl);
 
             Log::info('Found {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),
                 'package' => $this->package->name,
             ]);
 
+            // When importing from a docs/ directory, build a slug lookup so that flat
+            // wiki-style links (e.g. "Advanced-Webhooks") can be translated to the
+            // hierarchical docs slugs (e.g. "advanced/webhooks").
+            $slugLookup = $useDocsSource ? $this->buildSlugLookup($wikiPages) : [];
+            $parentOverrides = [];
+
             foreach ($wikiPages as $wikiPage) {
                 $content = $wikiPage['content'] ?? '';
 
-                // Extract title from YAML front matter and remove it
+                // Parse the full front matter, then extract title and strip the block
+                $frontMatter = $this->parseFrontMatter($content);
                 $yamlTitle = $this->extractTitleFromYaml($content);
                 $content = $this->removeYamlFrontMatter($content);
 
@@ -61,14 +74,35 @@ class ImportWikiDocumentation implements ShouldQueue
                 $content = $this->removeFirstH1Header($content);
 
                 // Clean and update links
-                $cleanedContent = $this->updateInternalLinks($content);
+                $cleanedContent = $useDocsSource
+                    ? $this->updateDocsLinks($content, $wikiPage['slug'], $slugLookup)
+                    : $this->updateInternalLinks($content);
 
-                // Title priority: YAML > H1 > Title case GitHub title > slug
+                // Title priority: YAML > H1 > Title case source title > slug
                 $githubTitle = $wikiPage['title'] ?? null;
                 $title = $yamlTitle ?? $h1Title ?? ($githubTitle ? $this->toTitleCase($githubTitle) : $wikiPage['slug']);
 
-                // Generate meta description from content
-                $metaDescription = $this->generateMetaDescription($cleanedContent);
+                // Meta description: front matter override, otherwise generated from content
+                $metaDescription = ! empty($frontMatter['meta_description'])
+                    ? $frontMatter['meta_description']
+                    : $this->generateMetaDescription($cleanedContent);
+
+                $attributes = [
+                    'title' => $title,
+                    'content' => $cleanedContent,
+                    'meta_description' => $metaDescription,
+                    'parent' => null, // Will be set in the next step
+                ];
+
+                // Only set menu_order from front matter so admin drag-and-drop ordering
+                // is preserved across re-imports when no explicit order is provided.
+                if (isset($frontMatter['menu_order']) && $frontMatter['menu_order'] !== '') {
+                    $attributes['menu_order'] = (int) $frontMatter['menu_order'];
+                }
+
+                if (! empty($frontMatter['parent'])) {
+                    $parentOverrides[$wikiPage['slug']] = $frontMatter['parent'];
+                }
 
                 // Create or update documentation
                 Documentation::updateOrCreate(
@@ -76,18 +110,13 @@ class ImportWikiDocumentation implements ShouldQueue
                         'slug' => $wikiPage['slug'],
                         'package_id' => $this->package->id,
                     ],
-                    [
-                        'title' => $title,
-                        'content' => $cleanedContent,
-                        'meta_description' => $metaDescription,
-                        'parent' => null, // Will be set in the next step
-                    ]
+                    $attributes
                 );
 
                 Log::info('Imported wiki page: {slug}', ['slug' => $wikiPage['slug']]);
             }
 
-            // Remove documentation pages that no longer exist in the wiki
+            // Remove documentation pages that no longer exist in the source
             $importedSlugs = array_column($wikiPages, 'slug');
             $deleted = Documentation::where('package_id', $this->package->id)
                 ->whereNotIn('slug', $importedSlugs)
@@ -101,7 +130,7 @@ class ImportWikiDocumentation implements ShouldQueue
             }
 
             // Set up parent relationships for subpages
-            $this->setParentRelationships();
+            $this->setParentRelationships($parentOverrides);
 
             // Update the docs_imported_at timestamp
             $this->package->update(['docs_imported_at' => now()]);
@@ -298,39 +327,203 @@ class ImportWikiDocumentation implements ShouldQueue
 
     /**
      * Set parent relationships for subpages (keeps original slugs)
+     *
+     * A front matter `parent` slug, when provided, overrides the parent inferred from
+     * the slug's directory structure.
+     *
+     * @param  array<string, string>  $parentOverrides  Map of page slug to overriding parent slug
      */
-    protected function setParentRelationships(): void
+    protected function setParentRelationships(array $parentOverrides = []): void
     {
-        $docs = Documentation::where('package_id', $this->package->id)
-            ->where('slug', 'like', '%/%')
-            ->get();
+        $docs = Documentation::where('package_id', $this->package->id)->get();
 
         foreach ($docs as $doc) {
-            // Extract parent slug from the slug (e.g., "guides/usage" -> "guides")
-            if (str_contains($doc->slug, '/')) {
-                $parts = explode('/', $doc->slug);
-                $parentSlug = $parts[0];
+            $parentSlug = $parentOverrides[$doc->slug] ?? $this->inferParentSlug($doc->slug);
 
-                // Find the parent documentation
-                $parent = Documentation::where('package_id', $this->package->id)
-                    ->where('slug', $parentSlug)
-                    ->first();
+            if ($parentSlug === null || $parentSlug === $doc->slug) {
+                continue;
+            }
 
-                if ($parent) {
-                    // Set parent without changing the slug
-                    DB::table('documentation')
-                        ->where('id', $doc->id)
-                        ->update([
-                            'parent' => $parent->id,
-                            'updated_at' => now(),
-                        ]);
+            // Find the parent documentation
+            $parent = Documentation::where('package_id', $this->package->id)
+                ->where('slug', $parentSlug)
+                ->first();
 
-                    Log::info('Set parent for {slug}: parent={parent}', [
-                        'slug' => $doc->slug,
-                        'parent' => $parent->slug,
+            if ($parent && $parent->id !== $doc->id) {
+                // Set parent without changing the slug
+                DB::table('documentation')
+                    ->where('id', $doc->id)
+                    ->update([
+                        'parent' => $parent->id,
+                        'updated_at' => now(),
                     ]);
-                }
+
+                Log::info('Set parent for {slug}: parent={parent}', [
+                    'slug' => $doc->slug,
+                    'parent' => $parent->slug,
+                ]);
             }
         }
+    }
+
+    /**
+     * Infer a page's parent slug from its own slug's directory structure
+     *
+     * For example, "advanced/usage/webhooks" -> "advanced/usage".
+     */
+    protected function inferParentSlug(string $slug): ?string
+    {
+        if (! str_contains($slug, '/')) {
+            return null;
+        }
+
+        return substr($slug, 0, strrpos($slug, '/'));
+    }
+
+    /**
+     * Parse a leading YAML front matter block into a key/value map
+     *
+     * @return array<string, string>
+     */
+    protected function parseFrontMatter(string $content): array
+    {
+        if (! preg_match('/^---\s*\n(.*?)\n---\s*\n/s', $content, $matches)) {
+            return [];
+        }
+
+        $data = [];
+
+        foreach (explode("\n", $matches[1]) as $line) {
+            if (preg_match('/^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$/', $line, $pair)) {
+                $data[strtolower(trim($pair[1]))] = trim($pair[2], " \t\"'");
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Build a lookup map from a normalized wiki-style page name to a docs slug
+     *
+     * The flat wiki namespace joins path segments with hyphens and loses the
+     * distinction between "/" and "-", so "advanced/webhooks" and the link target
+     * "Advanced-Webhooks" both normalize to "advanced-webhooks". The first slug seen
+     * for a given normalized key wins.
+     *
+     * @param  array<int, array{slug: string, title: string, content: string}>  $pages
+     * @return array<string, string>
+     */
+    protected function buildSlugLookup(array $pages): array
+    {
+        $lookup = [];
+
+        foreach ($pages as $page) {
+            $key = $this->normalizeLinkTarget($page['slug']);
+
+            if (! isset($lookup[$key])) {
+                $lookup[$key] = $page['slug'];
+            }
+        }
+
+        return $lookup;
+    }
+
+    /**
+     * Normalize a link target or slug for wiki-name matching
+     */
+    protected function normalizeLinkTarget(string $value): string
+    {
+        $value = preg_replace('/[\s_\/]+/', '-', trim($value));
+        $value = preg_replace('/-+/', '-', $value);
+
+        return strtolower(trim($value, '-'));
+    }
+
+    /**
+     * Resolve a documentation link target to a known docs slug
+     *
+     * Tries a direct match first, then resolves relative to the current page's
+     * directory. Returns null when no known slug matches.
+     *
+     * @param  array<string, string>  $slugLookup
+     */
+    protected function resolveDocsTarget(string $target, string $currentSlug, array $slugLookup): ?string
+    {
+        $clean = preg_replace('/\.md$/i', '', ltrim($target, '/'));
+        $clean = preg_replace('#^\.\.?/#', '', $clean);
+
+        $directory = str_contains($currentSlug, '/')
+            ? substr($currentSlug, 0, strrpos($currentSlug, '/'))
+            : $currentSlug;
+
+        $candidates = [
+            $clean,
+            $directory.'/'.$clean,
+        ];
+
+        foreach ($candidates as $candidate) {
+            $key = $this->normalizeLinkTarget($candidate);
+
+            if (isset($slugLookup[$key])) {
+                return $slugLookup[$key];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Update internal documentation links when importing from a docs/ directory
+     *
+     * Handles GitHub [[wikilinks]], absolute repository URLs, and relative/flat
+     * wiki-name links, translating each to the docs site URL structure.
+     *
+     * @param  array<string, string>  $slugLookup
+     */
+    protected function updateDocsLinks(string $content, string $currentSlug, array $slugLookup): string
+    {
+        $siteUrl = rtrim(config('app.url'), '/');
+
+        // Rewrite [[Page Name]] and [[Page Name|Display Text]] wikilinks
+        $content = preg_replace_callback(
+            '/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/',
+            function ($matches) use ($siteUrl, $currentSlug, $slugLookup) {
+                $pageName = trim($matches[1]);
+                $displayText = isset($matches[2]) ? trim($matches[2]) : $pageName;
+                $slug = $this->resolveDocsTarget($pageName, $currentSlug, $slugLookup)
+                    ?? $this->normalizeLinkTarget($pageName);
+
+                return "[{$displayText}]({$siteUrl}/documentation/{$this->package->slug}/{$slug})";
+            },
+            $content
+        );
+
+        // Rewrite markdown links that are not external URLs
+        return preg_replace_callback(
+            '/\[([^\]]+)\]\((?!https?:\/\/|mailto:|#)([^)]+)\)/',
+            function ($matches) use ($siteUrl, $currentSlug, $slugLookup) {
+                $linkText = $matches[1];
+                $originalPath = $matches[2];
+
+                // Split off anchor/query suffix
+                $suffix = '';
+                $path = $originalPath;
+                if (preg_match('/^([^#?]*)([#?].*)$/', $path, $pathParts)) {
+                    $path = $pathParts[1];
+                    $suffix = $pathParts[2];
+                }
+
+                $resolved = $this->resolveDocsTarget($path, $currentSlug, $slugLookup);
+
+                if ($resolved === null) {
+                    // Fall back to treating the target as a relative path
+                    $resolved = preg_replace('/\.md$/i', '', ltrim($path, '/'));
+                    $resolved = preg_replace('#^\.\.?/#', '', $resolved);
+                }
+
+                return "[{$linkText}]({$siteUrl}/documentation/{$this->package->slug}/{$resolved}{$suffix})";
+            },
+            $content
+        );
     }
 }

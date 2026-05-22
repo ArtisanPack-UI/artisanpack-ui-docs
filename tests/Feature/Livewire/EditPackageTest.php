@@ -32,6 +32,29 @@ test('import documentation dispatches job when wiki url and token are present', 
     });
 });
 
+test('import documentation dispatches job and persists docs url when set', function () {
+    Queue::fake();
+
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+        'docs_url' => null,
+    ]);
+
+    Setting::create([
+        'key' => 'github_token',
+        'value' => encrypt('test-token-123'),
+    ]);
+
+    Livewire::test(EditPackage::class, ['package' => $package])
+        ->set('docs_url', 'https://github.com/owner/repo')
+        ->call('importDocumentation')
+        ->assertHasNoErrors();
+
+    expect($package->fresh()->docs_url)->toBe('https://github.com/owner/repo');
+
+    Queue::assertPushed(ImportWikiDocumentation::class, fn ($job) => $job->package->id === $package->id);
+});
+
 test('import documentation does not dispatch job when wiki url is missing', function () {
     Queue::fake();
 

@@ -23,6 +23,8 @@ class AddPackage extends Component
 
     public string $wiki_url = '';
 
+    public string $docs_url = '';
+
     public string $changelog_url = '';
 
     public string $icon = '';
