@@ -3,6 +3,7 @@
 namespace Modules\Packages\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class PackageRequest extends FormRequest
 {
@@ -12,9 +13,23 @@ class PackageRequest extends FormRequest
             'name' => ['required'],
             'slug' => ['required'],
             'homepage' => ['nullable', 'integer'],
-            'wiki_url' => ['required_without:docs_url', 'nullable'],
-            'docs_url' => ['required_without:wiki_url', 'nullable'],
+            'wiki_url' => ['nullable', 'url', 'required_without:docs_url'],
+            'docs_url' => ['nullable', 'url', 'required_without:wiki_url'],
             'changelog_url' => ['required'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if (empty($this->input('wiki_url')) && empty($this->input('docs_url'))) {
+                    $validator->errors()->add(
+                        'docs_url',
+                        'Either a documentation URL or wiki URL must be provided.'
+                    );
+                }
+            },
         ];
     }
 

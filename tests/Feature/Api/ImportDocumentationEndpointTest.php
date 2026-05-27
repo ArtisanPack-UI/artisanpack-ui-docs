@@ -4,7 +4,6 @@ use App\Jobs\ImportWikiDocumentation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
-use Modules\Packages\Http\Controllers\ImportDocumentationController;
 use Modules\Packages\Package;
 
 uses(RefreshDatabase::class);
@@ -28,10 +27,11 @@ test('the endpoint queues an import for a package with a docs url', function () 
         'docs_url' => 'https://github.com/owner/repo',
     ]);
 
-    $response = (new ImportDocumentationController)($package);
+    $response = $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authenticate::class)
+        ->postJson(route('api.packages.import-docs', $package));
 
-    expect($response->getStatusCode())->toBe(202)
-        ->and($response->getData(true))->toMatchArray([
+    $response->assertAccepted()
+        ->assertJson([
             'package' => 'core',
             'source' => 'docs',
         ]);
@@ -47,10 +47,11 @@ test('the endpoint reports the wiki source when only a wiki url is set', functio
         'docs_url' => null,
     ]);
 
-    $response = (new ImportDocumentationController)($package);
+    $response = $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authenticate::class)
+        ->postJson(route('api.packages.import-docs', $package));
 
-    expect($response->getStatusCode())->toBe(202)
-        ->and($response->getData(true)['source'])->toBe('wiki');
+    $response->assertAccepted()
+        ->assertJsonPath('source', 'wiki');
 
     Queue::assertPushed(ImportWikiDocumentation::class);
 });
@@ -63,9 +64,10 @@ test('the endpoint rejects a package without any source url', function () {
         'docs_url' => null,
     ]);
 
-    $response = (new ImportDocumentationController)($package);
+    $response = $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authenticate::class)
+        ->postJson(route('api.packages.import-docs', $package));
 
-    expect($response->getStatusCode())->toBe(422);
+    $response->assertUnprocessable();
 
     Queue::assertNothingPushed();
 });

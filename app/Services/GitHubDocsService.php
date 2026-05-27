@@ -41,9 +41,10 @@ class GitHubDocsService implements WikiServiceInterface
         $clonePath = $this->cloneRepo($this->extractRepoPath($docsUrl), $ref);
 
         try {
+            $resolvedClonePath = realpath($clonePath);
             $docsPath = realpath($clonePath.'/'.trim($subdirectory, '/'));
 
-            if ($docsPath === false || ! is_dir($docsPath)) {
+            if ($docsPath === false || ! is_dir($docsPath) || $resolvedClonePath === false || ! str_starts_with($docsPath, $resolvedClonePath.DIRECTORY_SEPARATOR)) {
                 throw new \Exception("No '{$subdirectory}' directory found in repository '{$this->extractRepoPath($docsUrl)}'");
             }
 

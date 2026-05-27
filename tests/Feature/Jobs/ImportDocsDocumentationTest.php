@@ -82,7 +82,7 @@ test('falls back to wiki_url when docs_url is not set', function () {
     expect(Documentation::where('slug', 'home')->exists())->toBeTrue();
 });
 
-test('parses menu_order, parent and meta_description from front matter', function () {
+test('parses title, menu_order and meta_description from front matter', function () {
     $package = Package::factory()->create([
         'slug' => 'forms',
         'docs_url' => 'https://github.com/owner/repo',
