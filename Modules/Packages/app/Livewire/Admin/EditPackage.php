@@ -31,6 +31,8 @@ class EditPackage extends Component
 
     public string $wiki_url = '';
 
+    public string $docs_url = '';
+
     public string $changelog_url = '';
 
     public ?string $icon = '';
@@ -47,7 +49,8 @@ class EditPackage extends Component
         $this->name = $package->name;
         $this->slug = $package->slug;
         $this->homepage = $package->homepage;
-        $this->wiki_url = $package->wiki_url;
+        $this->wiki_url = $package->wiki_url ?? '';
+        $this->docs_url = $package->docs_url ?? '';
         $this->changelog_url = $package->changelog_url;
         $this->icon = $package->icon;
         $this->pages = $package->documentation()->get()->toArray();
@@ -73,21 +76,28 @@ class EditPackage extends Component
 
     public function importDocumentation()
     {
-        if (empty($this->wiki_url)) {
-            $this->error('Wiki URL is required to import documentation.');
+        // A docs URL takes priority over the wiki URL when both are present.
+        $sourceField = ! empty($this->docs_url) ? 'docs_url' : 'wiki_url';
+        $sourceUrl = $this->{$sourceField};
+
+        if (empty($sourceUrl)) {
+            $this->error('A docs URL or wiki URL is required to import documentation.');
 
             return;
         }
 
-        $this->validateOnly('wiki_url', $this->packageUrlRules(), $this->packageUrlMessages());
+        $this->validateOnly($sourceField, $this->packageUrlRules(), $this->packageUrlMessages());
 
-        $token = $this->resolveTokenForUrl($this->wiki_url);
+        $token = $this->resolveTokenForUrl($sourceUrl);
         if ($token === null) {
             return;
         }
 
-        // Persist current form values so the queued job uses the latest URL
-        $this->package->update(['wiki_url' => $this->wiki_url]);
+        // Persist current form values so the queued job uses the latest URLs
+        $this->package->update([
+            'wiki_url' => $this->wiki_url ?: null,
+            'docs_url' => $this->docs_url ?: null,
+        ]);
 
         ImportWikiDocumentation::dispatch($this->package);
 
