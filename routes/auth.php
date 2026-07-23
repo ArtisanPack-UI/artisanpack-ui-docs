@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Actions\Logout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+
+Route::post('logout', Logout::class)->name('logout');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', function () {
