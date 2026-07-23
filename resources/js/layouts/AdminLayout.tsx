@@ -23,6 +23,11 @@ const DEFAULT_NAV: AdminNavItem[] = [
 export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutProps) {
     const { url } = usePage();
 
+    // Longest-prefix wins so /dashboard/packages highlights Packages, not both Packages and Dashboard.
+    const activeHref = nav
+        .filter((item) => url === item.href || url.startsWith(`${item.href}/`))
+        .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
     return (
         <div className="min-h-screen bg-base text-text" style={{ display: 'grid', gridTemplateColumns: '260px 1fr' }}>
             <aside className="border-r border-border-subtle bg-surface-2" aria-label="Admin navigation">
@@ -36,7 +41,7 @@ export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutP
                     <nav className="flex-1 overflow-y-auto px-3 py-4">
                         <ul className="flex flex-col gap-1">
                             {nav.map((item) => {
-                                const active = url === item.href || url.startsWith(`${item.href}/`);
+                                const active = item.href === activeHref;
                                 return (
                                     <li key={item.href}>
                                         <Link
@@ -58,12 +63,9 @@ export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutP
             </aside>
 
             <div className="flex min-w-0 flex-col">
-                <header
-                    className="sticky top-0 z-30 border-b border-border-subtle backdrop-blur-[14px]"
-                    style={{ backgroundColor: 'rgba(8, 12, 22, 0.9)' }}
-                >
+                <header className="sticky top-0 z-30 border-b border-border-subtle bg-base/90 backdrop-blur-[14px]">
                     <div className="flex items-center justify-between gap-4 px-8 py-4">
-                        <h1 className="font-display text-h5">{title}</h1>
+                        {title ? <h1 className="font-display text-h5">{title}</h1> : <span />}
                         <ThemeToggle />
                     </div>
                 </header>

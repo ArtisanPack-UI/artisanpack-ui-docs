@@ -10,10 +10,7 @@ export interface PublicLayoutProps {
 export function PublicLayout({ children, activeNav }: PublicLayoutProps) {
     return (
         <div className="min-h-screen flex flex-col bg-base text-text">
-            <header
-                className="sticky top-0 z-40 border-b border-border-subtle backdrop-blur-[14px]"
-                style={{ backgroundColor: 'rgba(8, 12, 22, 0.9)' }}
-            >
+            <header className="sticky top-0 z-40 border-b border-border-subtle bg-base/90 backdrop-blur-[14px]">
                 <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 py-4">
                     <Link href="/" className="font-display text-lg font-semibold tracking-tight">
                         ArtisanPack UI

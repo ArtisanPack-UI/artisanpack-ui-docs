@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ThemeToggle } from '@artisanpack-ui/react';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 const SEARCH_ICON_PATH = 'M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z';
 const GITHUB_ICON_PATH =
@@ -14,11 +14,31 @@ export interface DocsLayoutProps {
 }
 
 export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutProps) {
+    const rootRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLElement>(null);
+
+    useEffect(() => {
+        const root = rootRef.current;
+        const header = headerRef.current;
+        if (!root || !header || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const sync = () => {
+            root.style.setProperty('--docs-header-h', `${header.offsetHeight}px`);
+        };
+        sync();
+
+        const observer = new ResizeObserver(sync);
+        observer.observe(header);
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        <div className="min-h-screen bg-base text-text">
+        <div ref={rootRef} className="min-h-screen bg-base text-text">
             <header
-                className="sticky top-0 z-40 backdrop-blur-[14px]"
-                style={{ backgroundColor: 'rgba(8, 12, 22, 0.9)' }}
+                ref={headerRef}
+                className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]"
             >
                 <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 py-4">
                     <Link href="/" className="font-display text-lg font-semibold tracking-tight">
@@ -72,17 +92,28 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                 <div className="h-[2px] w-full" style={{ backgroundImage: 'var(--grad-neon)' }} aria-hidden />
             </header>
 
-            <div
-                className="mx-auto grid w-full max-w-[1440px] gap-8 px-6 py-8"
-                style={{ gridTemplateColumns: '290px 1fr 264px' }}
-            >
-                <aside className="sticky top-[89px] h-[calc(100vh-89px)] overflow-y-auto pr-2" aria-label="Documentation navigation">
+            <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-8 px-6 py-8 xl:grid-cols-[290px_1fr_264px]">
+                <aside
+                    className="sticky hidden overflow-y-auto pr-2 xl:block"
+                    style={{
+                        top: 'var(--docs-header-h, 76px)',
+                        maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
+                    }}
+                    aria-label="Documentation navigation"
+                >
                     {sidebar}
                 </aside>
 
                 <main className="min-w-0">{children}</main>
 
-                <aside className="sticky top-[89px] h-[calc(100vh-89px)] overflow-y-auto pl-2" aria-label="Table of contents">
+                <aside
+                    className="sticky hidden overflow-y-auto pl-2 xl:block"
+                    style={{
+                        top: 'var(--docs-header-h, 76px)',
+                        maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
+                    }}
+                    aria-label="Table of contents"
+                >
                     {toc}
                 </aside>
             </div>
