@@ -14,7 +14,7 @@ const modulePages = import.meta.glob<{ default: ComponentType }>(
 
 // Page name conventions:
 //   'Welcome'      -> resources/js/pages/Welcome.tsx
-//   'Auth::Login'  -> Modules/Auth/resources/js/pages/Login.tsx
+//   'Admin::Dashboard' -> Modules/Admin/resources/js/pages/Dashboard.tsx
 const resolvePage = (name: string) => {
     if (name.includes('::')) {
         const [module, page] = name.split('::');

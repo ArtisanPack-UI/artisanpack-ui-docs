@@ -1,6 +1,5 @@
 {
     "Admin": true,
-    "Auth": true,
     "Users": true,
     "Core": true,
     "Pages": true,
