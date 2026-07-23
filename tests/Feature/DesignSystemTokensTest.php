@@ -35,6 +35,23 @@ it('extends Tailwind v4 @theme so utilities map to AP-UI tokens', function () {
         ->toContain('--shadow-glow-gradient:');
 });
 
+it('inlines raw values in the @theme block instead of self-referential var() aliases', function () {
+    $appCss = (string) file_get_contents(base_path('resources/css/app.css'));
+
+    // Self-referential @theme entries (`--color-primary: var(--color-primary);`)
+    // break Tailwind v4 opacity modifiers because the color-mix chain baked into
+    // built CSS resolves to an unresolvable var() loop. Assert the raw dark-mode
+    // hex values from tokens/colors.css are present verbatim in @theme.
+    expect($appCss)
+        ->toContain('--color-primary: #2962FF')
+        ->toContain('--color-secondary: #00E5FF')
+        ->toContain('--color-accent: #E040FB')
+        ->toContain('--color-base: #111827')
+        ->not->toContain('--color-primary: var(--color-primary)')
+        ->not->toContain('--font-display: var(--font-display)')
+        ->not->toContain('--radius-box: var(--box-radius)');
+});
+
 it('carries the neon triad and dark-first color tokens', function () {
     $colors = (string) file_get_contents(base_path('resources/css/tokens/colors.css'));
 
