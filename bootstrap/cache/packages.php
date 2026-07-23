@@ -10,11 +10,24 @@
       0 => 'ArtisanPack\\Accessibility\\Laravel\\A11yServiceProvider',
     ),
   ),
+  'artisanpack-ui/ai' => 
+  array (
+    'aliases' => 
+    array (
+      'Ai' => 'ArtisanPackUI\\Ai\\Facades\\Ai',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Ai\\AiServiceProvider',
+    ),
+  ),
   'artisanpack-ui/core' => 
   array (
     'aliases' => 
     array (
       'Core' => 'ArtisanPackUI\\Core\\Facades\\Core',
+      'ArtisanPackLog' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackLog',
+      'ArtisanPackConfig' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackConfig',
     ),
     'providers' => 
     array (
@@ -77,6 +90,13 @@
       0 => 'BladeUI\\Icons\\BladeIconsServiceProvider',
     ),
   ),
+  'laravel/ai' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Ai\\AiServiceProvider',
+    ),
+  ),
   'laravel/boost' => 
   array (
     'providers' => 
@@ -88,7 +108,7 @@
   array (
     'aliases' => 
     array (
-      'Mcp' => 'Laravel\\Mcp\\Server\\Facades\\Mcp',
+      'Mcp' => 'Laravel\\Mcp\\Facades\\Mcp',
     ),
     'providers' => 
     array (
