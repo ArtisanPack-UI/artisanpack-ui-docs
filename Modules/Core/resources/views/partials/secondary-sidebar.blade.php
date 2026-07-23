@@ -17,15 +17,11 @@
             let tocObserver = null;
 
             function initializeTOC() {
-                console.log('Initializing TOC highlighting...');
-
-                // Clean up existing observer
                 if (tocObserver) {
                     tocObserver.disconnect();
                     tocObserver = null;
                 }
 
-                // Create new observer
                 tocObserver = new IntersectionObserver(entries => {
                     entries.forEach(entry => {
                         const id = entry.target.getAttribute('id');
@@ -34,19 +30,12 @@
                         const tocLink = document.querySelector(`#toc-nav a[data-target="${id}"]`);
 
                         if (entry.isIntersecting) {
-                            console.log(`Section intersecting: ${id}`, tocLink);
-
-                            // Remove active class from all links
                             document.querySelectorAll('#toc-nav .toc-link').forEach(link => {
                                 link.classList.remove('font-bold', 'bg-base-200');
                             });
 
-                            // Add active class to current link
                             if (tocLink) {
                                 tocLink.classList.add('font-bold', 'bg-base-200');
-                                console.log(`TOC highlighting: ${id}`, 'Classes:', tocLink.className);
-                            } else {
-                                console.warn(`TOC link not found for: ${id}`);
                             }
                         }
                     });
@@ -55,13 +44,10 @@
                     threshold: 0
                 });
 
-                // Track all headings with IDs
                 const headings = document.querySelectorAll('#main h1[id], #main h2[id], #main h3[id], #main h4[id], #main h5[id], #main h6[id]');
-                console.log(`Found ${headings.length} headings to track`);
 
                 headings.forEach(heading => {
                     tocObserver.observe(heading);
-                    console.log(`Observing heading: ${heading.id}`);
                 });
 
                 // Smooth scroll for TOC links
@@ -93,8 +79,6 @@
 
             // Re-initialize after Livewire navigation
             document.addEventListener('livewire:navigated', function() {
-                console.log('Livewire navigated, re-initializing TOC...');
-                // Wait a bit for Prism and other scripts to finish
                 setTimeout(initializeTOC, 200);
             });
         </script>
