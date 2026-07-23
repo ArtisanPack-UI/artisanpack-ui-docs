@@ -71,9 +71,9 @@ it('visits every route in §4.1 without JS errors or console logs', function () 
     $this->actingAs($user);
 
     $authedPages = visit([
-        '/settings/profile',
-        '/settings/password',
-        '/settings/appearance',
+        '/dashboard/settings/profile',
+        '/dashboard/settings/password',
+        '/dashboard/settings/appearance',
         '/dashboard',
         '/dashboard/settings',
         '/dashboard/packages',

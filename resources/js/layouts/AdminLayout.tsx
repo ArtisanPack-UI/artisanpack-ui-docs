@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 export interface AdminNavItem {
     label: string;
     href: string;
+    /** URL prefix used for active-state matching. Defaults to `href`. */
+    matchPrefix?: string;
 }
 
 export interface AdminLayoutProps {
@@ -17,7 +19,7 @@ const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Packages', href: '/dashboard/packages' },
     { label: 'Pages', href: '/dashboard/pages' },
-    { label: 'Settings', href: '/dashboard/settings' },
+    { label: 'Settings', href: '/dashboard/settings/profile', matchPrefix: '/dashboard/settings' },
 ];
 
 export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutProps) {
@@ -25,8 +27,11 @@ export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutP
 
     // Longest-prefix wins so /dashboard/packages highlights Packages, not both Packages and Dashboard.
     const activeHref = nav
-        .filter((item) => url === item.href || url.startsWith(`${item.href}/`))
-        .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+        .filter((item) => {
+            const prefix = item.matchPrefix ?? item.href;
+            return url === prefix || url.startsWith(`${prefix}/`);
+        })
+        .sort((a, b) => (b.matchPrefix ?? b.href).length - (a.matchPrefix ?? a.href).length)[0]?.href;
 
     return (
         <div className="min-h-screen bg-base text-text" style={{ display: 'grid', gridTemplateColumns: '260px 1fr' }}>

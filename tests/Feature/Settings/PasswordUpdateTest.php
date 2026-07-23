@@ -1,39 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Volt\Volt;
+use Inertia\Testing\AssertableInertia;
 
-test('password can be updated', function () {
+it('renders the Inertia password page for authenticated users', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('dashboard.settings.password'));
+
+    $response->assertOk();
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Settings/Password')
+        ->has('status')
+    );
+});
+
+it('updates the password via Fortify PUT /user/password', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
+    $response = $this->actingAs($user)
+        ->from(route('dashboard.settings.password'))
+        ->put('/user/password', [
+            'current_password' => 'password',
+            'password' => 'Str0ng-Passw0rd!',
+            'password_confirmation' => 'Str0ng-Passw0rd!',
+        ]);
 
-    $response = Volt::test('settings.password')
-        ->set('current_password', 'password')
-        ->set('password', 'Str0ng-Passw0rd!')
-        ->set('password_confirmation', 'Str0ng-Passw0rd!')
-        ->call('updatePassword');
-
-    $response->assertHasNoErrors();
+    $response->assertRedirect(route('dashboard.settings.password'));
 
     expect(Hash::check('Str0ng-Passw0rd!', $user->refresh()->password))->toBeTrue();
 });
 
-test('correct password must be provided to update password', function () {
+it('rejects password updates when current password is wrong', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
+    $response = $this->actingAs($user)
+        ->from(route('dashboard.settings.password'))
+        ->put('/user/password', [
+            'current_password' => 'wrong-password',
+            'password' => 'Str0ng-Passw0rd!',
+            'password_confirmation' => 'Str0ng-Passw0rd!',
+        ]);
 
-    $response = Volt::test('settings.password')
-        ->set('current_password', 'wrong-password')
-        ->set('password', 'Str0ng-Passw0rd!')
-        ->set('password_confirmation', 'Str0ng-Passw0rd!')
-        ->call('updatePassword');
-
-    $response->assertHasErrors(['current_password']);
+    $response->assertSessionHasErrors(['current_password'], null, 'updatePassword');
 });

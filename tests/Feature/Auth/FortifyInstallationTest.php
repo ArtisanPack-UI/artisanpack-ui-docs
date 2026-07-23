@@ -7,16 +7,14 @@ use Illuminate\Support\Facades\Schema;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-it('registers the three required Fortify features and disables registration', function () {
-    $features = config('fortify.features');
-
+it('registers the required Fortify features and disables registration', function () {
     expect(Features::enabled(Features::emailVerification()))->toBeTrue();
     expect(Features::enabled(Features::resetPasswords()))->toBeTrue();
     expect(Features::enabled(Features::twoFactorAuthentication()))->toBeTrue();
+    expect(Features::enabled(Features::updateProfileInformation()))->toBeTrue();
+    expect(Features::enabled(Features::updatePasswords()))->toBeTrue();
+    expect(Features::canUpdateProfileInformation())->toBeTrue();
     expect(Features::enabled(Features::registration()))->toBeFalse();
-    expect(Features::enabled(Features::updateProfileInformation()))->toBeFalse();
-    expect(Features::enabled(Features::updatePasswords()))->toBeFalse();
-    expect(Features::canUpdateProfileInformation())->toBeFalse();
 
     expect(Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm'))->toBeTrue();
     expect(Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'))->toBeTrue();

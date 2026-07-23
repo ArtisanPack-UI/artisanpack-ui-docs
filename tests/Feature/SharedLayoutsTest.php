@@ -56,7 +56,7 @@ it('picks a single active AdminLayout nav item by longest-prefix match', functio
 
     expect($source)
         ->toContain('activeHref')
-        ->toContain('b.href.length - a.href.length');
+        ->toContain('(b.matchPrefix ?? b.href).length - (a.matchPrefix ?? a.href).length');
 });
 
 it('does not emit an empty AdminLayout heading when title is omitted', function () {
