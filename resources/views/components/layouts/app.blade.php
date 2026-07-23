@@ -31,7 +31,7 @@
             <x-artisanpack-menu-separator />
 
             <x-artisanpack-menu-item title="Dashboard" icon="o-sparkles" :href="route('dashboard')" />
-            <x-artisanpack-menu-item title="Settings" icon="o-sparkles" :href="route('settings.profile')" />
+            <x-artisanpack-menu-item title="Settings" icon="o-sparkles" :href="route('dashboard.settings.profile')" />
 
             <x-artisanpack-menu-separator />
 
