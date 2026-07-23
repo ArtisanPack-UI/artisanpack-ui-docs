@@ -13,6 +13,14 @@ Route::middleware('guest')->group(function () {
             'status' => session('status'),
         ]);
     })->name('login');
+
+    Route::get('two-factor-challenge', function () {
+        if (! session()->has('login.id')) {
+            return redirect()->route('login');
+        }
+
+        return Inertia::render('Auth/TwoFactorChallenge');
+    })->name('two-factor.login');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -25,4 +33,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('verified', function () {
         return Inertia::render('Auth/Verified');
     })->middleware('verified')->name('verification.verified');
+
+    Route::get('user/confirm-password', function () {
+        return Inertia::render('Auth/ConfirmPassword');
+    })->name('password.confirm');
 });

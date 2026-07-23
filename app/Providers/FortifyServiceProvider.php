@@ -9,7 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
 use Laravel\Fortify\Contracts\VerifyEmailResponse;
 use Laravel\Fortify\Fortify;
 
@@ -29,6 +32,44 @@ class FortifyServiceProvider extends ServiceProvider
                     return $request->wantsJson()
                         ? new JsonResponse('', 204)
                         : redirect()->intended(route('verification.verified'));
+                }
+            }
+        );
+
+        $this->app->instance(
+            LoginResponse::class,
+            new class implements LoginResponse
+            {
+                public function toResponse($request)
+                {
+                    if ($request->wantsJson()) {
+                        return new JsonResponse(['two_factor' => false]);
+                    }
+
+                    $target = redirect()->intended(Fortify::redirects('login'))->getTargetUrl();
+
+                    return $request->header('X-Inertia')
+                        ? Inertia::location($target)
+                        : redirect()->to($target);
+                }
+            }
+        );
+
+        $this->app->instance(
+            TwoFactorLoginResponse::class,
+            new class implements TwoFactorLoginResponse
+            {
+                public function toResponse($request)
+                {
+                    if ($request->wantsJson()) {
+                        return new JsonResponse('', 204);
+                    }
+
+                    $target = redirect()->intended(Fortify::redirects('login'))->getTargetUrl();
+
+                    return $request->header('X-Inertia')
+                        ? Inertia::location($target)
+                        : redirect()->to($target);
                 }
             }
         );

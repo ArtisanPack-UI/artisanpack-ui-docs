@@ -42,6 +42,19 @@ it('rejects invalid credentials with a validation error on email', function () {
     $this->assertGuest();
 });
 
+it('returns an Inertia external redirect when logging in from an Inertia request', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ], ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest']);
+
+    $response->assertStatus(409);
+    $response->assertHeader('X-Inertia-Location', url(config('fortify.home')));
+    $this->assertAuthenticatedAs($user);
+});
+
 it('users can logout', function () {
     $user = User::factory()->create();
 
