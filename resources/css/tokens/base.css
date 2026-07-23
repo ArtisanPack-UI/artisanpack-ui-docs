@@ -1,0 +1,107 @@
+/* ArtisanPack UI — light global helpers + the atmospheric "space" layer.
+   Opt-in: utilities only bite on .ap- classes / inside .ap-root. */
+
+.ap-root,
+.ap-surface {
+  background: var(--color-base);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Gradient text — the neon wordmark treatment */
+.ap-gradient-text {
+  background: var(--ap-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.ap-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  box-sizing: border-box;
+}
+
+/* ---------- Box-design helper ----------------------------------- */
+/* A one-class box: 12px radius, 3px border, surface ground.
+   Compose with .ap-border-{primary,secondary,accent,gradient} and
+   .ap-glow-{primary,secondary,accent,gradient}. */
+.ap-box {
+  background: var(--color-surface);
+  border: var(--box-border-width) solid var(--color-border);
+  border-radius: var(--box-radius);
+}
+.ap-border-primary   { border-color: var(--color-primary); }
+.ap-border-secondary { border-color: var(--color-secondary); }
+.ap-border-accent    { border-color: var(--color-accent); }
+/* Gradient border via border-box/padding-box layering */
+.ap-border-gradient {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    var(--grad-neon) border-box;
+}
+
+.ap-glow-primary   { box-shadow: var(--glow-primary); }
+.ap-glow-secondary { box-shadow: var(--glow-secondary); }
+.ap-glow-accent    { box-shadow: var(--glow-accent); }
+.ap-glow-gradient  { box-shadow: var(--glow-gradient); }
+
+/* ---------- Atmospheric "space" backgrounds --------------------- */
+/* Deep space ground */
+.ap-space {
+  background-color: var(--ap-ink);
+  color: var(--color-text);
+}
+
+/* Starfield — faint dotted star layer. Drop on any dark section. */
+.ap-starfield {
+  position: relative;
+  background-color: var(--ap-ink);
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%,  rgba(255,255,255,0.55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 75% 15%,  rgba(255,255,255,0.40), transparent 60%),
+    radial-gradient(1px   1px   at 40% 70%,  rgba(255,255,255,0.45), transparent 60%),
+    radial-gradient(1px   1px   at 88% 55%,  rgba(0,229,255,0.55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 60% 85%,  rgba(255,255,255,0.35), transparent 60%),
+    radial-gradient(1px   1px   at 10% 80%,  rgba(224,64,251,0.50), transparent 60%),
+    radial-gradient(1px   1px   at 50% 45%,  rgba(255,255,255,0.30), transparent 60%);
+  background-size: 100% 100%;
+}
+
+/* Aurora / nebula glow — large blurred neon blobs behind content.
+   Put on a positioned ancestor; it paints a ::before glow layer. */
+.ap-aurora {
+  position: relative;
+  isolation: isolate;
+}
+.ap-aurora::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  z-index: -1;
+  background:
+    radial-gradient(40% 60% at 80% 10%, color-mix(in srgb, var(--color-accent) 40%, transparent), transparent 70%),
+    radial-gradient(45% 55% at 15% 0%,  color-mix(in srgb, var(--color-primary) 42%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 55% 30%, color-mix(in srgb, var(--color-secondary) 28%, transparent), transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+/* Neon hairline divider */
+.ap-divider-neon {
+  height: 1px;
+  border: 0;
+  background: var(--grad-neon);
+  opacity: 0.6;
+}
+
+*, *::before, *::after { box-sizing: border-box; }

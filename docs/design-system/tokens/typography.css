@@ -1,0 +1,80 @@
+/* ArtisanPack UI — Typography tokens
+   Heading + Body: Poppins.  Code / mono: Space Mono. */
+
+:root {
+  /* ---- Families ------------------------------------------------- */
+  --font-display: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-ui:      "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-alt:     "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:    "Space Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---- Weights (Poppins) --------------------------------------- */
+  --weight-light:    300;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-extra:    800;
+
+  /* ---- Base size ------------------------------------------------ */
+  --font-size-base: 16px;
+
+  /* ---- Desktop type scale --------------------------------------- */
+  --text-h1: 56px;
+  --text-h2: 44px;
+  --text-h3: 36px;
+  --text-h4: 28px;
+  --text-h5: 22px;
+  --text-h6: 18px;
+  --text-body:   16px;
+  --text-small:  14px;
+  --text-xsmall: 13px;
+  --text-link:   16px;
+  --text-blockquote: 28px;
+
+  /* Line heights — @kind other */
+  --lh-tight:  1.15;   /* @kind other */
+  --lh-snug:   1.35;   /* @kind other */
+  --lh-body:   1.65;   /* @kind other */
+  --lh-loose:  1.75;   /* @kind other */
+  --lh-flush:  1;      /* @kind other */
+
+  /* Letter spacing — @kind other */
+  --tracking-tight:  -0.02em;  /* @kind other */
+  --tracking-snug:   -0.01em;  /* @kind other */
+  --tracking-wide:   0.04em;   /* @kind other */
+  --tracking-eyebrow:0.16em;   /* @kind other */
+  --tracking-normal: 0;        /* @kind other */
+
+  /* ---- Mobile heading sizes ------------------------------------- */
+  --text-h1-m: 40px;
+  --text-h2-m: 34px;
+  --text-h3-m: 28px;
+  --text-h4-m: 24px;
+  --text-h5-m: 20px;
+  --text-h6-m: 17px;
+
+  /* ---- UI text -------------------------------------------------- */
+  --text-btn-lg: 17px;
+  --text-btn-md: 15px;
+  --text-btn-sm: 13px;
+  --text-input-lg: 18px;
+  --text-input-md: 16px;
+  --text-input-sm: 14px;
+  --text-eyebrow:  13px;
+  --text-code:     14px;
+}
+
+/* Convenience specimen classes — opt-in, never auto-applied. */
+.ap-h1 { font-family: var(--font-display); font-size: var(--text-h1); line-height: var(--lh-tight); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
+.ap-h2 { font-family: var(--font-display); font-size: var(--text-h2); line-height: var(--lh-tight); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
+.ap-h3 { font-family: var(--font-display); font-size: var(--text-h3); line-height: var(--lh-snug); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-snug); }
+.ap-h4 { font-family: var(--font-display); font-size: var(--text-h4); line-height: var(--lh-snug); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-snug); }
+.ap-h5 { font-family: var(--font-display); font-size: var(--text-h5); line-height: var(--lh-snug); font-weight: var(--weight-semibold); }
+.ap-h6 { font-family: var(--font-display); font-size: var(--text-h6); line-height: var(--lh-snug); font-weight: var(--weight-medium); }
+.ap-body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); font-weight: var(--weight-regular); }
+.ap-small { font-family: var(--font-body); font-size: var(--text-small); line-height: var(--lh-snug); font-weight: var(--weight-regular); }
+.ap-mono { font-family: var(--font-mono); font-size: var(--text-code); line-height: var(--lh-snug); font-weight: var(--weight-regular); }
+.ap-eyebrow { font-family: var(--font-ui); font-size: var(--text-eyebrow); line-height: var(--lh-flush); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; }
+.ap-blockquote { font-family: var(--font-display); font-size: var(--text-blockquote); line-height: var(--lh-loose); font-weight: var(--weight-medium); }

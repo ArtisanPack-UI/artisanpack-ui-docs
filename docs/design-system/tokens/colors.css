@@ -1,0 +1,117 @@
+/* ArtisanPack UI — Color tokens
+   DARK-FIRST. :root is the dark (default) theme; [data-theme="light"]
+   overrides for light mode. Neon primary / secondary / accent are
+   semantic (they shift per theme). Style components from the --color-*
+   aliases and the gradient / glow tokens — never raw hex.
+   Source: ArtisanPack UI Website plan + Figma. */
+
+:root {
+  /* ================= DARK THEME (default) ===================== */
+
+  /* Backgrounds */
+  --color-base:      #111827;   /* page / space-black */
+  --color-section:   #1F2937;   /* alternating section ground */
+  --color-surface:   #1F2937;   /* cards, boxes */
+  --color-surface-2: #111827;   /* recessed wells inside surfaces */
+  --ap-ink:          #0B1120;   /* deepest ground (footers, hero void) */
+
+  /* Neon core — the three that "pop" */
+  --color-primary:   #2962FF;   /* electric blue */
+  --color-secondary: #00E5FF;   /* neon cyan */
+  --color-accent:    #E040FB;   /* neon magenta */
+
+  /* Text */
+  --color-text:        #FFFFFF;
+  --color-text-muted:  #9CA3AF;
+  --color-text-subtle: #6B7280;
+  --color-text-invert: #111827;
+  --color-text-link:   #00E5FF;
+
+  /* Borders */
+  --color-border:        #374151;
+  --color-border-subtle: #263143;
+  --color-border-strong: #4B5563;
+
+  /* On-color foregrounds */
+  --color-on-primary:   #FFFFFF;
+  --color-on-secondary: #0B1120;
+  --color-on-accent:    #0B1120;
+
+  /* ================= Gradients (theme-aware) ================== */
+  /* Follow the active theme's primary/secondary/accent via var(). */
+  --grad-primary-secondary: linear-gradient(115deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  --grad-primary-accent:    linear-gradient(115deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  --grad-secondary-primary: linear-gradient(115deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+  --grad-secondary-accent:  linear-gradient(115deg, var(--color-secondary) 0%, var(--color-accent) 100%);
+  --grad-accent-primary:    linear-gradient(115deg, var(--color-accent) 0%, var(--color-primary) 100%);
+  --grad-accent-secondary:  linear-gradient(115deg, var(--color-accent) 0%, var(--color-secondary) 100%);
+  /* Signature: three-stop neon sweep, blue → cyan → lilac */
+  --grad-neon:      linear-gradient(115deg, var(--color-primary) 0%, var(--color-secondary) 55%, var(--color-accent) 100%);
+  --ap-gradient:    var(--grad-primary-accent);   /* brand default */
+
+  /* ================= Neon glows (box-shadow) ================== */
+  /* Soft outer bloom for "pop". color-mix keeps them theme-aware. */
+  --glow-primary:   0 0 24px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  --glow-secondary: 0 0 24px color-mix(in srgb, var(--color-secondary) 55%, transparent);
+  --glow-accent:    0 0 24px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  --glow-primary-lg:   0 0 48px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  --glow-secondary-lg: 0 0 48px color-mix(in srgb, var(--color-secondary) 45%, transparent);
+  --glow-accent-lg:    0 0 48px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  /* Gradient glow = layered primary + accent bloom */
+  --glow-gradient:  0 0 20px color-mix(in srgb, var(--color-primary) 45%, transparent),
+                    0 0 34px color-mix(in srgb, var(--color-accent) 40%, transparent);
+
+  /* ================= Semantic ================================= */
+  --color-valid:   #22C55E;   /* Tailwind green-500 — valid input */
+  --color-invalid: #EF4444;   /* Tailwind red-500 — invalid input */
+  --ap-success: #22C55E;
+  --ap-error:   #EF4444;
+  --ap-warning: #F59E0B;
+  --ap-info:    #2962FF;
+
+  /* ================= Neutral ramp (theme-independent) ========= */
+  --ap-white:    #FFFFFF;
+  --ap-gray-50:  #F9FAFB;
+  --ap-gray-100: #F3F4F6;
+  --ap-gray-200: #E5E7EB;
+  --ap-gray-300: #D1D5DB;
+  --ap-gray-400: #9CA3AF;
+  --ap-gray-500: #6B7280;
+  --ap-gray-600: #4B5563;
+  --ap-gray-700: #374151;
+  --ap-gray-800: #1F2937;
+  --ap-gray-900: #111827;
+  --ap-black:    #000000;
+
+  /* Legacy neon aliases (kept so earlier components keep rendering) */
+  --ap-blue:    var(--color-primary);
+  --ap-cyan:    var(--color-secondary);
+  --ap-magenta: var(--color-accent);
+}
+
+/* ===================== LIGHT THEME ============================ */
+[data-theme="light"] {
+  --color-base:      #F9FAFB;
+  --color-section:   #FFFFFF;
+  --color-surface:   #FFFFFF;
+  --color-surface-2: #F9FAFB;
+  --ap-ink:          #0B1120;
+
+  --color-primary:   #1A237E;   /* deep indigo */
+  --color-secondary: #00838F;   /* deep teal */
+  --color-accent:    #8E24AA;   /* deep purple */
+
+  --color-text:        #000000;
+  --color-text-muted:  #4B5563;
+  --color-text-subtle: #9CA3AF;
+  --color-text-invert: #FFFFFF;
+  --color-text-link:   #00838F;
+
+  --color-border:        #E5E7EB;
+  --color-border-subtle: #EEF1F5;
+  --color-border-strong: #D1D5DB;
+
+  --color-on-primary:   #FFFFFF;
+  --color-on-secondary: #FFFFFF;
+  --color-on-accent:    #FFFFFF;
+}
