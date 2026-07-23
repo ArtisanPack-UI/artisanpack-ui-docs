@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -21,6 +22,19 @@ Route::middleware('guest')->group(function () {
 
         return Inertia::render('Auth/TwoFactorChallenge');
     })->name('two-factor.login');
+
+    Route::get('forgot-password', function () {
+        return Inertia::render('Auth/ForgotPassword', [
+            'status' => session('status'),
+        ]);
+    })->name('password.request');
+
+    Route::get('reset-password/{token}', function (string $token, Request $request) {
+        return Inertia::render('Auth/ResetPassword', [
+            'token' => $token,
+            'email' => (string) $request->query('email', ''),
+        ]);
+    })->name('password.reset');
 });
 
 Route::middleware(['auth'])->group(function () {
