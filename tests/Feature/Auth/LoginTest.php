@@ -1,43 +1,44 @@
 <?php
 
-use App\Models\User;
-use Livewire\Livewire;
-use Modules\Auth\Livewire\Auth\Login as LoginComponent;
+declare(strict_types=1);
 
-it('login screen can be rendered', function () {
+use App\Models\User;
+use Inertia\Testing\AssertableInertia;
+
+it('renders the Inertia login page at /login', function () {
     $response = $this->get(route('login'));
 
-    $response->assertStatus(200);
+    $response->assertOk();
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Auth/Login')
+        ->where('canResetPassword', true)
+        ->has('status')
+    );
 });
 
-it('users can log in', function () {
-    $user = User::factory()->create([
-        'password' => bcrypt('password'),
+it('logs users in via the Fortify POST /login action', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'remember' => false,
     ]);
 
-    Livewire::test(LoginComponent::class)
-        ->set('email', $user->email)
-        ->set('password', 'password')
-        ->set('remember', false)
-        ->call('login')
-        ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
-
+    $response->assertRedirect(config('fortify.home'));
     $this->assertAuthenticatedAs($user);
 });
 
-it('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create([
-        'password' => bcrypt('password'),
+it('rejects invalid credentials with a validation error on email', function () {
+    $user = User::factory()->create();
+
+    $response = $this->from(route('login'))->post(route('login'), [
+        'email' => $user->email,
+        'password' => 'wrong-password',
     ]);
 
-    Livewire::test(LoginComponent::class)
-        ->set('email', $user->email)
-        ->set('password', 'wrong-password')
-        ->set('remember', false)
-        ->call('login')
-        ->assertHasErrors('email');
-
+    $response->assertRedirect(route('login'));
+    $response->assertSessionHasErrors('email');
     $this->assertGuest();
 });
 
@@ -47,6 +48,5 @@ it('users can logout', function () {
     $response = $this->actingAs($user)->post(route('logout'));
 
     $response->assertRedirect(route('home'));
-
     $this->assertGuest();
 });
