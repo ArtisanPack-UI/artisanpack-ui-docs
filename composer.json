@@ -19,6 +19,7 @@
         "google/analytics-data": "^0.23.1",
         "google/apiclient": "^2.18",
         "inertiajs/inertia-laravel": "^2.0",
+        "laravel/fortify": "^1.37",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "livewire/flux": "^2.1.1",
