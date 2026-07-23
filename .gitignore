@@ -22,6 +22,7 @@ node_modules/
 
 # Vite
 /public/build
+/bootstrap/ssr
 
 # Modules (if using nwidart/laravel-modules)
 /Modules/*/node_modules

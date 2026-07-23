@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/js/app.tsx',
                 ...moduleAssets,
             ],
+            ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
         react(),
