@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && vite build --ssr",
     "dev": "vite",
     "lint": "eslint 'resources/js/**/*.{ts,tsx}' 'Modules/*/resources/js/**/*.{ts,tsx}' --cache --cache-location node_modules/.cache/eslint --no-error-on-unmatched-pattern",
     "format": "prettier --write --cache --no-error-on-unmatched-pattern 'resources/{css,js}/**/*.{ts,tsx,js,jsx,json,css}' 'Modules/*/resources/js/**/*.{ts,tsx}'",

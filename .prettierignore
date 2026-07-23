@@ -4,6 +4,7 @@ public/build-*
 public/hot
 storage
 vendor
+bootstrap/ssr
 composer.lock
 package-lock.json
 Modules/*/node_modules
