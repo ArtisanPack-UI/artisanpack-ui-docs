@@ -66,6 +66,10 @@
     --color-info: #2962FF;
 
     /* Typography — families */
+    /* Override Tailwind v4's default --font-sans so the `font-sans` utility
+       (used by the Blade root <body>) and every unclassed text element
+       inherit Poppins instead of ui-sans-serif. */
+    --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-display: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-body: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-ui: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

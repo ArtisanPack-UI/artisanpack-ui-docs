@@ -10,6 +10,15 @@ const moduleAssets = globSync(
 );
 
 export default defineConfig({
+    // In dev, Vite serves resources/css/app.css from its own origin
+    // (https://<host>:5173), so `url('/fonts/…')` inside that CSS resolves
+    // against Vite — not Laravel. Point publicDir at Laravel's public/ so
+    // Vite's built-in static handler serves those assets in dev; disable
+    // copyPublicDir so the build doesn't duplicate them into public/build/.
+    publicDir: 'public',
+    build: {
+        copyPublicDir: false,
+    },
     plugins: [
         laravel({
             input: [
