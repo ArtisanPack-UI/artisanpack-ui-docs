@@ -71,9 +71,30 @@ it('declares Poppins + Space Mono in the typography and fonts tokens', function 
         ->toContain('"Space Mono"');
 
     expect($fonts)
-        ->toContain('fonts.googleapis.com')
-        ->toContain('family=Poppins')
-        ->toContain('family=Space+Mono');
+        ->toContain('@font-face')
+        ->toContain("font-family: 'Poppins'")
+        ->toContain("font-family: 'Space Mono'")
+        ->toContain('font-display: swap')
+        ->toContain("url('/fonts/poppins/")
+        ->toContain("url('/fonts/space-mono/")
+        ->not->toContain('fonts.googleapis.com')
+        ->not->toContain('fonts.gstatic.com');
+});
+
+it('ships the self-hosted WOFF2 files referenced by the fonts token', function () {
+    $fonts = (string) file_get_contents(base_path('resources/css/tokens/fonts.css'));
+
+    preg_match_all("#url\('(/fonts/[^']+\.woff2)'\)#", $fonts, $matches);
+
+    expect($matches[1])->not->toBeEmpty();
+
+    foreach (array_unique($matches[1]) as $path) {
+        expect(file_exists(public_path(ltrim($path, '/'))))
+            ->toBeTrue("Expected self-hosted font file public{$path} to exist");
+    }
+
+    expect(file_exists(public_path('fonts/poppins/OFL.txt')))->toBeTrue();
+    expect(file_exists(public_path('fonts/space-mono/OFL.txt')))->toBeTrue();
 });
 
 it('freezes the design-system reference bundle under docs/design-system', function () {
