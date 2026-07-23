@@ -19,6 +19,7 @@ export default defineConfig({
             ],
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
+            detectTls: true,
         }),
         react(),
         tailwindcss(),
