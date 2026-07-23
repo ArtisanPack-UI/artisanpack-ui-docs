@@ -3,6 +3,8 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { ComponentType } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 
+import { AppShell } from './AppShell';
+
 const appName = import.meta.env.VITE_APP_NAME || 'ArtisanPack UI Docs';
 
 const rootPages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx');
@@ -26,12 +28,18 @@ createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: resolvePage,
     setup({ el, App, props }) {
+        const tree = (
+            <AppShell>
+                <App {...props} />
+            </AppShell>
+        );
+
         if (el.hasChildNodes()) {
-            hydrateRoot(el, <App {...props} />);
+            hydrateRoot(el, tree);
             return;
         }
 
-        createRoot(el).render(<App {...props} />);
+        createRoot(el).render(tree);
     },
     progress: {
         color: '#4B5563',

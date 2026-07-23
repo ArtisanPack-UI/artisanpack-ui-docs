@@ -3,6 +3,8 @@ import createServer from '@inertiajs/react/server';
 import type { ComponentType } from 'react';
 import ReactDOMServer from 'react-dom/server';
 
+import { AppShell } from './AppShell';
+
 const appName = import.meta.env.VITE_APP_NAME || 'ArtisanPack UI Docs';
 
 const rootPages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx', { eager: true });
@@ -36,6 +38,10 @@ createServer((page) =>
         render: ReactDOMServer.renderToString,
         title: (title) => (title ? `${title} - ${appName}` : appName),
         resolve: resolvePage,
-        setup: ({ App, props }) => <App {...props} />,
+        setup: ({ App, props }) => (
+            <AppShell>
+                <App {...props} />
+            </AppShell>
+        ),
     }),
 );

@@ -6,14 +6,8 @@
             <span class="sr-only">ArtisanPack UI</span>
         </a>
 
-        <div
-            class="flex-1 min-w-0 order-3 md:order-2 w-full md:w-auto cursor-pointer"
-            onclick="setTimeout(() => window.dispatchEvent(new CustomEvent('mary-search-open', { bubbles: true })), 10);"
-            onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setTimeout(() => window.dispatchEvent(new CustomEvent('mary-search-open', { bubbles: true })), 10); }"
-            role="button"
-            tabindex="0"
-            aria-label="{{ __('Open search') }}"
-        >
+        {{-- Visual placeholder for the React SearchOverlay landing in #88. Hidden from AT until wired. --}}
+        <div class="flex-1 min-w-0 order-3 md:order-2 w-full md:w-auto" aria-hidden="true">
             <x-artisanpack-input
                 :placeholder="__('Search...')"
                 icon="fas.magnifying-glass"
@@ -26,13 +20,13 @@
             <x-artisanpack-theme-toggle class="btn btn-sm md:btn-md" />
 
             <div class="border-l border-secondary flex items-center pl-2 gap-1 md:gap-2">
-                <a href="https://github.com/ArtisanPack-UI" target="_blank" class="hover:text-primary">
+                <a href="https://github.com/ArtisanPack-UI" target="_blank" rel="noopener noreferrer" class="hover:text-primary">
                     <x-artisanpack-icon name="fab.github" class="w-4 h-4 md:w-5 md:h-5" />
                 </a>
-                <a href="https://bsky.app/profile/artisanpackui.dev" target="_blank" class="hover:text-primary">
+                <a href="https://bsky.app/profile/artisanpackui.dev" target="_blank" rel="noopener noreferrer" class="hover:text-primary">
                     <x-artisanpack-icon name="fab.bluesky" class="w-4 h-4 md:w-5 md:h-5" />
                 </a>
-                <a href="https://mastodon.social/@artisanpackui" target="_blank" class="hover:text-primary">
+                <a href="https://mastodon.social/@artisanpackui" target="_blank" rel="noopener noreferrer" class="hover:text-primary">
                     <x-artisanpack-icon name="fab.mastodon" class="w-4 h-4 md:w-5 md:h-5" />
                 </a>
             </div>
