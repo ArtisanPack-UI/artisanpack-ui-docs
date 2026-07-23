@@ -16,7 +16,7 @@
         "isolatedModules": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "allowJs": true,
+        "allowJs": false,
         "noEmit": true,
         "types": ["node", "vite/client"],
         "paths": {
@@ -25,13 +25,14 @@
     },
     "include": [
         "resources/js/**/*",
-        "vite.config.ts",
-        "vite.config.js"
+        "Modules/*/resources/js/**/*"
     ],
     "exclude": [
         "node_modules",
         "public",
         "vendor",
-        "bootstrap/cache"
+        "bootstrap/cache",
+        "Modules/*/node_modules",
+        "Modules/*/vendor"
     ]
 }

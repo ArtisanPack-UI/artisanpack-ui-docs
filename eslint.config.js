@@ -10,17 +10,21 @@ export default tseslint.config(
     {
         ignores: [
             'bootstrap/cache',
-            'bootstrap/ssr',
             'node_modules',
             'public/build',
+            'public/build-*',
             'public/hot',
             'storage',
             'vendor',
-            'Modules',
+            'Modules/*/node_modules',
+            'Modules/*/vendor',
         ],
     },
     {
-        files: ['resources/js/**/*.{ts,tsx}'],
+        files: [
+            'resources/js/**/*.{ts,tsx}',
+            'Modules/*/resources/js/**/*.{ts,tsx}',
+        ],
         extends: [
             js.configs.recommended,
             ...tseslint.configs.recommended,
