@@ -28,12 +28,18 @@ it('boots the theme on the Inertia root before Vite loads to avoid FOUC', functi
         ->toResponse(request())
         ->getContent();
 
+    // The Blade @vite directive renders differently in dev (public/hot present, dev URLs) vs
+    // prod (build/manifest.json present, hashed asset URLs). Both modes emit type="module" on
+    // the app entry script, so use that as the manifest-agnostic anchor for Vite's output.
     $bootPos = strpos($html, "root.setAttribute('data-theme', theme)");
-    $vitePos = strpos($html, '/resources/js/app.tsx');
+    $viteModulePos = strpos($html, 'type="module"');
+    $headClosePos = strpos($html, '</head>');
 
     expect($bootPos)->not->toBeFalse();
-    expect($vitePos)->not->toBeFalse();
-    expect($bootPos)->toBeLessThan($vitePos);
+    expect($viteModulePos)->not->toBeFalse();
+    expect($headClosePos)->not->toBeFalse();
+    expect($bootPos)->toBeLessThan($viteModulePos);
+    expect($bootPos)->toBeLessThan($headClosePos);
 });
 
 it('wraps the Inertia app in the shared AppShell (theme provider + DOM sync)', function () {
