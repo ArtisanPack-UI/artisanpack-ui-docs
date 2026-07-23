@@ -7,8 +7,8 @@ test('new users can register', function () {
     Livewire::test(RegisterComponent::class)
         ->set('name', 'John Doe')
         ->set('email', 'test@example.com')
-        ->set('password', 'password')
-        ->set('password_confirmation', 'password')
+        ->set('password', 'Str0ng-Passw0rd!')
+        ->set('password_confirmation', 'Str0ng-Passw0rd!')
         ->call('register')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));

@@ -32,8 +32,8 @@ test('password can be reset with valid token', function () {
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
         Livewire::test(ResetPasswordComponent::class, ['token' => $notification->token])
             ->set('email', $user->email)
-            ->set('password', 'password')
-            ->set('password_confirmation', 'password')
+            ->set('password', 'Str0ng-Passw0rd!')
+            ->set('password_confirmation', 'Str0ng-Passw0rd!')
             ->call('resetPassword')
             ->assertHasNoErrors()
             ->assertRedirect(route('login', absolute: false));

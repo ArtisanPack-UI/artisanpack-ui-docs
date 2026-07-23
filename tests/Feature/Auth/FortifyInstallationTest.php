@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
