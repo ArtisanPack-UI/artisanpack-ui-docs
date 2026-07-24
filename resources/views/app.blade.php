@@ -21,6 +21,7 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx'])
         @inertiaHead
+        @speculativeRules
     </head>
     <body class="font-sans antialiased">
         @inertia
