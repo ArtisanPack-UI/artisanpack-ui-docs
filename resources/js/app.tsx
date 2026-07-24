@@ -42,7 +42,10 @@ createInertiaApp({
         createRoot(el).render(tree);
     },
     progress: {
-        color: '#4B5563',
+        // Picks up as the peg glow + spinner tint; the .bar background
+        // itself is overridden to `var(--grad-neon)` in resources/css/app.css
+        // so it matches the DocsLayout header hairline.
+        color: '#00E5FF',
     },
 }).catch((error: unknown) => {
     console.error('Inertia app failed to initialize', error);

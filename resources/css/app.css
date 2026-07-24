@@ -226,3 +226,17 @@
     border-radius: 8px;
     color: var(--color-text);
 }
+
+/* Inertia navigation progress bar — override the flat color set in
+   app.tsx with the same neon gradient the DocsLayout uses for its
+   header hairline. NProgress's fallback color still drives the peg
+   glow and spinner icon, so we keep app.tsx pointing at a token color
+   from the palette. */
+#nprogress .bar {
+    background: var(--grad-neon);
+}
+#nprogress .peg {
+    box-shadow:
+        0 0 10px var(--color-secondary),
+        0 0 5px var(--color-secondary);
+}
