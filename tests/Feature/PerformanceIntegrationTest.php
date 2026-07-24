@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use ArtisanPackUI\Performance\Models\RawMetric;
 use ArtisanPackUI\Performance\Support\MonitorDirectives;
 use ArtisanPackUI\Performance\Support\SpeculativeDirectives;
 use Illuminate\Support\Facades\Blade;
@@ -42,24 +43,34 @@ it('excludes dashboard, API, and single-use privacy tokens from speculation pref
         ->toContain('/logout');
 });
 
-it('exposes the metrics ingest endpoint under /api/performance/metrics', function () {
+it('persists a raw metric row for every accepted beacon', function () {
+    RawMetric::query()->delete();
+
     $response = $this->postJson('/api/performance/metrics', [
         'name' => 'LCP',
         'value' => 1234.5,
         'delta' => 1234.5,
         'id' => 'v3-1234567890-1',
         'rating' => 'good',
-        'navigationType' => 'navigate',
         'page' => '/',
         'route' => 'home',
-        'timestamp' => now()->getTimestampMs(),
     ]);
 
-    // The endpoint exists (not a 404) and accepts the payload — either
-    // returns 2xx/204 on success or a 422 if the payload shape drifts,
-    // but never 404/405 which would indicate the route is not registered.
-    expect($response->status())->not->toBe(404)
-        ->and($response->status())->not->toBe(405);
+    $response->assertOk()->assertJson(['success' => true]);
+
+    // Endpoint returned 200 and `store_raw_metrics` is on, so the beacon
+    // must have landed in the table — a 200 with an empty table would mean
+    // the app is silently discarding metrics (the pre-fix behavior).
+    expect(RawMetric::query()->where('name', 'LCP')->count())->toBe(1);
+});
+
+it('schedules the hourly perf:aggregate-metrics command', function () {
+    $bootstrap = (string) file_get_contents(base_path('bootstrap/app.php'));
+
+    expect($bootstrap)
+        ->toContain('withSchedule')
+        ->toContain('perf:aggregate-metrics')
+        ->toContain('->hourly()');
 });
 
 it('renders the perfMonitor directive when monitoring is enabled', function () {

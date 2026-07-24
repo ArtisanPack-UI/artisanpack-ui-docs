@@ -327,7 +327,7 @@ return [
         'collect_web_vitals' => true,
         'endpoint' => env('PERF_MONITORING_ENDPOINT', '/api/performance/metrics'),
         'sample_rate' => 100,
-        'store_raw_metrics' => false,
+        'store_raw_metrics' => true,
         'aggregation_interval' => 'hourly',
         'retention_days' => 90,
     ],
