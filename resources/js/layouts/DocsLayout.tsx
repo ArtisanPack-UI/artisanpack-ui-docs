@@ -3,6 +3,7 @@ import { ThemeToggle } from '@artisanpack-ui/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { SearchOverlay } from '../components/SearchOverlay';
+import { Seo } from '../components/Seo';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useSearchOverlay } from '../hooks/useSearchOverlay';
 
@@ -69,13 +70,15 @@ export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
     }, [mobileNavOpen]);
 
     return (
-        <div
-            ref={rootRef}
-            className="min-h-screen bg-base text-text"
-            style={{
-                background: 'linear-gradient(180deg, var(--color-base) 0%, var(--ap-ink) 100%)',
-            }}
-        >
+        <>
+            <Seo />
+            <div
+                ref={rootRef}
+                className="min-h-screen bg-base text-text"
+                style={{
+                    background: 'linear-gradient(180deg, var(--color-base) 0%, var(--ap-ink) 100%)',
+                }}
+            >
             <header ref={headerRef} className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]">
                 <div className="flex h-[72px] w-full items-center gap-3 px-4 md:gap-7 md:px-7">
                     {sidebar ? (
@@ -249,7 +252,8 @@ export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
             </footer>
 
             {searchOpen ? <SearchOverlay onClose={closeSearch} /> : null}
-        </div>
+            </div>
+        </>
     );
 }
 

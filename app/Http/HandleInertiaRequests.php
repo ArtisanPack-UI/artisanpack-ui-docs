@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http;
 
+use App\Services\InertiaSeo;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,6 +36,10 @@ class HandleInertiaRequests extends Middleware
                 'info' => fn () => $request->session()->get('info'),
                 'warning' => fn () => $request->session()->get('warning'),
             ],
+            'seo' => fn () => app(InertiaSeo::class)->forData(
+                title: config('seo.site.name', config('app.name')),
+                description: config('seo.site.description') ?: null,
+            ),
         ];
     }
 }

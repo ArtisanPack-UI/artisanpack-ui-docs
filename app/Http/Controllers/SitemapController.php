@@ -1,81 +1,71 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use ArtisanPackUI\SEO\Contracts\SitemapProviderContract;
 use Illuminate\Http\Response;
-use Modules\Packages\Documentation;
-use Modules\Packages\Package;
-use Modules\Pages\Page;
+use XMLWriter;
 
 class SitemapController extends Controller
 {
     public function index(): Response
     {
-        $urls = collect();
+        $writer = new XMLWriter;
+        $writer->openMemory();
+        $writer->startDocument('1.0', 'UTF-8');
+        $writer->startElement('urlset');
+        $writer->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
-        // Add homepage
-        $urls->push([
-            'loc' => url('/'),
-            'lastmod' => now()->toW3cString(),
-            'changefreq' => 'weekly',
-            'priority' => '1.0',
-        ]);
-
-        // Add all pages
-        $pages = Page::all();
-        foreach ($pages as $page) {
-            if ($page->parent) {
-                $parentPage = Page::find($page->parent);
-                if ($parentPage) {
-                    $url = route('page.child', [
-                        'parentSlug' => $parentPage->slug,
-                        'slug' => $page->slug,
-                    ]);
-                } else {
-                    continue;
-                }
-            } else {
-                $url = route('page.show', ['slug' => $page->slug]);
-            }
-
-            $urls->push([
-                'loc' => $url,
-                'lastmod' => $page->updated_at->toW3cString(),
-                'changefreq' => 'weekly',
-                'priority' => '0.8',
-            ]);
-        }
-
-        // Add all documentation pages
-        $packages = Package::all();
-        foreach ($packages as $package) {
-            $docs = Documentation::where('package_id', $package->id)->get();
-            foreach ($docs as $doc) {
-                $urls->push([
-                    'loc' => route('documentation.show', [
-                        'package' => $package->slug,
-                        'slug' => $doc->slug,
-                    ]),
-                    'lastmod' => $doc->updated_at->toW3cString(),
-                    'changefreq' => 'weekly',
-                    'priority' => '0.8',
-                ]);
-            }
-
-            // Add changelog page if exists
-            if ($package->changelog()) {
-                $urls->push([
-                    'loc' => route('changelog.show', ['package' => $package->slug]),
-                    'lastmod' => $package->updated_at->toW3cString(),
-                    'changefreq' => 'monthly',
-                    'priority' => '0.6',
+        foreach ($this->providers() as $provider) {
+            foreach ($provider->getUrls() as $entry) {
+                $this->writeUrl($writer, [
+                    'loc' => $entry['loc'],
+                    'lastmod' => $entry['lastmod'] ?? null,
+                    'changefreq' => $entry['changefreq'] ?? $provider->getChangeFrequency(),
+                    'priority' => $entry['priority'] ?? $provider->getPriority(),
                 ]);
             }
         }
 
-        $content = view('sitemap', ['urls' => $urls])->render();
+        $writer->endElement();
+        $writer->endDocument();
 
-        return response($content, 200)
+        return response($writer->outputMemory(), 200)
             ->header('Content-Type', 'application/xml');
+    }
+
+    /**
+     * @return iterable<SitemapProviderContract>
+     */
+    protected function providers(): iterable
+    {
+        $configured = (array) config('seo.sitemap.providers', []);
+
+        foreach ($configured as $class) {
+            $provider = app($class);
+
+            if ($provider instanceof SitemapProviderContract) {
+                yield $provider;
+            }
+        }
+    }
+
+    /**
+     * @param  array{loc: string, lastmod: string|null, changefreq: string, priority: float|string}  $entry
+     */
+    protected function writeUrl(XMLWriter $writer, array $entry): void
+    {
+        $writer->startElement('url');
+        $writer->writeElement('loc', $entry['loc']);
+
+        if ($entry['lastmod'] !== null && $entry['lastmod'] !== '') {
+            $writer->writeElement('lastmod', $entry['lastmod']);
+        }
+
+        $writer->writeElement('changefreq', $entry['changefreq']);
+        $writer->writeElement('priority', number_format((float) $entry['priority'], 1));
+        $writer->endElement();
     }
 }

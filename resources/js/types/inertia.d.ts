@@ -23,10 +23,22 @@ export interface AuthUser {
     role: UserRole;
 }
 
+export interface SeoData {
+    title: string;
+    description: string | null;
+    canonical: string;
+    robots: string;
+    openGraph: Record<string, string>;
+    twitter: Record<string, string>;
+    hreflang: Array<{ hreflang: string; href: string }>;
+    jsonLd: Array<Record<string, unknown>>;
+}
+
 export interface SharedProps {
     [key: string]: unknown;
     flash: FlashData;
     auth: { user: AuthUser | null };
+    seo: SeoData;
 }
 
 export type PageProps<T extends object = object> = T & SharedProps;
