@@ -3,16 +3,19 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Pages\Http\Controllers\Admin\PageMenuOrderController;
 use Modules\Pages\Http\Controllers\Admin\PagesController as AdminPagesController;
 use Modules\Pages\Http\Controllers\PageViewerController;
-use Modules\Pages\Livewire\Admin\ManagePageOrder;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/pages', [AdminPagesController::class, 'index'])->name('dashboard.pages');
     Route::get('/dashboard/pages/add-page', [AdminPagesController::class, 'create'])->name('dashboard.pages.add');
     Route::post('/dashboard/pages', [AdminPagesController::class, 'store'])->name('dashboard.pages.store');
 
-    Route::get('/dashboard/pages/menu-order', ManagePageOrder::class)->name('dashboard.pages.menu-order');
+    Route::get('/dashboard/pages/menu-order', [PageMenuOrderController::class, 'index'])->name('dashboard.pages.menu-order');
+    Route::post('/dashboard/pages/menu-order/reorder', [PageMenuOrderController::class, 'reorder'])
+        ->middleware('throttle:60,1')
+        ->name('dashboard.pages.menu-order.reorder');
 
     Route::get('/dashboard/pages/{page}', [AdminPagesController::class, 'edit'])->name('dashboard.pages.edit');
     Route::patch('/dashboard/pages/{page}', [AdminPagesController::class, 'update'])->name('dashboard.pages.update');
