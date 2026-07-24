@@ -146,3 +146,83 @@
     --duration-base: 220ms;
     --duration-slow: 360ms;
 }
+
+/* Docs article prose — applies AP-UI display type + spacing to raw HTML
+   authored by page editors (kses-sanitized HTML rendered through
+   dangerouslySetInnerHTML in the Home page and future docs pages). */
+.docs-prose > * + * {
+    margin-top: 1.3rem;
+}
+.docs-prose h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    margin-top: 2.25rem;
+}
+.docs-prose h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--color-text);
+    margin-top: 1.75rem;
+}
+.docs-prose p,
+.docs-prose li {
+    color: var(--color-text-muted);
+}
+.docs-prose strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+.docs-prose ul {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: disc;
+}
+.docs-prose ol {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: decimal;
+}
+.docs-prose a {
+    color: var(--color-secondary);
+}
+.docs-prose a:hover {
+    color: var(--color-text);
+}
+.docs-prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text);
+}
+.docs-prose pre {
+    margin: 0;
+    padding: 1.1rem 1.25rem;
+    border-radius: 12px;
+    background: #0b1120;
+    border: 1px solid var(--color-border-subtle);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+}
+.docs-prose pre code {
+    background: transparent;
+    padding: 0;
+}
+.docs-prose blockquote {
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--color-secondary);
+    background: rgba(0, 229, 255, 0.06);
+    border-radius: 8px;
+    color: var(--color-text);
+}

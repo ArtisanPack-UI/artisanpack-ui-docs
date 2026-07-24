@@ -77,8 +77,14 @@
             // Initialize on page load
             document.addEventListener('DOMContentLoaded', initializeTOC);
 
-            // Re-initialize after Livewire navigation
+            // Re-initialize after Livewire or Inertia navigation. Both events
+            // are wired because public pages migrate to Inertia individually;
+            // the Livewire hook stays useful until every legacy public page
+            // ports (see issues #83–#85).
             document.addEventListener('livewire:navigated', function() {
+                setTimeout(initializeTOC, 200);
+            });
+            document.addEventListener('inertia:navigated', function() {
                 setTimeout(initializeTOC, 200);
             });
         </script>

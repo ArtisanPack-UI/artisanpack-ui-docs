@@ -1,10 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { ThemeToggle } from '@artisanpack-ui/react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-const SEARCH_ICON_PATH = 'M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z';
-const GITHUB_ICON_PATH =
-    'M12 .5a11.5 11.5 0 00-3.63 22.42c.58.1.79-.25.79-.56v-2.01c-3.2.7-3.88-1.36-3.88-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.51-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11.03 11.03 0 015.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.77.12 3.06.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.55A11.5 11.5 0 0012 .5z';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export interface DocsLayoutProps {
     children: ReactNode;
@@ -16,6 +14,12 @@ export interface DocsLayoutProps {
 export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutProps) {
     const rootRef = useRef<HTMLDivElement>(null);
     const headerRef = useRef<HTMLElement>(null);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    // Render the TOC in exactly one place at a time. Rendering it in
+    // both the mobile-inline slot and the desktop rail (hidden via CSS)
+    // would mount two IntersectionObservers on the same #main headings
+    // and let their scroll-spy states race.
+    const isDesktop = useMediaQuery('(min-width: 1280px)');
 
     useEffect(() => {
         const root = rootRef.current;
@@ -34,90 +38,260 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
         return () => observer.disconnect();
     }, []);
 
+    useEffect(() => {
+        if (!mobileNavOpen) {
+            return;
+        }
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, [mobileNavOpen]);
+
+    useEffect(() => {
+        if (!mobileNavOpen) {
+            return;
+        }
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setMobileNavOpen(false);
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [mobileNavOpen]);
+
     return (
-        <div ref={rootRef} className="min-h-screen bg-base text-text">
+        <div
+            ref={rootRef}
+            className="min-h-screen bg-base text-text"
+            style={{
+                background:
+                    'linear-gradient(180deg, var(--color-base) 0%, var(--ap-ink) 100%)',
+            }}
+        >
             <header
                 ref={headerRef}
                 className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]"
             >
-                <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 py-4">
-                    <Link href="/" className="font-display text-lg font-semibold tracking-tight">
-                        ArtisanPack UI
+                <div className="flex h-[72px] w-full items-center gap-3 px-4 md:gap-7 md:px-7">
+                    {sidebar ? (
+                        <button
+                            type="button"
+                            onClick={() => setMobileNavOpen(true)}
+                            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text xl:hidden"
+                            aria-label="Open navigation"
+                            aria-expanded={mobileNavOpen}
+                            aria-controls="docs-mobile-nav"
+                        >
+                            <i className="fa-solid fa-bars text-[16px]" aria-hidden />
+                        </button>
+                    ) : null}
+
+                    <Link
+                        href="/"
+                        className="flex flex-shrink-0 items-center"
+                        aria-label="ArtisanPack UI home"
+                    >
+                        <img
+                            src="/images/artisanpack-ui-wordmark-light-color@3x.png"
+                            alt="ArtisanPack UI"
+                            className="hidden h-9 w-auto dark:block"
+                        />
+                        <img
+                            src="/images/artisanpack-ui-wordmark-dark-color@3x.png"
+                            alt="ArtisanPack UI"
+                            className="block h-9 w-auto dark:hidden"
+                        />
                     </Link>
 
                     <button
                         type="button"
                         onClick={onSearchOpen}
-                        className="hidden max-w-md flex-1 items-center gap-2 rounded-box border border-border-subtle bg-surface px-4 py-2 text-left text-small text-text-muted transition hover:border-border md:flex"
+                        className="hidden h-[42px] flex-1 items-center gap-2.5 rounded-[10px] border border-border-subtle bg-surface-2 px-4 text-left text-small transition hover:border-border md:flex"
                         aria-label="Open search (⌘K)"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            width="16"
-                            height="16"
+                        <i
+                            className="fa-solid fa-magnifying-glass text-[14px] text-text-subtle"
                             aria-hidden
-                        >
-                            <path d={SEARCH_ICON_PATH} />
-                        </svg>
-                        <span className="flex-1">Search the docs…</span>
-                        <kbd className="rounded border border-border-subtle px-1.5 py-0.5 font-mono text-xsmall">⌘K</kbd>
+                        />
+                        <span className="flex-1 text-text-subtle">
+                            Search the docs
+                        </span>
+                        <span className="ml-auto inline-flex gap-1">
+                            <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
+                                ⌘
+                            </kbd>
+                            <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
+                                K
+                            </kbd>
+                        </span>
                     </button>
 
-                    <div className="flex items-center gap-3">
+                    <div className="ml-auto flex items-center gap-1.5">
                         <ThemeToggle />
-                        <a
+                        <span
+                            className="mx-1.5 hidden h-[22px] w-px bg-border-subtle md:block"
+                            aria-hidden
+                        />
+                        <SocialIconLink
                             href="https://github.com/ArtisanPack-UI"
-                            aria-label="GitHub"
-                            className="text-text-muted transition hover:text-secondary"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                width="20"
-                                height="20"
-                                aria-hidden
-                            >
-                                <path d={GITHUB_ICON_PATH} />
-                            </svg>
-                        </a>
+                            icon="fa-brands fa-github"
+                            label="GitHub"
+                        />
+                        <BlueskyIconLink href="https://bsky.app/profile/artisanpackui.dev" />
+                        <SocialIconLink
+                            href="https://mastodon.social/@artisanpackui"
+                            icon="fa-brands fa-mastodon"
+                            label="Mastodon"
+                        />
                     </div>
                 </div>
-                <div className="h-[2px] w-full" style={{ backgroundImage: 'var(--grad-neon)' }} aria-hidden />
+                <div
+                    className="h-[2px] w-full opacity-85"
+                    style={{ backgroundImage: 'var(--grad-neon)' }}
+                    aria-hidden
+                />
             </header>
 
-            <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-8 px-6 py-8 xl:grid-cols-[290px_1fr_264px]">
+            <div className="grid w-full grid-cols-1 xl:grid-cols-[290px_1fr_264px]">
                 <aside
-                    className="sticky hidden overflow-y-auto pr-2 xl:block"
+                    className="sticky hidden self-start overflow-y-auto border-r border-border-subtle px-4 py-6 xl:block"
                     style={{
                         top: 'var(--docs-header-h, 76px)',
                         maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
+                        background:
+                            'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
                     }}
                     aria-label="Documentation navigation"
                 >
                     {sidebar}
                 </aside>
 
-                <main className="min-w-0">{children}</main>
+                <main className="min-w-0 px-6 py-10 md:px-16 md:py-14">
+                    {children}
+
+                    {toc && !isDesktop ? (
+                        <div className="mt-12 border-t border-border-subtle pt-8">
+                            {toc}
+                        </div>
+                    ) : null}
+                </main>
 
                 <aside
-                    className="sticky hidden overflow-y-auto pl-2 xl:block"
+                    className="sticky hidden self-start overflow-y-auto px-6 py-10 xl:block"
                     style={{
                         top: 'var(--docs-header-h, 76px)',
                         maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
                     }}
                     aria-label="Table of contents"
                 >
-                    {toc}
+                    {isDesktop ? toc : null}
                 </aside>
             </div>
+
+            {sidebar ? (
+                <div
+                    className={`fixed inset-0 z-50 xl:hidden ${mobileNavOpen ? '' : 'pointer-events-none'}`}
+                    aria-hidden={!mobileNavOpen}
+                >
+                    <div
+                        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${mobileNavOpen ? 'opacity-100' : 'opacity-0'}`}
+                        onClick={() => setMobileNavOpen(false)}
+                    />
+                    <aside
+                        id="docs-mobile-nav"
+                        className={`absolute inset-y-0 left-0 flex w-[290px] max-w-[85vw] flex-col border-r border-border-subtle transition-transform duration-200 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                        style={{
+                            background:
+                                'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
+                        }}
+                        aria-label="Documentation navigation"
+                        // Removes the drawer's contents from tab
+                        // order + AT semantics when closed, which
+                        // aria-hidden + pointer-events-none don't
+                        // guarantee on their own.
+                        inert={!mobileNavOpen}
+                    >
+                        <div className="flex items-center justify-between border-b border-border-subtle px-4 py-4">
+                            <span className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
+                                Menu
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setMobileNavOpen(false)}
+                                className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text"
+                                aria-label="Close navigation"
+                            >
+                                <i
+                                    className="fa-solid fa-xmark text-[15px]"
+                                    aria-hidden
+                                />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-4 py-6">
+                            {sidebar}
+                        </div>
+                    </aside>
+                </div>
+            ) : null}
+
+            <footer
+                className="border-t-2 py-6 text-center"
+                style={{
+                    borderTopColor: 'var(--color-primary)',
+                    background: 'var(--ap-ink)',
+                }}
+            >
+                <span className="font-display text-sm font-bold text-text">
+                    © ArtisanPack UI {new Date().getFullYear()}
+                </span>
+            </footer>
         </div>
+    );
+}
+
+function SocialIconLink({
+    href,
+    icon,
+    label,
+}: {
+    href: string;
+    icon: string;
+    label: string;
+}) {
+    return (
+        <a
+            href={href}
+            aria-label={label}
+            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] text-text-muted transition hover:text-secondary"
+        >
+            <i className={`${icon} text-[16px]`} aria-hidden />
+        </a>
+    );
+}
+
+// Font Awesome 6.5.1 does not ship the Bluesky glyph, so the butterfly
+// mark is inlined as SVG.
+function BlueskyIconLink({ href }: { href: string }) {
+    return (
+        <a
+            href={href}
+            aria-label="Bluesky"
+            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] text-text-muted transition hover:text-secondary"
+        >
+            <svg
+                viewBox="0 0 600 530"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                width="17"
+                height="15"
+                aria-hidden
+            >
+                <path d="M135.72 44.03C202.216 93.951 273.74 195.17 300 249.49c26.262-54.316 97.782-155.539 164.28-205.46C512.246 8.008 590-19.796 590 68.906c0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.59-175.91-31.511-189.63-71.766-2.514-7.38-3.69-10.832-3.708-7.896-.017-2.936-1.193.516-3.707 7.896-13.714 40.255-67.233 197.36-189.63 71.766-64.444-66.128-34.605-132.26 82.697-152.22-67.108 11.421-142.55-7.45-163.25-81.433C20.15 217.7 9.997 86.618 9.997 68.906c0-88.702 77.754-60.898 125.72-24.876z" />
+            </svg>
+        </a>
     );
 }
 
