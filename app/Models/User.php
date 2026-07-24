@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use ArtisanPackUI\Privacy\Concerns\HasPersonalData;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,15 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasPersonalData, Notifiable, TwoFactorAuthenticatable;
+
+    /**
+     * Columns on this model that hold personal data, exposed to the
+     * privacy package's export / erasure / rectification workflows.
+     *
+     * @var array<int, string>
+     */
+    protected array $personalDataColumns = ['name', 'email'];
 
     /**
      * The attributes that are mass assignable.

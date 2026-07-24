@@ -38,6 +38,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Package::class, PackagePolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
 
+        Gate::define('manage-privacy', fn (User $user): bool => $user->isAdmin());
+
         $this->registerInertiaModulePageNamespaces();
     }
 

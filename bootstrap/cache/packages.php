@@ -65,6 +65,17 @@
       0 => 'ArtisanPack\\LivewireUiComponents\\LivewireUiComponentsServiceProvider',
     ),
   ),
+  'artisanpack-ui/privacy' => 
+  array (
+    'aliases' => 
+    array (
+      'Privacy' => 'ArtisanPackUI\\Privacy\\Facades\\Privacy',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Privacy\\PrivacyServiceProvider',
+    ),
+  ),
   'artisanpack-ui/security' => 
   array (
     'aliases' => 

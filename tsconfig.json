@@ -20,7 +20,10 @@
         "noEmit": true,
         "types": ["node", "vite/client"],
         "paths": {
-            "@/*": ["./resources/js/*"]
+            "@/*": ["./resources/js/*"],
+            "@artisanpack-ui/privacy/react": [
+                "./resources/js/types/artisanpack-privacy-react.d.ts"
+            ]
         }
     },
     "include": [

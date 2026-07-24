@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ThemeToggle } from '@artisanpack-ui/react';
 import type { ReactNode } from 'react';
 
+import { PrivacyBanners } from '../components/PrivacyBanners';
 import { Seo } from '../components/Seo';
 
 export interface PublicLayoutProps {
@@ -42,10 +43,18 @@ export function PublicLayout({ children, activeNav }: PublicLayoutProps) {
 
             <main className="flex-1">{children}</main>
 
+            <PrivacyBanners />
+
             <footer className="border-t border-border-subtle bg-surface-2">
                 <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center justify-between gap-4 px-6 py-8 text-small text-text-muted md:flex-row">
                     <p>© {new Date().getFullYear()} ArtisanPack UI</p>
                     <div className="flex items-center gap-4">
+                        <Link
+                            href="/policy"
+                            className="cursor-pointer transition hover:text-secondary"
+                        >
+                            Privacy
+                        </Link>
                         <a href="https://github.com/ArtisanPack-UI" className="hover:text-secondary">
                             GitHub
                         </a>
