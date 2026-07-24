@@ -42,10 +42,14 @@ createInertiaApp({
         createRoot(el).render(tree);
     },
     progress: {
-        // Picks up as the peg glow + spinner tint; the .bar background
-        // itself is overridden to `var(--grad-neon)` in resources/css/app.css
-        // so it matches the DocsLayout header hairline.
-        color: '#00E5FF',
+        // `includeCSS: false` stops Inertia from appending its default
+        // NProgress stylesheet at boot — that runtime-appended `<style>`
+        // otherwise wins the cascade over app.css (identical specificity,
+        // later document order), which would flatten our gradient bar
+        // back to a single color. The full NProgress ruleset lives in
+        // resources/css/app.css, where it also picks up the neon
+        // gradient that matches the DocsLayout header hairline.
+        includeCSS: false,
     },
 }).catch((error: unknown) => {
     console.error('Inertia app failed to initialize', error);
