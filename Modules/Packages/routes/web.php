@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Packages\Http\Controllers\Admin\DocumentationController as AdminDocumentationController;
 use Modules\Packages\Http\Controllers\Admin\PackagesController as AdminPackagesController;
 use Modules\Packages\Http\Controllers\ChangelogViewerController;
+use Modules\Packages\Http\Controllers\DocumentationReorderController;
 use Modules\Packages\Http\Controllers\DocumentationViewerController;
-use Modules\Packages\Livewire\Admin\ManageDocumentation;
 
 // Redirect old changelog documentation pages to changelogs section
 Route::get('/documentation/{package}/changelog', function ($package) {
@@ -30,7 +31,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/packages', [AdminPackagesController::class, 'index'])->name('dashboard.packages');
     Route::get('/dashboard/packages/add-package', [AdminPackagesController::class, 'create'])->name('dashboard.packages.add');
     Route::post('/dashboard/packages', [AdminPackagesController::class, 'store'])->name('dashboard.packages.store');
-    Route::get('/dashboard/packages/{package}/documentation', ManageDocumentation::class)->name('dashboard.packages.documentation');
+
+    Route::get('/dashboard/packages/{package}/documentation', [AdminDocumentationController::class, 'index'])
+        ->name('dashboard.packages.documentation');
+    Route::post('/dashboard/packages/{package}/documentation/reorder', DocumentationReorderController::class)
+        ->middleware('throttle:60,1')
+        ->name('dashboard.packages.documentation.reorder');
+
     Route::get('/dashboard/packages/{package}', [AdminPackagesController::class, 'edit'])->name('dashboard.packages.edit');
     Route::patch('/dashboard/packages/{package}', [AdminPackagesController::class, 'update'])->name('dashboard.packages.update');
     Route::delete('/dashboard/packages/{package}', [AdminPackagesController::class, 'destroy'])->name('dashboard.packages.destroy');

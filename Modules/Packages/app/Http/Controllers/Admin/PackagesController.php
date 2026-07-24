@@ -76,6 +76,7 @@ class PackagesController extends Controller
             'update_url' => route('dashboard.packages.update', $package),
             'destroy_url' => route('dashboard.packages.destroy', $package),
             'index_url' => route('dashboard.packages'),
+            'documentation_url' => route('dashboard.packages.documentation', $package),
         ]);
     }
 
