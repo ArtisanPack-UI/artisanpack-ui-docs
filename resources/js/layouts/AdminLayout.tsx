@@ -19,6 +19,7 @@ const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Packages', href: '/dashboard/packages' },
     { label: 'Pages', href: '/dashboard/pages' },
+    { label: 'Users', href: '/dashboard/users' },
     { label: 'Settings', href: '/dashboard/settings/profile', matchPrefix: '/dashboard/settings' },
 ];
 
