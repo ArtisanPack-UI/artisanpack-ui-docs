@@ -4,6 +4,9 @@ use App\Http\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,5 +20,28 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return $response;
+            }
+
+            if (app()->hasDebugModeEnabled() && ! app()->environment('production')) {
+                return $response;
+            }
+
+            $status = $response->getStatusCode();
+            $component = match ($status) {
+                404 => 'Errors/NotFound',
+                500, 503 => 'Errors/ServerError',
+                default => null,
+            };
+
+            if ($component === null) {
+                return $response;
+            }
+
+            return Inertia::render($component, ['status' => $status])
+                ->toResponse($request)
+                ->setStatusCode($status);
+        });
     })->create();
