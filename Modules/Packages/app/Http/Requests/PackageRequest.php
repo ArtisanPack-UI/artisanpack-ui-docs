@@ -1,42 +1,61 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Packages\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class PackageRequest extends FormRequest
 {
+    /**
+     * @return array<string, array<int, string>>
+     */
     public function rules(): array
     {
         return [
-            'name' => ['required'],
-            'slug' => ['required'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255'],
             'homepage' => ['nullable', 'integer'],
-            'wiki_url' => ['nullable', 'url', 'required_without:docs_url'],
-            'docs_url' => ['nullable', 'url', 'required_without:wiki_url'],
-            'changelog_url' => ['required'],
+            'wiki_url' => [
+                'nullable',
+                'required_without:docs_url',
+                'url',
+                'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//',
+            ],
+            'docs_url' => [
+                'nullable',
+                'required_without:wiki_url',
+                'url',
+                'regex:/^https:\/\/github\.com\//',
+            ],
+            'changelog_url' => [
+                'required',
+                'url',
+                'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//',
+            ],
+            'icon' => ['nullable', 'string', 'max:255'],
+            'version' => ['nullable', 'string', 'max:255'],
+            'package_registry' => ['nullable', 'in:packagist,npm'],
         ];
     }
 
-    public function after(): array
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
     {
         return [
-            function (Validator $validator): void {
-                if (empty($this->input('wiki_url')) && empty($this->input('docs_url'))) {
-                    $validator->errors()->add(
-                        'docs_url',
-                        'Either a documentation URL or wiki URL must be provided.'
-                    );
-                }
-            },
+            'wiki_url.regex' => 'The wiki URL must be a GitHub or GitLab URL.',
+            'wiki_url.required_without' => 'A wiki URL or docs URL is required.',
+            'docs_url.regex' => 'The docs URL must be a GitHub repository URL.',
+            'docs_url.required_without' => 'A docs URL or wiki URL is required.',
+            'changelog_url.regex' => 'The changelog URL must be a GitHub or GitLab URL.',
         ];
     }
 
     public function authorize(): bool
     {
-        // Only authenticated users can manage packages
-        // Additional role/permission checks can be added here if needed
         return $this->user() !== null;
     }
 }
