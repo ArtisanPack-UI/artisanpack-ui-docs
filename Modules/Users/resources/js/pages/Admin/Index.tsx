@@ -26,8 +26,8 @@ interface IndexProps {
 const HEADERS: TableHeader<UserRow>[] = [
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
-    { key: 'role', label: 'Role', render: (row) => (row.role === 'admin' ? 'Admin' : 'Editor') },
-    { key: 'email_verified_at', label: 'Verified', render: (row) => (row.email_verified_at ? 'Yes' : 'No') },
+    { key: 'role', label: 'Role', render: (value) => (value === 'admin' ? 'Admin' : 'Editor') },
+    { key: 'email_verified_at', label: 'Verified', render: (value) => (value ? 'Yes' : 'No') },
 ];
 
 export default function UsersIndex({ users, create_url, current_user_id, flash }: IndexProps) {
