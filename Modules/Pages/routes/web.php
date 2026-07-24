@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Route;
-use Modules\Pages\Http\Controllers\PagesController;
+use Modules\Pages\Http\Controllers\Admin\PagesController as AdminPagesController;
 use Modules\Pages\Http\Controllers\PageViewerController;
-use Modules\Pages\Livewire\Admin\AddPage;
-use Modules\Pages\Livewire\Admin\EditPage;
 use Modules\Pages\Livewire\Admin\ManagePageOrder;
-use Modules\Pages\Livewire\Admin\Pages;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('pages', PagesController::class)->names('pages');
+    Route::get('/dashboard/pages', [AdminPagesController::class, 'index'])->name('dashboard.pages');
+    Route::get('/dashboard/pages/add-page', [AdminPagesController::class, 'create'])->name('dashboard.pages.add');
+    Route::post('/dashboard/pages', [AdminPagesController::class, 'store'])->name('dashboard.pages.store');
 
-    Route::get('/dashboard/pages/add-page/', AddPage::class)->name('dashboard.pages.add');
-    Route::get('/dashboard/pages/menu-order/', ManagePageOrder::class)->name('dashboard.pages.menu-order');
-    Route::get('/dashboard/pages/{page}', EditPage::class)->name('dashboard.pages.edit');
-    Route::get('/dashboard/pages/', Pages::class)->name('dashboard.pages');
+    Route::get('/dashboard/pages/menu-order', ManagePageOrder::class)->name('dashboard.pages.menu-order');
+
+    Route::get('/dashboard/pages/{page}', [AdminPagesController::class, 'edit'])->name('dashboard.pages.edit');
+    Route::patch('/dashboard/pages/{page}', [AdminPagesController::class, 'update'])->name('dashboard.pages.update');
+    Route::delete('/dashboard/pages/{page}', [AdminPagesController::class, 'destroy'])->name('dashboard.pages.destroy');
 });
 
 /*

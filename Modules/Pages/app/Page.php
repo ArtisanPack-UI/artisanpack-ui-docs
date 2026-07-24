@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Setting;
+use Modules\Pages\Database\Factories\PageFactory;
 
 class Page extends Model
 {
@@ -21,6 +22,11 @@ class Page extends Model
         'menu_order',
         'icon',
     ];
+
+    protected static function newFactory(): PageFactory
+    {
+        return PageFactory::new();
+    }
 
     public function parentPage(): BelongsTo
     {
