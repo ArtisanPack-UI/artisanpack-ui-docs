@@ -31,7 +31,7 @@
 
   /* ---- Box-design language -------------------------------------- */
   --box-radius:       12px;   /* boxes, media, blockquotes, panels */
-  --box-border-width: 3px;    /* box-design border */
+  --box-border-width: 2px;    /* box-design border */
   --btn-radius:       5px;    /* buttons (plan spec) */
   --btn-border-width: 2px;    /* button border = background color */
   --field-radius:     5px;    /* form elements (plan spec) */
