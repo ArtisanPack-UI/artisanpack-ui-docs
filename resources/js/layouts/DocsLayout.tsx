@@ -2,16 +2,22 @@ import { Link } from '@inertiajs/react';
 import { ThemeToggle } from '@artisanpack-ui/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { SearchOverlay } from '../components/SearchOverlay';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useSearchOverlay } from '../hooks/useSearchOverlay';
 
 export interface DocsLayoutProps {
     children: ReactNode;
     sidebar?: ReactNode;
     toc?: ReactNode;
-    onSearchOpen?: () => void;
 }
 
-export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutProps) {
+export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
+    const {
+        open: searchOpen,
+        openOverlay: openSearch,
+        closeOverlay: closeSearch,
+    } = useSearchOverlay();
     const rootRef = useRef<HTMLDivElement>(null);
     const headerRef = useRef<HTMLElement>(null);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -67,14 +73,10 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
             ref={rootRef}
             className="min-h-screen bg-base text-text"
             style={{
-                background:
-                    'linear-gradient(180deg, var(--color-base) 0%, var(--ap-ink) 100%)',
+                background: 'linear-gradient(180deg, var(--color-base) 0%, var(--ap-ink) 100%)',
             }}
         >
-            <header
-                ref={headerRef}
-                className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]"
-            >
+            <header ref={headerRef} className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]">
                 <div className="flex h-[72px] w-full items-center gap-3 px-4 md:gap-7 md:px-7">
                     {sidebar ? (
                         <button
@@ -108,7 +110,7 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
 
                     <button
                         type="button"
-                        onClick={onSearchOpen}
+                        onClick={openSearch}
                         className="hidden h-[42px] flex-1 items-center gap-2.5 rounded-[10px] border border-border-subtle bg-surface-2 px-4 text-left text-small transition hover:border-border md:flex"
                         aria-label="Open search (⌘K)"
                     >
@@ -116,9 +118,7 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                             className="fa-solid fa-magnifying-glass text-[14px] text-text-subtle"
                             aria-hidden
                         />
-                        <span className="flex-1 text-text-subtle">
-                            Search the docs
-                        </span>
+                        <span className="flex-1 text-text-subtle">Search the docs</span>
                         <span className="ml-auto inline-flex gap-1">
                             <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
                                 ⌘
@@ -130,6 +130,14 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                     </button>
 
                     <div className="ml-auto flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={openSearch}
+                            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text md:hidden"
+                            aria-label="Open search"
+                        >
+                            <i className="fa-solid fa-magnifying-glass text-[14px]" aria-hidden />
+                        </button>
                         <ThemeToggle />
                         <span
                             className="mx-1.5 hidden h-[22px] w-px bg-border-subtle md:block"
@@ -161,8 +169,7 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                     style={{
                         top: 'var(--docs-header-h, 76px)',
                         maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
-                        background:
-                            'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
+                        background: 'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
                     }}
                     aria-label="Documentation navigation"
                 >
@@ -173,9 +180,7 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                     {children}
 
                     {toc && !isDesktop ? (
-                        <div className="mt-12 border-t border-border-subtle pt-8">
-                            {toc}
-                        </div>
+                        <div className="mt-12 border-t border-border-subtle pt-8">{toc}</div>
                     ) : null}
                 </main>
 
@@ -204,8 +209,7 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                         id="docs-mobile-nav"
                         className={`absolute inset-y-0 left-0 flex w-[290px] max-w-[85vw] flex-col border-r border-border-subtle transition-transform duration-200 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}
                         style={{
-                            background:
-                                'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
+                            background: 'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
                         }}
                         aria-label="Documentation navigation"
                         // Removes the drawer's contents from tab
@@ -224,15 +228,10 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                                 className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text"
                                 aria-label="Close navigation"
                             >
-                                <i
-                                    className="fa-solid fa-xmark text-[15px]"
-                                    aria-hidden
-                                />
+                                <i className="fa-solid fa-xmark text-[15px]" aria-hidden />
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto px-4 py-6">
-                            {sidebar}
-                        </div>
+                        <div className="flex-1 overflow-y-auto px-4 py-6">{sidebar}</div>
                     </aside>
                 </div>
             ) : null}
@@ -248,19 +247,13 @@ export function DocsLayout({ children, sidebar, toc, onSearchOpen }: DocsLayoutP
                     © ArtisanPack UI {new Date().getFullYear()}
                 </span>
             </footer>
+
+            {searchOpen ? <SearchOverlay onClose={closeSearch} /> : null}
         </div>
     );
 }
 
-function SocialIconLink({
-    href,
-    icon,
-    label,
-}: {
-    href: string;
-    icon: string;
-    label: string;
-}) {
+function SocialIconLink({ href, icon, label }: { href: string; icon: string; label: string }) {
     return (
         <a
             href={href}

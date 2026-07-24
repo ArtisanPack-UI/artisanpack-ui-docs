@@ -6,15 +6,7 @@
             <span class="sr-only">ArtisanPack UI</span>
         </a>
 
-        {{-- Visual placeholder for the React SearchOverlay landing in #88. Hidden from AT until wired. --}}
-        <div class="flex-1 min-w-0 order-3 md:order-2 w-full md:w-auto" aria-hidden="true">
-            <x-artisanpack-input
-                :placeholder="__('Search...')"
-                icon="fas.magnifying-glass"
-                readonly
-                tabindex="-1"
-            />
-        </div>
+        {{-- Search moved to the React SearchOverlay (#88) that lives inside DocsLayout on every Inertia route. --}}
 
         <div class="flex items-center gap-2 md:gap-4 order-2 md:order-3">
             <x-artisanpack-theme-toggle class="btn btn-sm md:btn-md" />
