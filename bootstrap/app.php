@@ -25,14 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-            if (app()->hasDebugModeEnabled() && ! app()->environment('production')) {
-                return $response;
-            }
-
             $status = $response->getStatusCode();
-            $component = match ($status) {
-                404 => 'Errors/NotFound',
-                500, 503 => 'Errors/ServerError',
+            $debug = app()->hasDebugModeEnabled();
+
+            $component = match (true) {
+                $status === 404 => 'Errors/NotFound',
+                ($status === 500 || $status === 503) && ! $debug => 'Errors/ServerError',
                 default => null,
             };
 

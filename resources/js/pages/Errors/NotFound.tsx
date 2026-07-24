@@ -10,7 +10,7 @@ export default function NotFound({ status = 404, message }: NotFoundProps) {
     return (
         <>
             <Head title="Page not found" />
-            <div className="ap-aurora min-h-screen bg-base text-text">
+            <main className="ap-aurora min-h-screen bg-base text-text">
                 <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center">
                     <p className="font-display text-small uppercase tracking-[0.2em] text-text-muted">
                         Error {status}
@@ -31,7 +31,7 @@ export default function NotFound({ status = 404, message }: NotFoundProps) {
                         Need help? <Link href="/" className="underline hover:text-text">Return to ArtisanPack UI</Link>.
                     </p>
                 </div>
-            </div>
+            </main>
         </>
     );
 }
