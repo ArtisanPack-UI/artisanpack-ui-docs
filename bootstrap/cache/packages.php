@@ -76,6 +76,17 @@
       0 => 'ArtisanPackUI\\Security\\SecurityServiceProvider',
     ),
   ),
+  'artisanpack-ui/seo' => 
+  array (
+    'aliases' => 
+    array (
+      'SEO' => 'ArtisanPackUI\\SEO\\Facades\\SEO',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\SEO\\Providers\\SEOServiceProvider',
+    ),
+  ),
   'blade-ui-kit/blade-heroicons' => 
   array (
     'providers' => 

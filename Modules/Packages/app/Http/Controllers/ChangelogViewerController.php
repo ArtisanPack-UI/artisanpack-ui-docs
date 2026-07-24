@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Packages\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\InertiaSeo;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Core\Services\NavigationService;
@@ -17,6 +18,7 @@ class ChangelogViewerController extends Controller
     public function __construct(
         protected NavigationService $navigation,
         protected TableOfContentsService $tableOfContents,
+        protected InertiaSeo $seo,
     ) {}
 
     public function show(string $package): Response
@@ -43,6 +45,7 @@ class ChangelogViewerController extends Controller
                 'pages' => $this->navigation->buildPages(),
                 'packages' => $this->navigation->buildPackages(),
             ],
+            'seo' => $this->seo->forModel($changelog),
         ]);
     }
 }

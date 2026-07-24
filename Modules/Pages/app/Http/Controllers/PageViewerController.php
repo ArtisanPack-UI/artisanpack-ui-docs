@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Pages\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\InertiaSeo;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,6 +19,7 @@ class PageViewerController extends Controller
     public function __construct(
         protected NavigationService $navigation,
         protected TableOfContentsService $tableOfContents,
+        protected InertiaSeo $seo,
     ) {}
 
     public function show(string $slug): Response|RedirectResponse
@@ -61,6 +63,7 @@ class PageViewerController extends Controller
                 'pages' => $this->navigation->buildPages(),
                 'packages' => $this->navigation->buildPackages(),
             ],
+            'seo' => $this->seo->forModel($page),
         ]);
     }
 
