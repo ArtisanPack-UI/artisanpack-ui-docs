@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\FileViewFinder;
+use Modules\Core\Policies\SettingPolicy;
+use Modules\Core\Setting;
 use Modules\Packages\Package;
 use Modules\Packages\Policies\PackagePolicy;
 use Modules\Users\Policies\UserPolicy;
@@ -34,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Package::class, PackagePolicy::class);
+        Gate::policy(Setting::class, SettingPolicy::class);
 
         $this->registerInertiaModulePageNamespaces();
     }
