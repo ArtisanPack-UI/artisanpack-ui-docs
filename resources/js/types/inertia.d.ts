@@ -14,9 +14,19 @@ export interface FlashData {
     warning?: string;
 }
 
+export type UserRole = 'admin' | 'editor';
+
+export interface AuthUser {
+    id: number;
+    name: string;
+    email: string;
+    role: UserRole;
+}
+
 export interface SharedProps {
     [key: string]: unknown;
     flash: FlashData;
+    auth: { user: AuthUser | null };
 }
 
 export type PageProps<T extends object = object> = T & SharedProps;

@@ -191,3 +191,54 @@ it('rejects unauthenticated writes', function (): void {
     $this->patch(route('dashboard.packages.update', $package), [])->assertRedirect(route('login'));
     $this->delete(route('dashboard.packages.destroy', $package))->assertRedirect(route('login'));
 });
+
+it('forbids editors from creating packages', function (): void {
+    $editor = User::factory()->editor()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($editor)
+        ->get(route('dashboard.packages.add'))
+        ->assertForbidden();
+
+    $this->actingAs($editor)
+        ->post(route('dashboard.packages.store'), [])
+        ->assertForbidden();
+});
+
+it('forbids editors from deleting packages', function (): void {
+    $editor = User::factory()->editor()->create(['email_verified_at' => now()]);
+    $package = Package::factory()->create();
+
+    $this->actingAs($editor)
+        ->delete(route('dashboard.packages.destroy', $package))
+        ->assertForbidden();
+
+    expect(Package::find($package->id))->not->toBeNull();
+});
+
+it('allows editors to update packages', function (): void {
+    $editor = User::factory()->editor()->create(['email_verified_at' => now()]);
+    $package = Package::factory()->create();
+
+    $this->actingAs($editor)
+        ->get(route('dashboard.packages.edit', $package))
+        ->assertOk();
+});
+
+it('exposes can_create and can_delete flags on the packages list', function (): void {
+    $admin = User::factory()->admin()->create(['email_verified_at' => now()]);
+    $editor = User::factory()->editor()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard.packages'))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('can_create', true)
+            ->where('can_delete', true)
+        );
+
+    $this->actingAs($editor)
+        ->get(route('dashboard.packages'))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('can_create', false)
+            ->where('can_delete', false)
+        );
+});

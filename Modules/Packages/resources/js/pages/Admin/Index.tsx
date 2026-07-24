@@ -19,6 +19,8 @@ interface PackageRow extends Record<string, unknown> {
 interface IndexProps {
     packages: PackageRow[];
     create_url: string;
+    can_create: boolean;
+    can_delete: boolean;
     flash?: { success?: string | null };
 }
 
@@ -46,7 +48,7 @@ const HEADERS: TableHeader<PackageRow>[] = [
     },
 ];
 
-export default function PackagesIndex({ packages, create_url, flash }: IndexProps) {
+export default function PackagesIndex({ packages, create_url, can_create, can_delete, flash }: IndexProps) {
     const handleDelete = (pkg: PackageRow) => {
         if (!window.confirm(`Delete package "${pkg.name}"?`)) {
             return;
@@ -63,9 +65,11 @@ export default function PackagesIndex({ packages, create_url, flash }: IndexProp
                     <p className="text-small text-text-muted">
                         Manage the packages surfaced across the docs site.
                     </p>
-                    <Link href={create_url} className="btn btn-primary">
-                        Add Package
-                    </Link>
+                    {can_create ? (
+                        <Link href={create_url} className="btn btn-primary">
+                            Add Package
+                        </Link>
+                    ) : null}
                 </header>
 
                 {flash?.success ? (
@@ -82,13 +86,15 @@ export default function PackagesIndex({ packages, create_url, flash }: IndexProp
                                 <Link href={pkg.edit_url} className="btn btn-sm">
                                     Edit
                                 </Link>
-                                <Button
-                                    size="sm"
-                                    color="error"
-                                    onClick={() => handleDelete(pkg)}
-                                >
-                                    Delete
-                                </Button>
+                                {can_delete ? (
+                                    <Button
+                                        size="sm"
+                                        color="error"
+                                        onClick={() => handleDelete(pkg)}
+                                    >
+                                        Delete
+                                    </Button>
+                                ) : null}
                             </div>
                         )}
                     />
