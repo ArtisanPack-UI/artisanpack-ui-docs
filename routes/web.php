@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -8,6 +9,10 @@ use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'dashboard/settings/profile');
