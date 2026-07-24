@@ -32,11 +32,15 @@ class PackagesController extends Controller
         return Inertia::render('Packages::Admin/Index', [
             'packages' => $packages,
             'create_url' => route('dashboard.packages.add'),
+            'can_create' => request()->user()?->can('create', Package::class) ?? false,
+            'can_delete' => request()->user()?->can('delete', new Package) ?? false,
         ]);
     }
 
     public function create(): Response
     {
+        $this->authorize('create', Package::class);
+
         return Inertia::render('Packages::Admin/Create', [
             'store_url' => route('dashboard.packages.store'),
             'cancel_url' => route('dashboard.packages'),
@@ -45,6 +49,8 @@ class PackagesController extends Controller
 
     public function store(PackageRequest $request): RedirectResponse
     {
+        $this->authorize('create', Package::class);
+
         $package = Package::create($this->normalize($request->validated()));
 
         return redirect()
@@ -77,6 +83,7 @@ class PackagesController extends Controller
             'destroy_url' => route('dashboard.packages.destroy', $package),
             'index_url' => route('dashboard.packages'),
             'documentation_url' => route('dashboard.packages.documentation', $package),
+            'can_delete' => request()->user()?->can('delete', $package) ?? false,
         ]);
     }
 
@@ -91,6 +98,8 @@ class PackagesController extends Controller
 
     public function destroy(Package $package): RedirectResponse
     {
+        $this->authorize('delete', $package);
+
         $package->delete();
 
         return redirect()

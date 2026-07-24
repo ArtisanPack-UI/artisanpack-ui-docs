@@ -24,7 +24,7 @@ class PackagePolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->isAdmin();
     }
 
     public function update(User $user, Package $package): bool
@@ -34,7 +34,7 @@ class PackagePolicy
 
     public function delete(User $user, Package $package): bool
     {
-        return true;
+        return $user->isAdmin();
     }
 
     public function restore(User $user, Package $package): bool

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Users\Http\Requests;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 
 class UserRequest extends FormRequest
@@ -31,11 +33,24 @@ class UserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'password' => $passwordRules,
+            'role' => ['required', new Enum(Role::class)],
         ];
     }
 
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $actor = $this->user();
+
+        if ($actor === null) {
+            return false;
+        }
+
+        $target = $this->route('user');
+
+        if ($target instanceof User) {
+            return $actor->can('update', $target);
+        }
+
+        return $actor->can('create', User::class);
     }
 }

@@ -31,6 +31,7 @@ interface EditProps {
     destroy_url: string;
     index_url: string;
     documentation_url: string;
+    can_delete: boolean;
     flash?: { success?: string | null };
 }
 
@@ -73,6 +74,7 @@ export default function PackagesEdit({
     destroy_url,
     index_url,
     documentation_url,
+    can_delete,
     flash,
 }: EditProps) {
     const { data, setData, patch, processing, errors } = useForm<PackageForm>({
@@ -158,14 +160,16 @@ export default function PackagesEdit({
                                 <Link href={index_url} className="btn btn-ghost">
                                     Back
                                 </Link>
-                                <Button
-                                    type="button"
-                                    color="error"
-                                    onClick={handleDelete}
-                                    className="ml-auto"
-                                >
-                                    Delete Package
-                                </Button>
+                                {can_delete ? (
+                                    <Button
+                                        type="button"
+                                        color="error"
+                                        onClick={handleDelete}
+                                        className="ml-auto"
+                                    >
+                                        Delete Package
+                                    </Button>
+                                ) : null}
                             </div>
                         </GradientCard>
                     </div>

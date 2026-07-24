@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\FileViewFinder;
+use Modules\Packages\Package;
+use Modules\Packages\Policies\PackagePolicy;
+use Modules\Users\Policies\UserPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
 
             return $this->app->isProduction() ? $rule->uncompromised() : $rule;
         });
+
+        Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Package::class, PackagePolicy::class);
 
         $this->registerInertiaModulePageNamespaces();
     }

@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Button, Input } from '@artisanpack-ui/react/form';
+import { Button, Input, Select } from '@artisanpack-ui/react/form';
 import { Alert } from '@artisanpack-ui/react/feedback';
 import type { FormEventHandler } from 'react';
 
@@ -9,7 +9,14 @@ interface UserPayload {
     id: number;
     name: string;
     email: string;
+    role: string;
     email_verified_at: string | null;
+}
+
+interface RoleOption {
+    value: string;
+    label: string;
+    [key: string]: string;
 }
 
 interface EditProps {
@@ -18,6 +25,7 @@ interface EditProps {
     destroy_url: string;
     index_url: string;
     is_current_user: boolean;
+    role_options: RoleOption[];
     flash?: { success?: string | null };
 }
 
@@ -26,6 +34,7 @@ interface UserForm {
     email: string;
     password: string;
     password_confirmation: string;
+    role: string;
     [key: string]: string;
 }
 
@@ -44,6 +53,7 @@ export default function UsersEdit({
     destroy_url,
     index_url,
     is_current_user,
+    role_options,
     flash,
 }: EditProps) {
     const { data, setData, patch, processing, errors } = useForm<UserForm>({
@@ -51,6 +61,7 @@ export default function UsersEdit({
         email: user.email,
         password: '',
         password_confirmation: '',
+        role: user.role,
     });
 
     const submit: FormEventHandler = (event) => {
@@ -89,6 +100,19 @@ export default function UsersEdit({
                         value={data.email}
                         onChange={(event) => setData('email', event.target.value)}
                         error={errors.email}
+                    />
+                    <Select
+                        id="role"
+                        label="Role"
+                        required
+                        options={role_options}
+                        optionValue="value"
+                        optionLabel="label"
+                        value={data.role}
+                        onChange={(event) => setData('role', event.target.value)}
+                        error={errors.role}
+                        disabled={is_current_user}
+                        hint={is_current_user ? 'You cannot change your own role.' : undefined}
                     />
                     <Input
                         id="password"

@@ -8,7 +8,12 @@ use Inertia\Testing\AssertableInertia;
 
 function verifiedUsersUser(): User
 {
-    return User::factory()->create(['email_verified_at' => now()]);
+    return User::factory()->admin()->create(['email_verified_at' => now()]);
+}
+
+function verifiedUsersEditor(): User
+{
+    return User::factory()->editor()->create(['email_verified_at' => now()]);
 }
 
 it('lists users for verified users', function (): void {
@@ -56,20 +61,22 @@ it('creates a user with valid data and redirects to edit', function (): void {
             'email' => 'ada@example.com',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
+            'role' => 'editor',
         ]);
 
     $user = User::where('email', 'ada@example.com')->firstOrFail();
 
     $response->assertRedirect(route('dashboard.users.edit', $user));
     expect($user->name)->toBe('Ada Lovelace');
+    expect($user->role->value)->toBe('editor');
     expect(Hash::check('Password123!', $user->password))->toBeTrue();
     expect($user->email_verified_at)->not->toBeNull();
 });
 
-it('requires name, email, and password on create', function (): void {
+it('requires name, email, password, and role on create', function (): void {
     $this->actingAs(verifiedUsersUser())
         ->post(route('dashboard.users.store'), [])
-        ->assertSessionHasErrors(['name', 'email', 'password']);
+        ->assertSessionHasErrors(['name', 'email', 'password', 'role']);
 });
 
 it('rejects duplicate emails on create', function (): void {
@@ -81,6 +88,7 @@ it('rejects duplicate emails on create', function (): void {
             'email' => 'taken@example.com',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
+            'role' => 'editor',
         ])
         ->assertSessionHasErrors(['email']);
 });
@@ -92,6 +100,7 @@ it('rejects unconfirmed passwords on create', function (): void {
             'email' => 'ada@example.com',
             'password' => 'Password123!',
             'password_confirmation' => 'Different123!',
+            'role' => 'editor',
         ])
         ->assertSessionHasErrors(['password']);
 });
@@ -131,6 +140,7 @@ it('updates a user without changing password when blank', function (): void {
         ->patch(route('dashboard.users.update', $user), [
             'name' => 'Renamed',
             'email' => $user->email,
+            'role' => $user->role->value,
         ])
         ->assertRedirect(route('dashboard.users.edit', $user));
 
@@ -148,6 +158,7 @@ it('updates a user password when provided', function (): void {
             'email' => $user->email,
             'password' => 'NewPassword123!',
             'password_confirmation' => 'NewPassword123!',
+            'role' => $user->role->value,
         ])
         ->assertSessionHasNoErrors();
 
@@ -161,6 +172,7 @@ it('allows updating a user without changing their email', function (): void {
         ->patch(route('dashboard.users.update', $user), [
             'name' => 'Keeper',
             'email' => 'keeper@example.com',
+            'role' => $user->role->value,
         ])
         ->assertSessionHasNoErrors();
 });
@@ -173,6 +185,7 @@ it('rejects updating to an email that is taken by another user', function (): vo
         ->patch(route('dashboard.users.update', $user), [
             'name' => $user->name,
             'email' => 'taken@example.com',
+            'role' => $user->role->value,
         ])
         ->assertSessionHasErrors(['email']);
 });
@@ -193,10 +206,36 @@ it('prevents deleting your own account', function (): void {
 
     $this->actingAs($current)
         ->delete(route('dashboard.users.destroy', $current))
-        ->assertRedirect(route('dashboard.users'))
-        ->assertSessionHasErrors(['user']);
+        ->assertForbidden();
 
     expect(User::find($current->id))->not->toBeNull();
+});
+
+it('prevents an admin from changing their own role', function (): void {
+    $current = verifiedUsersUser();
+
+    $this->actingAs($current)
+        ->patch(route('dashboard.users.update', $current), [
+            'name' => $current->name,
+            'email' => $current->email,
+            'role' => 'editor',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($current->fresh()->role->value)->toBe('admin');
+});
+
+it('forbids editors from accessing user management', function (): void {
+    $editor = verifiedUsersEditor();
+
+    $this->actingAs($editor)->get(route('dashboard.users'))->assertForbidden();
+    $this->actingAs($editor)->get(route('dashboard.users.add'))->assertForbidden();
+    $this->actingAs($editor)->post(route('dashboard.users.store'), [])->assertForbidden();
+
+    $target = User::factory()->create();
+    $this->actingAs($editor)->get(route('dashboard.users.edit', $target))->assertForbidden();
+    $this->actingAs($editor)->patch(route('dashboard.users.update', $target), [])->assertForbidden();
+    $this->actingAs($editor)->delete(route('dashboard.users.destroy', $target))->assertForbidden();
 });
 
 it('rejects unauthenticated writes', function (): void {

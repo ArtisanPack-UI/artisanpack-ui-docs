@@ -2,11 +2,15 @@ import { Link, usePage } from '@inertiajs/react';
 import { ThemeToggle } from '@artisanpack-ui/react';
 import type { ReactNode } from 'react';
 
+import type { UserRole } from '../types/inertia';
+
 export interface AdminNavItem {
     label: string;
     href: string;
     /** URL prefix used for active-state matching. Defaults to `href`. */
     matchPrefix?: string;
+    /** If set, only users with one of these roles see this item. */
+    roles?: UserRole[];
 }
 
 export interface AdminLayoutProps {
@@ -19,15 +23,17 @@ const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Packages', href: '/dashboard/packages' },
     { label: 'Pages', href: '/dashboard/pages' },
-    { label: 'Users', href: '/dashboard/users' },
+    { label: 'Users', href: '/dashboard/users', roles: ['admin'] },
     { label: 'Settings', href: '/dashboard/settings/profile', matchPrefix: '/dashboard/settings' },
 ];
 
 export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutProps) {
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const role = props.auth?.user?.role ?? null;
+    const visibleNav = nav.filter((item) => !item.roles || (role && item.roles.includes(role)));
 
     // Longest-prefix wins so /dashboard/packages highlights Packages, not both Packages and Dashboard.
-    const activeHref = nav
+    const activeHref = visibleNav
         .filter((item) => {
             const prefix = item.matchPrefix ?? item.href;
             return url === prefix || url.startsWith(`${prefix}/`);
@@ -46,7 +52,7 @@ export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutP
                     </div>
                     <nav className="flex-1 overflow-y-auto px-3 py-4">
                         <ul className="flex flex-col gap-1">
-                            {nav.map((item) => {
+                            {visibleNav.map((item) => {
                                 const active = item.href === activeHref;
                                 return (
                                     <li key={item.href}>

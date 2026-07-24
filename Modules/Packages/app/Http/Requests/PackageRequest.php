@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Packages\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Packages\Package;
 
 class PackageRequest extends FormRequest
 {
@@ -56,6 +57,18 @@ class PackageRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $actor = $this->user();
+
+        if ($actor === null) {
+            return false;
+        }
+
+        $target = $this->route('package');
+
+        if ($target instanceof Package) {
+            return $actor->can('update', $target);
+        }
+
+        return $actor->can('create', Package::class);
     }
 }

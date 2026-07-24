@@ -1,12 +1,19 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Button, Input } from '@artisanpack-ui/react/form';
+import { Button, Input, Select } from '@artisanpack-ui/react/form';
 import type { FormEventHandler } from 'react';
 
 import { AdminLayout } from '../../../../../../resources/js/layouts/AdminLayout';
 
+interface RoleOption {
+    value: string;
+    label: string;
+    [key: string]: string;
+}
+
 interface CreateProps {
     store_url: string;
     cancel_url: string;
+    role_options: RoleOption[];
 }
 
 interface UserForm {
@@ -14,6 +21,7 @@ interface UserForm {
     email: string;
     password: string;
     password_confirmation: string;
+    role: string;
     [key: string]: string;
 }
 
@@ -26,12 +34,13 @@ function GradientCard({ title, children }: { title: string; children: React.Reac
     );
 }
 
-export default function UsersCreate({ store_url, cancel_url }: CreateProps) {
+export default function UsersCreate({ store_url, cancel_url, role_options }: CreateProps) {
     const { data, setData, post, processing, errors } = useForm<UserForm>({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
+        role: 'editor',
     });
 
     const submit: FormEventHandler = (event) => {
@@ -62,6 +71,17 @@ export default function UsersCreate({ store_url, cancel_url }: CreateProps) {
                         value={data.email}
                         onChange={(event) => setData('email', event.target.value)}
                         error={errors.email}
+                    />
+                    <Select
+                        id="role"
+                        label="Role"
+                        required
+                        options={role_options}
+                        optionValue="value"
+                        optionLabel="label"
+                        value={data.role}
+                        onChange={(event) => setData('role', event.target.value)}
+                        error={errors.role}
                     />
                     <Input
                         id="password"

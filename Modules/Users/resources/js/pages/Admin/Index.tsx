@@ -10,6 +10,7 @@ interface UserRow extends Record<string, unknown> {
     id: number;
     name: string;
     email: string;
+    role: string;
     email_verified_at: string | null;
     edit_url: string;
     destroy_url: string;
@@ -20,16 +21,16 @@ interface IndexProps {
     create_url: string;
     current_user_id: number | null;
     flash?: { success?: string | null };
-    errors?: { user?: string };
 }
 
 const HEADERS: TableHeader<UserRow>[] = [
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
+    { key: 'role', label: 'Role', render: (row) => (row.role === 'admin' ? 'Admin' : 'Editor') },
     { key: 'email_verified_at', label: 'Verified', render: (row) => (row.email_verified_at ? 'Yes' : 'No') },
 ];
 
-export default function UsersIndex({ users, create_url, current_user_id, flash, errors }: IndexProps) {
+export default function UsersIndex({ users, create_url, current_user_id, flash }: IndexProps) {
     const handleDelete = (user: UserRow) => {
         if (!window.confirm(`Delete user "${user.name}"?`)) {
             return;
@@ -52,7 +53,6 @@ export default function UsersIndex({ users, create_url, current_user_id, flash, 
                 </header>
 
                 {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
-                {errors?.user ? <Alert color="error">{errors.user}</Alert> : null}
 
                 <Card>
                     <Table<UserRow>
