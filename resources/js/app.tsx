@@ -42,7 +42,14 @@ createInertiaApp({
         createRoot(el).render(tree);
     },
     progress: {
-        color: '#4B5563',
+        // `includeCSS: false` stops Inertia from appending its default
+        // NProgress stylesheet at boot — that runtime-appended `<style>`
+        // otherwise wins the cascade over app.css (identical specificity,
+        // later document order), which would flatten our gradient bar
+        // back to a single color. The full NProgress ruleset lives in
+        // resources/css/app.css, where it also picks up the neon
+        // gradient that matches the DocsLayout header hairline.
+        includeCSS: false,
     },
 }).catch((error: unknown) => {
     console.error('Inertia app failed to initialize', error);
