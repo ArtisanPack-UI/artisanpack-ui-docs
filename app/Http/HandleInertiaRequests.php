@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Services\InertiaSeo;
+use ArtisanPackUI\Privacy\Services\ReconsentService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +41,37 @@ class HandleInertiaRequests extends Middleware
                 title: config('seo.site.name', config('app.name')),
                 description: config('seo.site.description') ?: null,
             ),
+            'reconsent' => fn () => $this->reconsentPolicy($request),
+        ];
+    }
+
+    /**
+     * Shape used by the React `<PolicyReconsentBanner>` — `null` when the
+     * authenticated user is already up to date, or when the visitor is a
+     * guest and no policy is active.
+     *
+     * @return array{version: string, regulation: string|null, url: string}|null
+     */
+    protected function reconsentPolicy(Request $request): ?array
+    {
+        $reconsent = app(ReconsentService::class);
+
+        $policy = $reconsent->currentPolicy();
+
+        if ($policy === null) {
+            return null;
+        }
+
+        $user = $request->user();
+
+        if ($user !== null && $reconsent->isUpToDate($user)) {
+            return null;
+        }
+
+        return [
+            'version' => $policy->version,
+            'regulation' => $policy->regulation,
+            'url' => route('privacy.policy.show-version', ['version' => $policy->version]),
         ];
     }
 }

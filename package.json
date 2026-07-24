@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@artisanpack-ui/livewire-drag-and-drop": "^2.0.0",
+    "@artisanpack-ui/privacy": "file:vendor/artisanpack-ui/privacy",
     "@artisanpack-ui/react": "^1.0.1",
     "@artisanpack-ui/tokens": "^1.0.1",
     "@inertiajs/react": "^2.3.27",

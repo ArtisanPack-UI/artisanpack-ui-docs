@@ -34,11 +34,18 @@ export interface SeoData {
     jsonLd: Array<Record<string, unknown>>;
 }
 
+export interface ReconsentPolicy {
+    version: string;
+    regulation: string | null;
+    url: string;
+}
+
 export interface SharedProps {
     [key: string]: unknown;
     flash: FlashData;
     auth: { user: AuthUser | null };
     seo: SeoData;
+    reconsent: ReconsentPolicy | null;
 }
 
 export type PageProps<T extends object = object> = T & SharedProps;

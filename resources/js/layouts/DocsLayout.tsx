@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ThemeToggle } from '@artisanpack-ui/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { PrivacyBanners } from '../components/PrivacyBanners';
 import { SearchOverlay } from '../components/SearchOverlay';
 import { Seo } from '../components/Seo';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -240,7 +241,7 @@ export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
             ) : null}
 
             <footer
-                className="border-t-2 py-6 text-center"
+                className="flex flex-col items-center gap-2 border-t-2 py-6 text-center"
                 style={{
                     borderTopColor: 'var(--color-primary)',
                     background: 'var(--ap-ink)',
@@ -249,9 +250,17 @@ export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
                 <span className="font-display text-sm font-bold text-text">
                     © ArtisanPack UI {new Date().getFullYear()}
                 </span>
+                <Link
+                    href="/policy"
+                    className="cursor-pointer text-[13px] text-text-muted transition hover:text-secondary"
+                >
+                    Privacy
+                </Link>
             </footer>
 
             {searchOpen ? <SearchOverlay onClose={closeSearch} /> : null}
+
+            <PrivacyBanners />
             </div>
         </>
     );

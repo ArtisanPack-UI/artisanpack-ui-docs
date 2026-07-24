@@ -25,6 +25,7 @@ const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Packages', href: '/dashboard/packages' },
     { label: 'Pages', href: '/dashboard/pages' },
     { label: 'Users', href: '/dashboard/users', roles: ['admin'] },
+    { label: 'Privacy', href: '/dashboard/privacy', matchPrefix: '/dashboard/privacy', roles: ['admin'] },
     { label: 'Settings', href: '/dashboard/settings', matchPrefix: '/dashboard/settings', roles: ['admin'] },
 ];
 
