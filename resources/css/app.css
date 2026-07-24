@@ -299,3 +299,94 @@
         transform: rotate(360deg);
     }
 }
+
+/* =====================================================================
+ * Rich text editor content styles.
+ *
+ * Scoped to the ProseMirror editable inside .ap-rte so admin RTE input
+ * looks like the rendered page (paragraphs, lists, links, headings,
+ * blockquotes, code) without pulling in @tailwindcss/typography.
+ * ===================================================================== */
+.ap-rte .ProseMirror {
+    outline: none;
+    color: var(--color-text);
+    line-height: 1.6;
+}
+.ap-rte .ProseMirror > * + * {
+    margin-top: 0.75em;
+}
+.ap-rte .ProseMirror p {
+    margin: 0;
+}
+.ap-rte .ProseMirror a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: text;
+}
+.ap-rte .ProseMirror a:hover {
+    text-decoration-thickness: 2px;
+}
+.ap-rte .ProseMirror h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.25em;
+}
+.ap-rte .ProseMirror h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 1em;
+}
+.ap-rte .ProseMirror h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1em;
+}
+.ap-rte .ProseMirror ul,
+.ap-rte .ProseMirror ol {
+    padding-left: 1.5rem;
+}
+.ap-rte .ProseMirror ul {
+    list-style: disc;
+}
+.ap-rte .ProseMirror ol {
+    list-style: decimal;
+}
+.ap-rte .ProseMirror li + li {
+    margin-top: 0.25em;
+}
+.ap-rte .ProseMirror li > p {
+    margin: 0;
+}
+.ap-rte .ProseMirror blockquote {
+    border-left: 3px solid var(--color-border);
+    padding-left: 1rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+.ap-rte .ProseMirror code {
+    background: color-mix(in oklab, var(--color-surface-muted) 80%, transparent);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+}
+.ap-rte .ProseMirror pre {
+    background: var(--color-surface-muted);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+}
+.ap-rte .ProseMirror pre code {
+    background: transparent;
+    padding: 0;
+}
+.ap-rte .ProseMirror hr {
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    margin: 1.5em 0;
+}
