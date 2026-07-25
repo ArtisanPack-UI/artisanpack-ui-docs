@@ -23,6 +23,15 @@
             "@/*": ["./resources/js/*"],
             "@artisanpack-ui/privacy/react": [
                 "./resources/js/types/artisanpack-privacy-react.d.ts"
+            ],
+            "@artisanpack-ui/analytics/tracker": [
+                "./resources/js/types/artisanpack-analytics-tracker.d.ts"
+            ],
+            "@artisanpack-ui/analytics-google/react": [
+                "./resources/js/types/artisanpack-analytics-google-react.d.ts"
+            ],
+            "@artisanpack-ui/google/react": [
+                "./resources/js/types/artisanpack-google-react.d.ts"
             ]
         }
     },

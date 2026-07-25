@@ -21,6 +21,28 @@
       0 => 'ArtisanPackUI\\Ai\\AiServiceProvider',
     ),
   ),
+  'artisanpack-ui/analytics' => 
+  array (
+    'aliases' => 
+    array (
+      'Analytics' => 'ArtisanPackUI\\Analytics\\Facades\\Analytics',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Analytics\\AnalyticsServiceProvider',
+    ),
+  ),
+  'artisanpack-ui/analytics-google' => 
+  array (
+    'aliases' => 
+    array (
+      'AnalyticsGoogle' => 'ArtisanPackUI\\AnalyticsGoogle\\Facades\\AnalyticsGoogle',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\AnalyticsGoogle\\AnalyticsGoogleServiceProvider',
+    ),
+  ),
   'artisanpack-ui/core' => 
   array (
     'aliases' => 
@@ -32,6 +54,17 @@
     'providers' => 
     array (
       0 => 'ArtisanPackUI\\Core\\CoreServiceProvider',
+    ),
+  ),
+  'artisanpack-ui/google' => 
+  array (
+    'aliases' => 
+    array (
+      'Google' => 'ArtisanPackUI\\Google\\Facades\\Google',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Google\\GoogleServiceProvider',
     ),
   ),
   'artisanpack-ui/hooks' => 

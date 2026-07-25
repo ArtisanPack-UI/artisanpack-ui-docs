@@ -22,9 +22,11 @@ export interface AdminLayoutProps {
 
 const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Analytics', href: '/dashboard/analytics', matchPrefix: '/dashboard/analytics', roles: ['admin'] },
     { label: 'Packages', href: '/dashboard/packages' },
     { label: 'Pages', href: '/dashboard/pages' },
     { label: 'Users', href: '/dashboard/users', roles: ['admin'] },
+    { label: 'Integrations', href: '/dashboard/integrations/google', matchPrefix: '/dashboard/integrations', roles: ['admin'] },
     { label: 'Privacy', href: '/dashboard/privacy', matchPrefix: '/dashboard/privacy', roles: ['admin'] },
     { label: 'Settings', href: '/dashboard/settings', matchPrefix: '/dashboard/settings', roles: ['admin'] },
 ];

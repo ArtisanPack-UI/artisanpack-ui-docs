@@ -24,6 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('privacy:purge-expired')->daily();
         $schedule->command('privacy:process-requests')->daily();
         $schedule->command('perf:aggregate-metrics')->hourly();
+        // Analytics package: prune raw events past retention_days and
+        // roll up daily aggregates before deletion. Cron expression
+        // sourced from ANALYTICS_CLEANUP_SCHEDULE so ops can slide the
+        // window without touching this file. Bot-analysis and digest
+        // emails are self-registered by the package.
+        $schedule->command('analytics:cleanup')
+            ->cron((string) config('artisanpack.analytics.retention.cleanup_schedule', '0 3 * * *'))
+            ->withoutOverlapping()
+            ->onOneServer();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
