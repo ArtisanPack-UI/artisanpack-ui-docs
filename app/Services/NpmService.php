@@ -14,7 +14,7 @@ class NpmService
     /**
      * Get package statistics from NPM
      *
-     * @param  string  $packageName  The package name (e.g., '@artisanpack-ui/livewire-drag-and-drop')
+     * @param  string  $packageName  The package name (e.g., '@artisanpack-ui/react')
      * @return array{downloads: array, name: string, description: string|null}|null
      */
     public function getPackageStats(string $packageName): ?array

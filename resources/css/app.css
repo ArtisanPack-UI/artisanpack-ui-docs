@@ -12,10 +12,6 @@
 @source '../../Modules/*/resources/js/**/*.tsx';
 @source '../../node_modules/@artisanpack-ui/react/dist/**/*.mjs';
 
-@plugin "daisyui" {
-    themes: light --default, dark --prefersdark;
-}
-
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* =====================================================================
@@ -148,8 +144,7 @@
 }
 
 /* Secondary buttons run on neon cyan (#00E5FF) — white text fails WCAG AA
-   against that background. Force black text so the label stays readable
-   without touching the daisyUI theme. */
+   against that background. Force black text so the label stays readable. */
 .btn-secondary,
 .btn-secondary:hover,
 .btn-secondary:focus {

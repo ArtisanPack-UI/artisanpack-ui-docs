@@ -105,6 +105,6 @@ function initializeCodeBlocks() {
 
 document.addEventListener('DOMContentLoaded', initializeCodeBlocks);
 
-document.addEventListener('livewire:navigated', () => {
+document.addEventListener('inertia:navigated', () => {
     initializeCodeBlocks();
 });
