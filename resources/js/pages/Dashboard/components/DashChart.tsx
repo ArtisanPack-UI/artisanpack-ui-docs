@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import ReactApexChart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
+import { LazyApexChart } from '@/components/LazyApexChart';
 
 /**
  * Local Chart wrapper mirroring the small subset of the
@@ -8,8 +8,9 @@ import type { ApexOptions } from 'apexcharts';
  * component's pre-built ESM chunk imports `react-apexcharts` in a way
  * that trips ESM/CJS default-interop under Vite ("Element type is
  * invalid… Check the render method of `Chart`."); the local wrapper
- * imports `react-apexcharts` directly the same way the analytics
- * dashboard does, which Vite handles correctly.
+ * routes through `LazyApexChart`, which defers the `react-apexcharts`
+ * import to `useEffect` so the SSR bundle can compile the tree without
+ * pulling in browser-only ApexCharts globals.
  */
 export type DashChartType = 'bar' | 'line' | 'area' | 'donut' | 'pie';
 
@@ -217,7 +218,7 @@ export function DashChart({
 
     return (
         <div className="min-h-[200px]">
-            <ReactApexChart
+            <LazyApexChart
                 type={type}
                 options={options}
                 series={apexSeries as never}

@@ -9,7 +9,7 @@ const moduleAssets = globSync(
     'Modules/*/resources/assets/{js,css,scss}/*.{js,scss,css}',
 );
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
     // In dev, Vite serves resources/css/app.css from its own origin
     // (https://<host>:5173), so `url('/fonts/…')` inside that CSS resolves
     // against Vite — not Laravel. Point publicDir at Laravel's public/ so
@@ -36,6 +36,28 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+            // Stub `apexcharts` and `react-apexcharts` in the SSR bundle
+            // only. Both touch `window` / `document` / `getComputedStyle`
+            // at module load and crash Node the moment ssr.js starts —
+            // and `@artisanpack-ui/react`'s barrel pulls them in
+            // transitively via its Chart chunk, so even importing
+            // `ThemeToggle` from the barrel is enough to trip it. The
+            // stub renders `null`; on the client the real packages
+            // resolve as normal.
+            ...(isSsrBuild && {
+                'react-apexcharts': fileURLToPath(
+                    new URL(
+                        './resources/js/stubs/ApexChartsSsrStub.tsx',
+                        import.meta.url,
+                    ),
+                ),
+                apexcharts: fileURLToPath(
+                    new URL(
+                        './resources/js/stubs/ApexChartsSsrStub.tsx',
+                        import.meta.url,
+                    ),
+                ),
+            }),
             // The vendor ships both `tracker.js` (the core IIFE that
             // installs `window.ArtisanPackAnalytics` and auto-inits on
             // DOMContentLoaded) and `analytics-api.js` (a thin
@@ -71,4 +93,14 @@ export default defineConfig({
             ),
         },
     },
-});
+    // Force Vite to bundle these into the SSR output rather than
+    // externalizing them (Node's require bypasses `resolve.alias`).
+    // `@artisanpack-ui/react` has to be here too — Vite would otherwise
+    // externalize it, letting Node load its barrel and transitively
+    // pull `react-apexcharts` before our alias ever gets a chance.
+    // Bundling forces every import through Vite's resolver so the
+    // SSR stub above wins.
+    ssr: {
+        noExternal: [/^@artisanpack-ui\/react($|\/)/, 'react-apexcharts', 'apexcharts'],
+    },
+}));
