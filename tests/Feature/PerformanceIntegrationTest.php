@@ -73,6 +73,45 @@ it('schedules the hourly perf:aggregate-metrics command', function () {
         ->toContain('->hourly()');
 });
 
+it('throttles anonymous metric ingest at 10 requests per minute', function () {
+    // The metrics endpoint is unauthenticated and every accepted beacon
+    // is persisted for retention_days. 10/min per source IP caps a
+    // distributed spammer while still leaving headroom for the ~5
+    // Core Web Vitals a single real page load fires.
+    expect(config('artisanpack.performance.routes.api_throttle'))->toBe('10,1');
+});
+
+it('gates the client collector on the auth-flow sensitive-path skip list', function () {
+    // The lib/performance.ts init module maintains a regex list of
+    // paths that must never boot the collector because the URL path
+    // itself carries a secret token. Assert the source file lists
+    // every current token route so a future auth-flow addition (e.g.
+    // a new sudo-mode confirmation route) is flagged for review here
+    // before it starts leaking tokens into performance_raw_metrics.url.
+    $source = (string) file_get_contents(resource_path('js/lib/performance.ts'));
+
+    expect($source)
+        ->toContain('/reset-password')
+        ->toContain('/forgot-password')
+        ->toContain('/verify')
+        ->toContain('/email\\/verify')
+        ->toContain('/two-factor-challenge')
+        ->toContain('/user\\/confirm-password');
+});
+
+it('gates the client collector on analytics consent from the privacy package', function () {
+    $source = (string) file_get_contents(resource_path('js/lib/performance.ts'));
+
+    // Web Vitals rides the `analytics` category from
+    // config/artisanpack/privacy.php. The init module must (a) import
+    // the privacy main entry so window.PrivacyConsent is installed and
+    // (b) wait for analytics consent before importing web-vitals.
+    expect($source)
+        ->toContain("import '@artisanpack-ui/privacy'")
+        ->toContain("whenConsented('analytics')")
+        ->toContain('@artisanpack-ui/performance/web-vitals');
+});
+
 it('renders the perfMonitor directive when monitoring is enabled', function () {
     // The directive helper emits a config block plus a module script tag
     // when monitoring is on. We render the directive helper directly rather

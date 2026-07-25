@@ -403,7 +403,13 @@ return [
         // Sanctum + the `performance.ai.use` Gate. Hosts using a different
         // guard (e.g. web-session) can override — the Gate check still runs.
         'ai_middleware' => ['api', 'auth:sanctum'],
-        'api_throttle' => env('PERF_API_THROTTLE', '60,1'),
+        // Metrics ingest is anonymous and stores every accepted beacon
+        // for retention_days. The package default (60/min per IP) was
+        // sized for admin JSON endpoints; tighten it for the public
+        // ingest so a distributed spammer can't fill up
+        // `performance_raw_metrics`. 10/min is still ≥ 2× a real
+        // page load's Web Vitals volume (LCP + CLS + INP + TTFB + FCP).
+        'api_throttle' => env('PERF_API_THROTTLE', '10,1'),
     ],
 
     /*
