@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -22,6 +23,8 @@ class PackageController extends Controller
 {
     use AuthorizesRequests;
 
+    public function __construct(protected AuditLogger $audit) {}
+
     public function index(): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Package::class);
@@ -33,7 +36,11 @@ class PackageController extends Controller
 
     public function store(PackageRequest $request): PackageResource
     {
-        return new PackageResource(Package::create($request->validated()));
+        $package = Package::create($request->validated());
+
+        $this->audit->record(AuditLogger::ACTION_CREATED, $package, null, $package->getAttributes());
+
+        return new PackageResource($package);
     }
 
     public function show(Package $package): PackageResource
@@ -45,7 +52,10 @@ class PackageController extends Controller
 
     public function update(PackageRequest $request, Package $package): PackageResource
     {
+        $original = $package->getOriginal();
         $package->update($request->validated());
+
+        $this->audit->record(AuditLogger::ACTION_UPDATED, $package, $original, $package->getAttributes());
 
         return new PackageResource($package);
     }
@@ -54,7 +64,10 @@ class PackageController extends Controller
     {
         $this->authorize('delete', $package);
 
+        $snapshot = $package->getOriginal();
         $package->delete();
+
+        $this->audit->record(AuditLogger::ACTION_DELETED, $package, $snapshot, null);
 
         return response()->json(status: 204);
     }

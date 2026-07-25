@@ -1,0 +1,40 @@
+meta {
+  name: Update package
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/api/v1/packages/:package
+  body: json
+  auth: bearer
+}
+
+params:path {
+  package: 1
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "ArtisanPack UI React",
+    "slug": "react",
+    "wiki_url": "https://github.com/artisanpack-ui/react/wiki",
+    "changelog_url": "https://github.com/artisanpack-ui/react/blob/main/CHANGELOG.md",
+    "version": "3.1.0"
+  }
+}
+
+docs {
+  Requires the `packages:write` ability. Send the full payload — this
+  is a PATCH but the underlying validator treats every field as
+  present-or-null.
+}

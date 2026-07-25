@@ -1,0 +1,27 @@
+meta {
+  name: Delete changelog
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{base_url}}/api/v1/changelogs/:changelog
+  body: none
+  auth: bearer
+}
+
+params:path {
+  changelog: 1
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `changelogs:write` ability. Returns 204 on success.
+}

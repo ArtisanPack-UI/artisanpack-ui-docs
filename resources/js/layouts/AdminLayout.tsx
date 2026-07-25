@@ -28,6 +28,7 @@ const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Users', href: '/dashboard/users', roles: ['admin'] },
     { label: 'Integrations', href: '/dashboard/integrations/google', matchPrefix: '/dashboard/integrations', roles: ['admin'] },
     { label: 'Privacy', href: '/dashboard/privacy', matchPrefix: '/dashboard/privacy', roles: ['admin'] },
+    { label: 'Audit Log', href: '/dashboard/audit-log', matchPrefix: '/dashboard/audit-log', roles: ['admin'] },
     { label: 'Settings', href: '/dashboard/settings', matchPrefix: '/dashboard/settings', roles: ['admin'] },
 ];
 

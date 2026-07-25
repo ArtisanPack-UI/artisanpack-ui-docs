@@ -1,0 +1,23 @@
+meta {
+  name: List packages
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/v1/packages
+  body: none
+  auth: bearer
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `packages:read` ability.
+}

@@ -1,0 +1,36 @@
+meta {
+  name: Create changelog
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/api/v1/packages/:package/changelogs
+  body: json
+  auth: bearer
+}
+
+params:path {
+  package: 1
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "v3.0.0",
+    "content": "## Added\n\n- Initial release."
+  }
+}
+
+docs {
+  Requires the `changelogs:write` ability. `package_id` is pinned to the
+  URL — do not send it in the body.
+}

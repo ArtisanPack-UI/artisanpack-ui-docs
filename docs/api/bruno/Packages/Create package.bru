@@ -1,0 +1,36 @@
+meta {
+  name: Create package
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/v1/packages
+  body: json
+  auth: bearer
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "ArtisanPack UI React",
+    "slug": "react",
+    "wiki_url": "https://github.com/artisanpack-ui/react/wiki",
+    "changelog_url": "https://github.com/artisanpack-ui/react/blob/main/CHANGELOG.md",
+    "package_registry": "npm",
+    "version": "3.0.0"
+  }
+}
+
+docs {
+  Requires the `packages:write` ability. Returns 201 with the created
+  resource under `data`.
+}

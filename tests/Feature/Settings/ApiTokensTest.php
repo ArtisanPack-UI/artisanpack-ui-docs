@@ -155,3 +155,68 @@ it('does not let a user revoke another user\'s token', function () {
     $response->assertNotFound();
     expect($owner->refresh()->tokens()->count())->toBe(1);
 });
+
+it('flags tokens older than 90 days for rotation', function () {
+    $user = User::factory()->create();
+    confirmPasswordForApiTokens();
+
+    $stale = $user->createToken('stale', [TokenAbility::PackagesRead->value])->accessToken;
+    $stale->forceFill(['created_at' => now()->subDays(120)])->save();
+
+    $user->createToken('fresh', [TokenAbility::PackagesRead->value]);
+
+    $response = $this->actingAs($user)->get(route('dashboard.settings.api-tokens'));
+
+    $response->assertOk();
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Settings/ApiTokens')
+        ->where('rotationAgeDays', 90)
+        ->has('tokens', 2)
+        ->where('tokens', fn ($tokens) => collect($tokens)
+            ->firstWhere('name', 'stale')['needs_rotation'] === true
+            && collect($tokens)->firstWhere('name', 'fresh')['needs_rotation'] === false)
+    );
+});
+
+it('rotates a stale token: revokes the old one, mints a new one with the same abilities', function () {
+    $user = User::factory()->create();
+    confirmPasswordForApiTokens();
+
+    $original = $user->createToken('artisanpackui.dev', [
+        TokenAbility::PackagesRead->value,
+        TokenAbility::DocsWrite->value,
+    ])->accessToken;
+    $original->forceFill(['created_at' => now()->subDays(120)])->save();
+
+    $response = $this->actingAs($user)
+        ->from(route('dashboard.settings.api-tokens'))
+        ->post(route('dashboard.settings.api-tokens.rotate', ['token' => $original->id]));
+
+    $response->assertRedirect(route('dashboard.settings.api-tokens'));
+    $response->assertSessionHas('status', 'api-token-rotated');
+
+    $flashed = session('new_api_token');
+    expect($flashed['name'])->toBe('artisanpackui.dev')
+        ->and($flashed['plain_text'])->toBeString()
+        ->and($flashed['plain_text'])->not->toBe('');
+
+    $tokens = $user->refresh()->tokens()->get();
+    expect($tokens)->toHaveCount(1)
+        ->and($tokens->first()->id)->not->toBe($original->id)
+        ->and($tokens->first()->name)->toBe('artisanpackui.dev')
+        ->and(array_values((array) $tokens->first()->abilities))
+        ->toEqual(['packages:read', 'docs:write']);
+});
+
+it('does not let a user rotate another user\'s token', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    confirmPasswordForApiTokens();
+    $token = $owner->createToken('owned', [TokenAbility::PackagesRead->value])->accessToken;
+
+    $response = $this->actingAs($intruder)
+        ->post(route('dashboard.settings.api-tokens.rotate', ['token' => $token->id]));
+
+    $response->assertNotFound();
+    expect($owner->refresh()->tokens()->count())->toBe(1);
+});

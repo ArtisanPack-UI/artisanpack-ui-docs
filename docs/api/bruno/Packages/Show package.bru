@@ -1,0 +1,27 @@
+meta {
+  name: Show package
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/v1/packages/:package
+  body: none
+  auth: bearer
+}
+
+params:path {
+  package: 1
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `packages:read` ability. `:package` is the numeric id.
+}
