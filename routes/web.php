@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Analytics\RealtimeController as AnalyticsRealtimeController;
+use App\Http\Controllers\Analytics\SourceController as AnalyticsSourceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Integrations\GoogleController as GoogleIntegrationController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -40,6 +41,11 @@ Route::middleware(['auth', 'verified', 'can:view-analytics'])->group(function ()
     // 10-second refresh.
     Route::get('dashboard/analytics/realtime/feed', [AnalyticsRealtimeController::class, 'feed'])
         ->name('dashboard.analytics.realtime.feed');
+
+    // Persists the admin's choice between the local first-party analytics
+    // store and Google Analytics for every /dashboard/analytics/* page.
+    Route::post('dashboard/analytics/source', [AnalyticsSourceController::class, 'update'])
+        ->name('dashboard.analytics.source.update');
 });
 
 Route::middleware(['auth'])->group(function () {

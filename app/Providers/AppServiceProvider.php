@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Analytics\DashboardDataSourceManager;
 use App\Http\Middleware\CoerceAnalyticsBeaconTypes;
 use App\Models\User;
+use ArtisanPackUI\Analytics\Services\AnalyticsQuery;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -22,7 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Swap the vendor AnalyticsQuery service for our source-switching
+        // subclass so the vendor InertiaDashboardController transparently
+        // dispatches to either the local provider or GA4 based on the
+        // active `analytics_dashboard_source` setting.
+        $this->app->bind(AnalyticsQuery::class, DashboardDataSourceManager::class);
     }
 
     /**
