@@ -1,0 +1,27 @@
+meta {
+  name: Show documentation
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/api/v1/documentation/:documentation
+  body: none
+  auth: bearer
+}
+
+params:path {
+  documentation: 1
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `docs:read` ability.
+}

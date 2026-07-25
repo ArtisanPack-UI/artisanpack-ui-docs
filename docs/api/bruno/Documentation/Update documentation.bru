@@ -1,0 +1,39 @@
+meta {
+  name: Update documentation
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/api/v1/documentation/:documentation
+  body: json
+  auth: bearer
+}
+
+params:path {
+  documentation: 1
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Getting started (v2)",
+    "slug": "getting-started",
+    "parent": 0,
+    "menu_order": 0,
+    "content": "# Getting started (v2)"
+  }
+}
+
+docs {
+  Requires the `docs:write` ability. `package_id` cannot be moved via
+  this endpoint — it's pinned to the doc's current owner.
+}

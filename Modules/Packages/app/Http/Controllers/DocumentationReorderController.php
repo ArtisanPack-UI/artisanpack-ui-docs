@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Packages\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ use Modules\Packages\Package;
  */
 class DocumentationReorderController extends Controller
 {
+    public function __construct(protected AuditLogger $audit) {}
+
     public function __invoke(ReorderDocumentationRequest $request, Package $package): RedirectResponse|JsonResponse
     {
         /** @var array<int, array{id:int, menu_order:int}> $items */
@@ -44,6 +47,8 @@ class DocumentationReorderController extends Controller
                     ->update(['menu_order' => $item['menu_order']]);
             }
         });
+
+        $this->audit->recordReorder($package, $items, $request);
 
         if ($this->wantsJson($request)) {
             return response()->json(['message' => 'Documentation order updated.']);

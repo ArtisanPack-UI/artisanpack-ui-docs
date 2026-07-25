@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Packages\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,6 +14,8 @@ use Modules\Packages\Package;
 
 class PackagesController extends Controller
 {
+    public function __construct(protected AuditLogger $audit) {}
+
     public function index(): Response
     {
         $packages = Package::query()
@@ -53,6 +56,8 @@ class PackagesController extends Controller
 
         $package = Package::create($this->normalize($request->validated()));
 
+        $this->audit->record(AuditLogger::ACTION_CREATED, $package, null, $package->getAttributes());
+
         return redirect()
             ->route('dashboard.packages.edit', $package)
             ->with('success', 'Package added successfully!');
@@ -89,7 +94,10 @@ class PackagesController extends Controller
 
     public function update(PackageRequest $request, Package $package): RedirectResponse
     {
+        $original = $package->getOriginal();
         $package->update($this->normalize($request->validated()));
+
+        $this->audit->record(AuditLogger::ACTION_UPDATED, $package, $original, $package->getAttributes());
 
         return redirect()
             ->route('dashboard.packages.edit', $package)
@@ -100,7 +108,10 @@ class PackagesController extends Controller
     {
         $this->authorize('delete', $package);
 
+        $snapshot = $package->getOriginal();
         $package->delete();
+
+        $this->audit->record(AuditLogger::ACTION_DELETED, $package, $snapshot, null);
 
         return redirect()
             ->route('dashboard.packages')

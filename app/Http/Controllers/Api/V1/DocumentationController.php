@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
@@ -25,6 +26,8 @@ use Modules\Packages\Package;
 class DocumentationController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(protected AuditLogger $audit) {}
 
     /**
      * Nested-tree listing of every doc in the package, ordered by
@@ -50,7 +53,11 @@ class DocumentationController extends Controller
         $data = $request->validated();
         $data['package_id'] = $package->id;
 
-        return new DocumentationResource(Documentation::create($data));
+        $documentation = Documentation::create($data);
+
+        $this->audit->record(AuditLogger::ACTION_CREATED, $documentation, null, $documentation->getAttributes());
+
+        return new DocumentationResource($documentation);
     }
 
     public function show(Documentation $documentation): DocumentationResource
@@ -62,7 +69,10 @@ class DocumentationController extends Controller
 
     public function update(DocumentationRequest $request, Documentation $documentation): DocumentationResource
     {
+        $original = $documentation->getOriginal();
         $documentation->update($request->validated());
+
+        $this->audit->record(AuditLogger::ACTION_UPDATED, $documentation, $original, $documentation->getAttributes());
 
         return new DocumentationResource($documentation);
     }
@@ -71,7 +81,10 @@ class DocumentationController extends Controller
     {
         $this->authorize('delete', $documentation);
 
+        $snapshot = $documentation->getOriginal();
         $documentation->delete();
+
+        $this->audit->record(AuditLogger::ACTION_DELETED, $documentation, $snapshot, null);
 
         return response()->json(status: 204);
     }

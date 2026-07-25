@@ -1,0 +1,28 @@
+meta {
+  name: List documentation tree
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/api/v1/packages/:package/documentation
+  body: none
+  auth: bearer
+}
+
+params:path {
+  package: 1
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `docs:read` ability. Returns a nested tree grouped by
+  `parent` and ordered by `menu_order`.
+}

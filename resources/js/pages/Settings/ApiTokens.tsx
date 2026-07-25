@@ -12,6 +12,8 @@ interface TokenSummary {
     abilities: string[];
     last_used_at: string | null;
     created_at: string | null;
+    needs_rotation: boolean;
+    age_days: number | null;
 }
 
 interface AbilityOption {
@@ -29,6 +31,7 @@ interface ApiTokensProps {
     availableAbilities: AbilityOption[];
     newToken: NewToken | null;
     status: string | null;
+    rotationAgeDays: number;
 }
 
 type CreateForm = {
@@ -39,6 +42,7 @@ type CreateForm = {
 const STATUS_MESSAGES: Record<string, string> = {
     'api-token-created': 'Token generated. Copy it now — it will not be shown again.',
     'api-token-revoked': 'Token revoked.',
+    'api-token-rotated': 'Token rotated. Copy the new value now — it will not be shown again.',
 };
 
 function formatDate(value: string | null): string {
@@ -53,7 +57,7 @@ function formatDate(value: string | null): string {
     }
 }
 
-export default function ApiTokens({ tokens, availableAbilities, newToken, status }: ApiTokensProps) {
+export default function ApiTokens({ tokens, availableAbilities, newToken, status, rotationAgeDays }: ApiTokensProps) {
     const { data, setData, post, processing, errors, reset } = useForm<CreateForm>({
         name: '',
         abilities: [],
@@ -85,6 +89,24 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
         });
     };
 
+    const rotate = (token: TokenSummary) => {
+        if (
+            !window.confirm(
+                `Rotate the "${token.name}" token? The old token will be revoked and a new one issued with the same abilities.`,
+            )
+        ) {
+            return;
+        }
+
+        router.post(
+            `/dashboard/settings/api-tokens/${token.id}/rotate`,
+            {},
+            { preserveScroll: true },
+        );
+    };
+
+    const staleCount = tokens.filter((token) => token.needs_rotation).length;
+
     return (
         <AdminLayout title="API tokens">
             <Head title="API tokens" />
@@ -101,6 +123,14 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
 
                 {status && STATUS_MESSAGES[status] ? (
                     <Alert color="success">{STATUS_MESSAGES[status]}</Alert>
+                ) : null}
+
+                {staleCount > 0 ? (
+                    <Alert color="warning" data-testid="stale-token-warning">
+                        {staleCount === 1
+                            ? `1 token is older than ${rotationAgeDays} days. Rotate it to stay within policy.`
+                            : `${staleCount} tokens are older than ${rotationAgeDays} days. Rotate them to stay within policy.`}
+                    </Alert>
                 ) : null}
 
                 {newToken ? (
@@ -196,9 +226,29 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
                                     </thead>
                                     <tbody>
                                         {tokens.map((token) => (
-                                            <tr key={token.id} className="border-t border-border">
+                                            <tr
+                                                key={token.id}
+                                                className="border-t border-border"
+                                                data-testid={`token-row-${token.id}`}
+                                                data-needs-rotation={token.needs_rotation ? 'true' : 'false'}
+                                            >
                                                 <td className="py-3 pr-4 font-medium text-text">
-                                                    {token.name}
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{token.name}</span>
+                                                        {token.needs_rotation ? (
+                                                            <span
+                                                                className="rounded-box bg-warning/15 px-2 py-0.5 text-xsmall font-semibold text-warning"
+                                                                data-testid="rotation-badge"
+                                                                title={
+                                                                    token.age_days !== null
+                                                                        ? `Token is ${token.age_days} days old`
+                                                                        : undefined
+                                                                }
+                                                            >
+                                                                Rotate
+                                                            </span>
+                                                        ) : null}
+                                                    </div>
                                                 </td>
                                                 <td className="py-3 pr-4 text-text-muted">
                                                     {token.abilities.length > 0
@@ -212,13 +262,24 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
                                                     {formatDate(token.created_at)}
                                                 </td>
                                                 <td className="py-3 text-right">
-                                                    <Button
-                                                        type="button"
-                                                        color="danger"
-                                                        onClick={() => revoke(token)}
-                                                    >
-                                                        Revoke
-                                                    </Button>
+                                                    <div className="flex justify-end gap-2">
+                                                        {token.needs_rotation ? (
+                                                            <Button
+                                                                type="button"
+                                                                color="warning"
+                                                                onClick={() => rotate(token)}
+                                                            >
+                                                                Rotate
+                                                            </Button>
+                                                        ) : null}
+                                                        <Button
+                                                            type="button"
+                                                            color="danger"
+                                                            onClick={() => revoke(token)}
+                                                        >
+                                                            Revoke
+                                                        </Button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

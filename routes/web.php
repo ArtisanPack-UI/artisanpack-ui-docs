@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Analytics\RealtimeController as AnalyticsRealtimeController;
 use App\Http\Controllers\Analytics\SourceController as AnalyticsSourceController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Integrations\GoogleController as GoogleIntegrationController;
 use App\Http\Controllers\Settings\ApiTokenController;
@@ -47,6 +48,11 @@ Route::middleware(['auth', 'verified', 'can:view-analytics'])->group(function ()
     // store and Google Analytics for every /dashboard/analytics/* page.
     Route::post('dashboard/analytics/source', [AnalyticsSourceController::class, 'update'])
         ->name('dashboard.analytics.source.update');
+
+    // Audit-log viewer (V2_REFACTOR_PLAN.md §4.3, §9.6 item #46). Reuses
+    // the `can:view-analytics` gate — the same admin-only audience.
+    Route::get('dashboard/audit-log', [AuditLogController::class, 'index'])
+        ->name('dashboard.audit-log');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -67,6 +73,9 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])
                 ->whereNumber('token')
                 ->name('api-tokens.destroy');
+            Route::post('api-tokens/{token}/rotate', [ApiTokenController::class, 'rotate'])
+                ->whereNumber('token')
+                ->name('api-tokens.rotate');
         });
     });
 });
