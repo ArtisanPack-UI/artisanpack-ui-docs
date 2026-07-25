@@ -61,11 +61,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('appearance', [AppearanceController::class, 'show'])->name('appearance');
         Route::patch('appearance', [AppearanceController::class, 'update'])->name('appearance.update');
         Route::get('two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
-        Route::get('api-tokens', [ApiTokenController::class, 'show'])->name('api-tokens');
-        Route::post('api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');
-        Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])
-            ->whereNumber('token')
-            ->name('api-tokens.destroy');
+        Route::middleware('password.confirm')->group(function () {
+            Route::get('api-tokens', [ApiTokenController::class, 'show'])->name('api-tokens');
+            Route::post('api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');
+            Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])
+                ->whereNumber('token')
+                ->name('api-tokens.destroy');
+        });
     });
 });
 

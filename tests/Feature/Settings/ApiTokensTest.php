@@ -6,8 +6,14 @@ use App\Enums\TokenAbility;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia;
 
+function confirmPasswordForApiTokens(): void
+{
+    session()->put('auth.password_confirmed_at', time());
+}
+
 it('renders the api tokens page with the user\'s tokens', function () {
     $user = User::factory()->create();
+    confirmPasswordForApiTokens();
     $user->createToken('artisanpackui.dev', [TokenAbility::PackagesRead->value, TokenAbility::DocsWrite->value]);
 
     $response = $this->actingAs($user)->get(route('dashboard.settings.api-tokens'));
@@ -25,14 +31,33 @@ it('renders the api tokens page with the user\'s tokens', function () {
     );
 });
 
+it('sends no-store cache headers so the freshly issued token cannot be cached', function () {
+    $user = User::factory()->create();
+    confirmPasswordForApiTokens();
+
+    $response = $this->actingAs($user)->get(route('dashboard.settings.api-tokens'));
+
+    $response->assertOk();
+    expect($response->headers->get('Cache-Control'))->toContain('no-store');
+});
+
 it('redirects guests away from the api tokens page', function () {
     $response = $this->get(route('dashboard.settings.api-tokens'));
 
     $response->assertRedirect(route('login'));
 });
 
+it('redirects to the password-confirm screen when the password has not been confirmed', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('dashboard.settings.api-tokens'));
+
+    $response->assertRedirect(route('password.confirm'));
+});
+
 it('issues a new token and flashes it once for display', function () {
     $user = User::factory()->create();
+    confirmPasswordForApiTokens();
 
     $response = $this->actingAs($user)
         ->from(route('dashboard.settings.api-tokens'))
@@ -50,8 +75,32 @@ it('issues a new token and flashes it once for display', function () {
     expect($user->refresh()->tokens()->where('name', 'ci-bot')->exists())->toBeTrue();
 });
 
+it('persists only the sha-256 hash of the token, never the plain text', function () {
+    $user = User::factory()->create();
+    confirmPasswordForApiTokens();
+
+    $this->actingAs($user)
+        ->post(route('dashboard.settings.api-tokens.store'), [
+            'name' => 'ci-bot',
+            'abilities' => ['packages:read'],
+        ])
+        ->assertRedirect();
+
+    /** @var array{name: string, plain_text: string} $flashed */
+    $flashed = session('new_api_token');
+    $plain = $flashed['plain_text'];
+    $stored = $user->refresh()->tokens()->firstWhere('name', 'ci-bot');
+
+    expect($stored)->not->toBeNull()
+        ->and($stored->token)->not->toBe($plain)
+        ->and($stored->token)->not->toContain(explode('|', $plain, 2)[1] ?? $plain)
+        ->and($stored->token)->toHaveLength(64)
+        ->and($stored->token)->toBe(hash('sha256', explode('|', $plain, 2)[1]));
+});
+
 it('rejects tokens with abilities outside the allow-list', function () {
     $user = User::factory()->create();
+    confirmPasswordForApiTokens();
 
     $response = $this->actingAs($user)
         ->from(route('dashboard.settings.api-tokens'))
@@ -67,6 +116,7 @@ it('rejects tokens with abilities outside the allow-list', function () {
 
 it('rejects tokens with no abilities', function () {
     $user = User::factory()->create();
+    confirmPasswordForApiTokens();
 
     $response = $this->actingAs($user)
         ->from(route('dashboard.settings.api-tokens'))
@@ -81,6 +131,7 @@ it('rejects tokens with no abilities', function () {
 
 it('revokes a token that belongs to the current user', function () {
     $user = User::factory()->create();
+    confirmPasswordForApiTokens();
     $token = $user->createToken('to-revoke', [TokenAbility::PackagesRead->value])->accessToken;
 
     $response = $this->actingAs($user)
@@ -95,6 +146,7 @@ it('revokes a token that belongs to the current user', function () {
 it('does not let a user revoke another user\'s token', function () {
     $owner = User::factory()->create();
     $intruder = User::factory()->create();
+    confirmPasswordForApiTokens();
     $token = $owner->createToken('owned', [TokenAbility::PackagesRead->value])->accessToken;
 
     $response = $this->actingAs($intruder)

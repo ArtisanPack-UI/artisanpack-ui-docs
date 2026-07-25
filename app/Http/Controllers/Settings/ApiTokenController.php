@@ -10,8 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Inertia\Response;
 use Laravel\Sanctum\PersonalAccessToken;
+use Symfony\Component\HttpFoundation\Response;
 
 class ApiTokenController extends Controller
 {
@@ -37,12 +37,19 @@ class ApiTokenController extends Controller
             ])
             ->all();
 
-        return Inertia::render('Settings/ApiTokens', [
+        $response = Inertia::render('Settings/ApiTokens', [
             'tokens' => $tokens,
             'availableAbilities' => TokenAbility::options(),
             'newToken' => $request->session()->get('new_api_token'),
             'status' => $request->session()->get('status'),
-        ]);
+        ])->toResponse($request);
+
+        // Prevent bfcache / disk cache / intermediate proxies from retaining
+        // the freshly issued plain-text token that is flashed into this view.
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
     }
 
     /**
