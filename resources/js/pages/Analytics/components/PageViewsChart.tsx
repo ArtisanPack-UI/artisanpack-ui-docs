@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import Chart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
+import { LazyApexChart } from '@/components/LazyApexChart';
 
 export interface ChartPoint {
     date: string;
@@ -111,7 +111,7 @@ export function PageViewsChart( { data, height = 300 }: PageViewsChartProps ) {
 
     return (
         <div className="min-h-[300px]">
-            <Chart type="area" options={options} series={series} height={height} />
+            <LazyApexChart type="area" options={options} series={series} height={height} />
         </div>
     );
 }
