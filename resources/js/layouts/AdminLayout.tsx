@@ -36,6 +36,7 @@ const ACCOUNT_LINKS: { label: string; href: string }[] = [
     { label: 'Password', href: '/dashboard/settings/password' },
     { label: 'Appearance', href: '/dashboard/settings/appearance' },
     { label: 'Two-Factor Auth', href: '/dashboard/settings/two-factor' },
+    { label: 'API Tokens', href: '/dashboard/settings/api-tokens' },
 ];
 
 function AccountMenu({ name }: { name: string }) {

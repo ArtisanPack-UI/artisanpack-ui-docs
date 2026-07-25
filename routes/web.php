@@ -4,6 +4,7 @@ use App\Http\Controllers\Analytics\RealtimeController as AnalyticsRealtimeContro
 use App\Http\Controllers\Analytics\SourceController as AnalyticsSourceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Integrations\GoogleController as GoogleIntegrationController;
+use App\Http\Controllers\Settings\ApiTokenController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -60,6 +61,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('appearance', [AppearanceController::class, 'show'])->name('appearance');
         Route::patch('appearance', [AppearanceController::class, 'update'])->name('appearance.update');
         Route::get('two-factor', [TwoFactorController::class, 'show'])->name('two-factor');
+        Route::middleware('password.confirm')->group(function () {
+            Route::get('api-tokens', [ApiTokenController::class, 'show'])->name('api-tokens');
+            Route::post('api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');
+            Route::delete('api-tokens/{token}', [ApiTokenController::class, 'destroy'])
+                ->whereNumber('token')
+                ->name('api-tokens.destroy');
+        });
     });
 });
 
