@@ -6,8 +6,11 @@ use App\Analytics\DashboardDataSourceManager;
 use App\Http\Middleware\CoerceAnalyticsBeaconTypes;
 use App\Models\User;
 use ArtisanPackUI\Analytics\Services\AnalyticsQuery;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\FileViewFinder;
@@ -65,6 +68,33 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerInertiaModulePageNamespaces();
         $this->registerAnalyticsBeaconCoercion();
+        $this->registerApiRateLimiter();
+    }
+
+    /**
+     * Define the `api` rate limiter that guards the remote-admin API
+     * surface (V2_REFACTOR_PLAN.md §8.2, §9.6 #43). Keyed to the
+     * authenticated Sanctum token when present so multiple consumers
+     * from the same NAT don't share a bucket, otherwise to the IP.
+     * Limit is sourced from config so ops can dial it per-environment.
+     */
+    protected function registerApiRateLimiter(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            $perMinute = (int) config('artisanpack.api.rate_limit_per_minute', 60);
+
+            // Resolve the caller against the `sanctum` guard explicitly
+            // — the default guard is `web` (session), so
+            // `$request->user()` is null for real Bearer-token traffic
+            // and every authenticated caller would silently collapse
+            // into the IP bucket.
+            $sanctumUser = $request->user('sanctum');
+            $key = $sanctumUser?->currentAccessToken()?->id
+                ?? $sanctumUser?->getAuthIdentifier()
+                ?? $request->ip();
+
+            return Limit::perMinute($perMinute)->by((string) $key);
+        });
     }
 
     /**
