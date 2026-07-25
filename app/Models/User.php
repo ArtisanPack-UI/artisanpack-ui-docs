@@ -11,11 +11,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasPersonalData, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasPersonalData, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * Columns on this model that hold personal data, exposed to the
