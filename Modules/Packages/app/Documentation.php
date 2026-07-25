@@ -7,11 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Modules\Packages\Database\Factories\DocumentationFactory;
 
 class Documentation extends Model
 {
     use HasFactory;
     use HasSeo;
+
+    protected static function newFactory(): DocumentationFactory
+    {
+        return DocumentationFactory::new();
+    }
 
     // See Page::bootHasSeo for why the SEO package's trait boot is skipped.
     public static function bootHasSeo(): void {}

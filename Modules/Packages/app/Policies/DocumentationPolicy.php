@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Packages\Policies;
 
 use App\Models\User;
@@ -8,34 +10,40 @@ use Modules\Packages\Documentation;
 
 class DocumentationPolicy
 {
-	use HandlesAuthorization;
+    use HandlesAuthorization;
 
-	public function viewAny( User $user ): bool
-	{
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
 
-	}
+    public function view(User $user, Documentation $documentation): bool
+    {
+        return true;
+    }
 
-	public function view( User $user, Documentation $documentation ): bool
-	{
-	}
+    public function create(User $user): bool
+    {
+        return $user->isAdmin();
+    }
 
-	public function create( User $user ): bool
-	{
-	}
+    public function update(User $user, Documentation $documentation): bool
+    {
+        return true;
+    }
 
-	public function update( User $user, Documentation $documentation ): bool
-	{
-	}
+    public function delete(User $user, Documentation $documentation): bool
+    {
+        return $user->isAdmin();
+    }
 
-	public function delete( User $user, Documentation $documentation ): bool
-	{
-	}
+    public function restore(User $user, Documentation $documentation): bool
+    {
+        return true;
+    }
 
-	public function restore( User $user, Documentation $documentation ): bool
-	{
-	}
-
-	public function forceDelete( User $user, Documentation $documentation ): bool
-	{
-	}
+    public function forceDelete(User $user, Documentation $documentation): bool
+    {
+        return $user->isAdmin();
+    }
 }

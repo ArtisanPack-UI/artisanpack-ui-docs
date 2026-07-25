@@ -13,7 +13,11 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\View\FileViewFinder;
 use Modules\Core\Policies\SettingPolicy;
 use Modules\Core\Setting;
+use Modules\Packages\Changelog;
+use Modules\Packages\Documentation;
 use Modules\Packages\Package;
+use Modules\Packages\Policies\ChangelogPolicy;
+use Modules\Packages\Policies\DocumentationPolicy;
 use Modules\Packages\Policies\PackagePolicy;
 use Modules\Users\Policies\UserPolicy;
 
@@ -44,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Package::class, PackagePolicy::class);
+        Gate::policy(Documentation::class, DocumentationPolicy::class);
+        Gate::policy(Changelog::class, ChangelogPolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
 
         Gate::define('manage-privacy', fn (User $user): bool => $user->isAdmin());
