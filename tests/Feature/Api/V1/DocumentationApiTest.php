@@ -151,3 +151,81 @@ test('reorder rejects docs not owned by the package', function () {
         'items' => [['id' => $foreign->id, 'menu_order' => 1]],
     ])->assertStatus(422);
 });
+
+test('store is blocked by the policy when the actor is not an admin', function () {
+    $editor = User::factory()->editor()->create();
+    Sanctum::actingAs($editor, ['docs:write']);
+    $package = Package::factory()->create();
+
+    $this->postJson(route('api.v1.packages.documentation.store', $package), [
+        'title' => 'Blocked',
+        'slug' => 'blocked',
+        'content' => '# Blocked',
+    ])->assertForbidden();
+
+    $this->assertDatabaseMissing('documentation', ['slug' => 'blocked']);
+});
+
+test('destroy is blocked by the policy when the actor is not an admin', function () {
+    $editor = User::factory()->editor()->create();
+    Sanctum::actingAs($editor, ['docs:write']);
+    $doc = Documentation::factory()->create();
+
+    $this->deleteJson(route('api.v1.documentation.destroy', $doc))->assertForbidden();
+
+    $this->assertDatabaseHas('documentation', ['id' => $doc->id]);
+});
+
+test('store rejects invalid payloads with 422', function () {
+    actAsDocsToken(['docs:write']);
+    $package = Package::factory()->create();
+
+    $this->postJson(route('api.v1.packages.documentation.store', $package), [])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['title', 'slug', 'content']);
+});
+
+test('reorder round-trip: new order is visible via the tree endpoint', function () {
+    actAsDocsToken(['docs:read', 'docs:write']);
+    $package = Package::factory()->create();
+
+    $root = Documentation::factory()->for($package)->create([
+        'title' => 'Root', 'parent' => 0, 'menu_order' => 0,
+    ]);
+    $childA = Documentation::factory()->for($package)->create([
+        'title' => 'Child A', 'parent' => $root->id, 'menu_order' => 0,
+    ]);
+    $childB = Documentation::factory()->for($package)->create([
+        'title' => 'Child B', 'parent' => $root->id, 'menu_order' => 1,
+    ]);
+
+    // Baseline: Child A comes first.
+    $before = $this->getJson(route('api.v1.packages.documentation.index', $package))->assertOk();
+    expect($before->json('data.0.children.0.title'))->toBe('Child A')
+        ->and($before->json('data.0.children.1.title'))->toBe('Child B');
+
+    // Reorder both root and child rows in one payload.
+    $this->postJson(route('api.v1.packages.documentation.reorder', $package), [
+        'items' => [
+            ['id' => $root->id, 'menu_order' => 10],
+            ['id' => $childA->id, 'menu_order' => 5],
+            ['id' => $childB->id, 'menu_order' => 1],
+        ],
+    ])->assertOk();
+
+    // Round-trip: the tree endpoint now reflects the new child order.
+    $after = $this->getJson(route('api.v1.packages.documentation.index', $package))->assertOk();
+    expect($after->json('data.0.children.0.title'))->toBe('Child B')
+        ->and($after->json('data.0.children.1.title'))->toBe('Child A')
+        ->and($after->json('data.0.menu_order'))->toBe(10);
+});
+
+test('reorder requires docs:write', function () {
+    actAsDocsToken(['docs:read']);
+    $package = Package::factory()->create();
+    $doc = Documentation::factory()->for($package)->create();
+
+    $this->postJson(route('api.v1.packages.documentation.reorder', $package), [
+        'items' => [['id' => $doc->id, 'menu_order' => 1]],
+    ])->assertForbidden();
+});

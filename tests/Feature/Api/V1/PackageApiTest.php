@@ -91,3 +91,35 @@ test('unauthenticated requests are rejected', function () {
 
     $this->getJson(route('api.v1.packages.index'))->assertUnauthorized();
 });
+
+test('store is blocked by the policy when the actor is not an admin', function () {
+    $editor = User::factory()->editor()->create();
+    Sanctum::actingAs($editor, ['packages:write']);
+
+    $this->postJson(route('api.v1.packages.store'), [
+        'name' => 'Blocked Package',
+        'slug' => 'blocked-package',
+        'wiki_url' => 'https://github.com/artisanpack-ui/blocked/wiki',
+        'changelog_url' => 'https://github.com/artisanpack-ui/blocked/blob/main/CHANGELOG.md',
+    ])->assertForbidden();
+
+    $this->assertDatabaseMissing('packages', ['slug' => 'blocked-package']);
+});
+
+test('destroy is blocked by the policy when the actor is not an admin', function () {
+    $editor = User::factory()->editor()->create();
+    Sanctum::actingAs($editor, ['packages:write']);
+    $package = Package::factory()->create();
+
+    $this->deleteJson(route('api.v1.packages.destroy', $package))->assertForbidden();
+
+    $this->assertDatabaseHas('packages', ['id' => $package->id]);
+});
+
+test('store rejects invalid payloads with 422', function () {
+    actAsToken(['packages:write']);
+
+    $this->postJson(route('api.v1.packages.store'), [])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['name', 'slug', 'changelog_url']);
+});
