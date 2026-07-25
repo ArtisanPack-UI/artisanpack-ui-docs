@@ -65,6 +65,17 @@
       0 => 'ArtisanPack\\LivewireUiComponents\\LivewireUiComponentsServiceProvider',
     ),
   ),
+  'artisanpack-ui/performance' => 
+  array (
+    'aliases' => 
+    array (
+      'Performance' => 'ArtisanPackUI\\Performance\\Facades\\Performance',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Performance\\PerformanceServiceProvider',
+    ),
+  ),
   'artisanpack-ui/privacy' => 
   array (
     'aliases' => 

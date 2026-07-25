@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b0063f4c934b6df842b7afd864f87d7a",
+    "content-hash": "bd85ca38148c2ea19a558cfbb87ba7c8",
     "packages": [
         {
             "name": "artisanpack-ui/accessibility",
@@ -470,6 +470,76 @@
                 "source": "https://github.com/ArtisanPack-UI/livewire-ui-components/tree/v2.1.0"
             },
             "time": "2026-07-21T22:11:54+00:00"
+        },
+        {
+            "name": "artisanpack-ui/performance",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ArtisanPack-UI/performance.git",
+                "reference": "fcc021182aef84be9ce73a495666d9b450323500"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ArtisanPack-UI/performance/zipball/fcc021182aef84be9ce73a495666d9b450323500",
+                "reference": "fcc021182aef84be9ce73a495666d9b450323500",
+                "shasum": ""
+            },
+            "require": {
+                "artisanpack-ui/ai": "^1.0",
+                "artisanpack-ui/core": "^1.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "artisanpack-ui/code-style": "^1.1",
+                "artisanpack-ui/code-style-pint": "^1.1",
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+                "friendsofphp/php-cs-fixer": "^3.75",
+                "laravel/pint": "^1.26",
+                "livewire/livewire": "^3.6",
+                "orchestra/testbench": "^10.2|^11.0",
+                "pestphp/pest": "^3.8",
+                "pestphp/pest-plugin-laravel": "^3.2"
+            },
+            "suggest": {
+                "livewire/livewire": "Required for the bundled performance dashboard, metrics chart, and cache manager Livewire components (^3.6)."
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Performance": "ArtisanPackUI\\Performance\\Facades\\Performance"
+                    },
+                    "providers": [
+                        "ArtisanPackUI\\Performance\\PerformanceServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "ArtisanPackUI\\Performance\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jacob Martella",
+                    "email": "me@jacobmartella.com"
+                }
+            ],
+            "description": "Comprehensive performance optimization toolkit for Laravel applications: image optimization, JS/CSS strategies, resource hints, speculative loading, page and fragment caching, query analysis, and real-user performance monitoring.",
+            "support": {
+                "issues": "https://github.com/ArtisanPack-UI/performance/issues",
+                "source": "https://github.com/ArtisanPack-UI/performance/tree/v1.1.0"
+            },
+            "time": "2026-07-07T22:52:48+00:00"
         },
         {
             "name": "artisanpack-ui/privacy",

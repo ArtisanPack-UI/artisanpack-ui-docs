@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('privacy:purge-expired')->daily();
         $schedule->command('privacy:process-requests')->daily();
+        $schedule->command('perf:aggregate-metrics')->hourly();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
