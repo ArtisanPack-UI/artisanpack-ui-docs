@@ -11,10 +11,9 @@ use Illuminate\Database\Migrations\Migration;
  * The vendor `DomainResolver` reads the request host and looks up an
  * `analytics_sites` row with that domain; a miss returns null and the
  * beacon is stored with `site_id: null` and never rolls up under a
- * per-site view. Running only via `AnalyticsSiteSeeder` covered the
- * `db:seed` path, but `php artisan migrate` alone (typical CI/prod
- * deploy) skipped it, so every fresh environment silently accumulated
- * unattributed rows until someone noticed.
+ * per-site view. `php artisan migrate` is the only deploy step CI/prod
+ * runs, so seeding via `db:seed` would silently miss those paths —
+ * this migration guarantees the row exists on every environment.
  *
  * Uses the vendor `Site` model rather than raw INSERT so the model's
  * `creating` boot hook can populate `uuid` (and any future columns

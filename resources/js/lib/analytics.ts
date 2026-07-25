@@ -102,9 +102,11 @@ export function shouldTrackAnalytics(): boolean {
     );
     // Default to true when the tag is absent so removing it in a
     // partial migration errs on the side of collecting data (visitor
-    // pages, guest sessions) — the server-side belt in
-    // `RejectAuthenticatedAnalyticsBeacons` still drops beacons that
-    // arrive from a signed-in user.
+    // pages, guest sessions). There is no server-side belt: the
+    // vendor `/api/analytics/*` routes ride the `api` middleware
+    // group which has no `StartSession`, so no server-side auth
+    // check can distinguish authed vs guest beacons — this meta
+    // gate is the whole story.
     if ( ! meta ) {
         return true;
     }
