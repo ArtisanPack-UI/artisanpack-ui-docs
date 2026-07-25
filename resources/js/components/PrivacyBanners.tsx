@@ -1,9 +1,45 @@
 import { usePage } from '@inertiajs/react';
 import { useConsent } from '@artisanpack-ui/privacy/react';
-import { useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 
 import { csrfToken } from '@/lib/csrf';
 import type { SharedProps } from '@/types/inertia';
+
+// The reconsent banner is rendered on every page and its dismissed
+// flag lives in component state, so a plain "Later" click was thrown
+// away on the next Inertia navigation and the banner reappeared. Key
+// the dismissal in localStorage on the policy version so it stays
+// dismissed until a new policy is published (at which point the key
+// changes and the banner returns to prompt again).
+const RECONSENT_DISMISS_KEY = 'artisanpack.reconsent.dismissed_version';
+
+function readDismissedVersion(): string | null {
+    if ( typeof window === 'undefined' ) {
+        return null;
+    }
+    try {
+        return window.localStorage.getItem( RECONSENT_DISMISS_KEY );
+    } catch {
+        // Private mode / disk full / storage disabled — treat as "no
+        // dismissal remembered" so the banner still surfaces at least
+        // once per session, which is better than silently swallowing
+        // it forever.
+        return null;
+    }
+}
+
+function persistDismissedVersion( version: string ): void {
+    if ( typeof window === 'undefined' ) {
+        return;
+    }
+    try {
+        window.localStorage.setItem( RECONSENT_DISMISS_KEY, version );
+    } catch {
+        // Same rationale as readDismissedVersion — if we can't write,
+        // fall back to in-memory state; the banner will reappear on
+        // reload but not on every Inertia hop within the session.
+    }
+}
 
 export function PrivacyBanners() {
     return (
@@ -186,9 +222,37 @@ function CookieBanner() {
 
 function PolicyReconsentBanner() {
     const { reconsent } = usePage<SharedProps>().props;
-    const [dismissed, setDismissed] = useState(false);
+    const [dismissed, setDismissed] = useState<boolean>(() => {
+        // Rehydrate on mount so a "Later" click made on a previous
+        // page (or in a previous tab) keeps the banner hidden until
+        // the policy version changes. Also handles the empty case:
+        // if reconsent is null on first render there's nothing to
+        // rehydrate against, and the guard below returns null anyway.
+        if ( ! reconsent ) {
+            return false;
+        }
+        return readDismissedVersion() === reconsent.version;
+    });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Bump the persisted-dismissal check whenever the active policy
+    // version changes. If a fresh version rolls out while this
+    // component is mounted, reset local `dismissed` so the banner
+    // reappears exactly once for the new version.
+    useEffect(() => {
+        if ( ! reconsent ) {
+            return;
+        }
+        setDismissed( readDismissedVersion() === reconsent.version );
+    }, [reconsent?.version]);
+
+    const dismiss = () => {
+        if ( reconsent ) {
+            persistDismissedVersion( reconsent.version );
+        }
+        setDismissed(true);
+    };
 
     // Guard against `undefined` (partial reload didn't include the prop)
     // as well as `null` (no active policy or the user is up to date).
@@ -215,6 +279,9 @@ function PolicyReconsentBanner() {
                 }),
             });
             if (response.ok) {
+                if ( reconsent ) {
+                    persistDismissedVersion( reconsent.version );
+                }
                 setDismissed(true);
                 return;
             }
@@ -259,7 +326,7 @@ function PolicyReconsentBanner() {
             <div className="flex flex-wrap justify-end gap-2">
                 <button
                     type="button"
-                    onClick={() => setDismissed(true)}
+                    onClick={dismiss}
                     disabled={saving}
                     className="inline-flex h-9 items-center rounded-[8px] border border-border-subtle bg-transparent px-4 text-small font-medium text-text-muted transition hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
                 >

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\CoerceAnalyticsBeaconTypes;
 use App\Models\User;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -40,7 +42,37 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('manage-privacy', fn (User $user): bool => $user->isAdmin());
 
+        // Same admin-only rule the AdminLayout sidebar already applies
+        // client-side to the Analytics + Integrations nav items. Any
+        // route that hangs off `/dashboard/analytics/*` (vendor Inertia
+        // routes + our own shadow / feed routes) or
+        // `/dashboard/integrations/*` should sit behind this gate so
+        // a verified-but-non-admin user cannot enumerate visitor IDs
+        // via a direct URL fetch.
+        Gate::define('view-analytics', fn (User $user): bool => $user->isAdmin());
+
         $this->registerInertiaModulePageNamespaces();
+        $this->registerAnalyticsBeaconCoercion();
+    }
+
+    /**
+     * Prepend `CoerceAnalyticsBeaconTypes` to the vendor `analytics`
+     * middleware group so every incoming beacon has its integer
+     * width/height fields stringified before validation and DTO
+     * construction. See the middleware class docblock for why.
+     *
+     * Registered here (rather than as a route middleware alias in
+     * `bootstrap/app.php`) because the analytics group is set up
+     * inside `ArtisanPackUI\Analytics\AnalyticsServiceProvider::boot()`
+     * and we need to push into it after the vendor's provider has
+     * registered.
+     */
+    protected function registerAnalyticsBeaconCoercion(): void
+    {
+        /** @var Router $router */
+        $router = $this->app->make(Router::class);
+
+        $router->prependMiddlewareToGroup('analytics', CoerceAnalyticsBeaconTypes::class);
     }
 
     /**

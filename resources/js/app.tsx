@@ -1,4 +1,5 @@
 import './lib/performance';
+import './lib/analytics';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

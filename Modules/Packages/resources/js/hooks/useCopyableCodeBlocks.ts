@@ -1,5 +1,7 @@
 import { useEffect, type RefObject } from 'react';
 
+import { trackDocsEvent } from '@/lib/analytics';
+
 /**
  * Injects a "Copy" button into every `.code-block-container` inside the
  * referenced article.
@@ -50,9 +52,27 @@ export function useCopyableCodeBlocks(
                     return;
                 }
                 try {
-                    await navigator.clipboard.writeText(code.textContent ?? '');
+                    const text = code.textContent ?? '';
+                    await navigator.clipboard.writeText(text);
                     button.textContent = 'Copied';
                     button.classList.add('text-text');
+                    // Fire per issue #100 requirement: docs code-copy events.
+                    // Emit `content_key` so aggregations can see which
+                    // docs page owns the block, and a small `length`
+                    // sample so we can distinguish one-liners from
+                    // paste-the-whole-config blocks without persisting
+                    // the raw snippet.
+                    trackDocsEvent(
+                        'docs.code_copy',
+                        {
+                            content_key: contentKey,
+                            length: text.length,
+                            language:
+                                code.className.match(/language-([a-z0-9_+-]+)/i)?.[1] ??
+                                null,
+                        },
+                        { category: 'docs' },
+                    );
                     window.setTimeout(() => {
                         button.textContent = 'Copy';
                         button.classList.remove('text-text');

@@ -36,15 +36,10 @@ import '@artisanpack-ui/privacy';
 
 import { csrfToken } from './csrf';
 
-interface ConsentState {
-    consents: Record<string, boolean>;
-}
-
-interface WindowPrivacyConsent {
-    hasConsent: (category: string) => boolean;
-    whenConsented: (category: string) => Promise<ConsentState>;
-}
-
+// `window.PrivacyConsent` is declared in `../types/privacy-consent.d.ts`
+// so this file and `./analytics.ts` share one interface (TS2717 would
+// fire from duplicate augmentations otherwise). Only perf-specific
+// globals stay here.
 declare global {
     interface Window {
         ArtisanPackPerformance?: {
@@ -58,7 +53,6 @@ declare global {
             };
             webVitals?: unknown;
         };
-        PrivacyConsent?: WindowPrivacyConsent;
     }
 }
 

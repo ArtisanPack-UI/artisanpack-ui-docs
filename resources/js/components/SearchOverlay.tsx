@@ -1,6 +1,8 @@
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
+import { trackDocsEvent } from '../lib/analytics';
+
 export type SearchOverlayIcon = { type: 'svg'; markup: string } | { type: 'class'; class: string };
 
 export interface SearchOverlayResult {
@@ -110,9 +112,21 @@ export function SearchOverlay({
                     if (abortRef.current !== controller) {
                         return;
                     }
-                    setResults(payload.results ?? []);
+                    const nextResults = payload.results ?? [];
+                    setResults(nextResults);
                     setSearched(true);
                     setActiveIndex(0);
+                    // Fire per issue #100 requirement: docs search events.
+                    // Queries and result counts inform which docs pages
+                    // and packages are being discovered vs. missed.
+                    trackDocsEvent(
+                        'docs.search',
+                        {
+                            query: trimmed,
+                            results: nextResults.length,
+                        },
+                        { category: 'docs' },
+                    );
                 })
                 .catch((error) => {
                     if (error instanceof DOMException && error.name === 'AbortError') {
@@ -157,10 +171,19 @@ export function SearchOverlay({
 
     const navigate = useCallback(
         (result: SearchOverlayResult) => {
+            trackDocsEvent(
+                'docs.search_result_open',
+                {
+                    query: trimmed,
+                    link: result.link,
+                    result_id: result.id,
+                },
+                { category: 'docs' },
+            );
             close();
             router.visit(result.link);
         },
-        [close],
+        [close, trimmed],
     );
 
     const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
