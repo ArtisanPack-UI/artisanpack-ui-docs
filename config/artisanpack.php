@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ArtisanPack UI Unified Configuration.
  *
@@ -38,20 +39,29 @@ return [
             ],
             'loading' => [
                 'spinner' => 'o-arrow-path',
-                'dots' => NULL,
-                'ring' => NULL,
-                'custom_svg' => NULL,
+                'dots' => null,
+                'ring' => null,
+                'custom_svg' => null,
                 'default_type' => 'css',
             ],
         ],
         'theme_output_path' => '/Users/jacobmartella/Herd/artisanpack-ui-docs/resources/css/artisanpack-ui-theme.css',
     ],
-	'icons'                  => [
-		'sets' => [
-			'artisanpack' => [
-				'path'   => resource_path( 'icons/artisanpack' ),
-				'prefix' => 'ap',
-			],
-		],
-	],
+    'icons' => [
+        'sets' => [
+            'artisanpack' => [
+                'path' => resource_path('icons/artisanpack'),
+                'prefix' => 'ap',
+            ],
+        ],
+    ],
+
+    /*
+     * Remote-admin API knobs (V2_REFACTOR_PLAN.md §8.2, §9.6 #43).
+     * `rate_limit_per_minute` is consumed by the `api` limiter
+     * registered in AppServiceProvider.
+     */
+    'api' => [
+        'rate_limit_per_minute' => (int) env('API_RATE_LIMIT_PER_MINUTE', 60),
+    ],
 ];

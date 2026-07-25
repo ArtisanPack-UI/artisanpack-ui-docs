@@ -24,6 +24,31 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+        // Trust the configured reverse-proxy layer so `$request->ip()`
+        // returns the real client IP (used as the unauth key for the
+        // `api` rate limiter — V2_REFACTOR_PLAN.md §8.2, §9.6 #43).
+        // Without this, every request collapses to the LB IP and the
+        // API becomes trivially DoSable. Set `TRUSTED_PROXIES` to `*`
+        // only when the LB is the sole ingress; otherwise supply an
+        // explicit comma-separated CIDR list.
+        // env() is used directly here because the config repository
+        // is not bound yet when the middleware builder runs.
+        $proxies = trim((string) env('TRUSTED_PROXIES', ''));
+        if ($proxies !== '') {
+            $middleware->trustProxies(
+                at: $proxies === '*'
+                    ? '*'
+                    : array_values(array_filter(array_map('trim', explode(',', $proxies)))),
+            );
+        }
+
+        // Rate-limit every request in the remote-admin API surface
+        // (V2_REFACTOR_PLAN.md §8.2, §9.6 #43). The `api` limiter is
+        // defined in AppServiceProvider::boot().
+        $middleware->api(prepend: [
+            'throttle:api',
+        ]);
+
         $middleware->alias([
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
