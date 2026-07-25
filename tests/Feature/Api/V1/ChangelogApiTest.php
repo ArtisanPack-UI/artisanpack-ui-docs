@@ -85,3 +85,41 @@ test('destroy removes a changelog for a token with changelogs:write', function (
 
     $this->assertDatabaseMissing('changelogs', ['id' => $changelog->id]);
 });
+
+test('store is blocked by the policy when the actor is not an admin', function () {
+    $editor = User::factory()->editor()->create();
+    Sanctum::actingAs($editor, ['changelogs:write']);
+    $package = Package::factory()->create();
+
+    $this->postJson(route('api.v1.packages.changelogs.store', $package), [
+        'title' => '1.0.0',
+        'content' => 'Blocked release.',
+    ])->assertForbidden();
+
+    $this->assertDatabaseMissing('changelogs', ['package_id' => $package->id, 'title' => '1.0.0']);
+});
+
+test('destroy is blocked by the policy when the actor is not an admin', function () {
+    $editor = User::factory()->editor()->create();
+    Sanctum::actingAs($editor, ['changelogs:write']);
+    $changelog = Changelog::factory()->create();
+
+    $this->deleteJson(route('api.v1.changelogs.destroy', $changelog))->assertForbidden();
+
+    $this->assertDatabaseHas('changelogs', ['id' => $changelog->id]);
+});
+
+test('store rejects invalid payloads with 422', function () {
+    actAsChangelogsToken(['changelogs:write']);
+    $package = Package::factory()->create();
+
+    $this->postJson(route('api.v1.packages.changelogs.store', $package), [])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['content']);
+});
+
+test('unauthenticated requests are rejected', function () {
+    $package = Package::factory()->create();
+
+    $this->getJson(route('api.v1.packages.changelogs.index', $package))->assertUnauthorized();
+});
