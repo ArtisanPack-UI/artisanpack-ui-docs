@@ -30,7 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 - Livewire stack: `livewire/livewire`, `livewire/volt`, `livewire/flux`, `mhmiton/laravel-modules-livewire`, `artisanpack-ui/livewire-ui-components`
-- npm: `@artisanpack-ui/livewire-drag-and-drop`, `daisyui`
+- npm: `@artisanpack-ui/livewire-drag-and-drop`
 - User registration (Fortify feature disabled — accounts are provisioned by an admin)
 
 ## [2.0.0] - 2026-03-28
