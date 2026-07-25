@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http;
 
+use App\Analytics\AnalyticsSource;
+use App\Analytics\AnalyticsSourceResolver;
+use App\Models\User;
 use App\Services\InertiaSeo;
 use ArtisanPackUI\Privacy\Services\ReconsentService;
 use Illuminate\Http\Request;
@@ -42,6 +45,31 @@ class HandleInertiaRequests extends Middleware
                 description: config('seo.site.description') ?: null,
             ),
             'reconsent' => fn () => $this->reconsentPolicy($request),
+            'analyticsSource' => fn () => $this->analyticsSourceProps($request),
+        ];
+    }
+
+    /**
+     * Shape used by the analytics sub-nav's source switcher. Only populated
+     * for admins so a non-admin can neither see nor toggle the setting.
+     *
+     * @return array{active: string, options: array<string, string>, google_available: bool, update_url: string}|null
+     */
+    protected function analyticsSourceProps(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if (! $user instanceof User || ! $user->isAdmin()) {
+            return null;
+        }
+
+        $resolver = app(AnalyticsSourceResolver::class);
+
+        return [
+            'active' => $resolver->active()->value,
+            'options' => AnalyticsSource::options(),
+            'google_available' => $resolver->isGoogleAvailable(),
+            'update_url' => route('dashboard.analytics.source.update'),
         ];
     }
 
