@@ -41,35 +41,34 @@ the defaults.
 
 ## Deploy script
 
-The deploy script must build both bundles **before** restarting the SSR
-daemon so the new bundle is on disk when the daemon reloads:
+The site uses Forge Zero-Downtime Deployments — see
+[`forge-deploy.md`](./forge-deploy.md#deploy-script) for the full
+script. The SSR-relevant slice looks like this: build both bundles
+**before** the daemon restart so `bootstrap/ssr/ssr.js` is on disk
+when the supervisor relaunches it.
 
 ```bash
-cd /home/forge/docs.artisanpackui.dev
+$CREATE_RELEASE()
 
-git pull origin main
+cd $FORGE_RELEASE_DIRECTORY
 
-$FORGE_COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+$FORGE_COMPOSER install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-# Client + SSR bundles. `npm ci` keeps the install deterministic against
-# package-lock.json; `npm run build` writes public/build/ AND
-# bootstrap/ssr/ssr.js.
-npm ci --no-audit --no-fund
+# `npm run build` writes public/build/ AND bootstrap/ssr/ssr.js.
+npm ci || npm install
 npm run build
 
-( flock -w 10 9 || exit 1
-    echo 'Restarting FPM...'
-    sudo -S service $FORGE_PHP_FPM reload ) 9>/tmp/fpmlock
-
+$FORGE_PHP artisan optimize --except=views
+$FORGE_PHP artisan storage:link
 $FORGE_PHP artisan migrate --force
-$FORGE_PHP artisan config:cache
-$FORGE_PHP artisan route:cache
-$FORGE_PHP artisan view:cache
-$FORGE_PHP artisan event:cache
 
-# Zero-downtime SSR restart — must run AFTER npm run build so the daemon
-# reloads against the freshly written bootstrap/ssr/ssr.js.
-$FORGE_PHP artisan inertia:stop-ssr
+# Zero-downtime SSR restart — must run AFTER `npm run build`. The
+# `|| true` covers the case where SSR is toggled off in Forge.
+$FORGE_PHP artisan inertia:stop-ssr || true
+
+$ACTIVATE_RELEASE()
+
+$RESTART_QUEUES()
 ```
 
 `inertia:stop-ssr` returns immediately; Forge's daemon supervisor sees the
