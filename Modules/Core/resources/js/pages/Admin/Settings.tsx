@@ -14,7 +14,6 @@ interface SettingsPayload {
     home_page: number | null;
     google_analytics_id: string;
     has_github_token: boolean;
-    has_gitlab_token: boolean;
 }
 
 interface SettingsProps {
@@ -28,7 +27,6 @@ interface SettingsForm {
     home_page: string;
     google_analytics_id: string;
     github_token: string;
-    gitlab_token: string;
     [key: string]: string;
 }
 
@@ -46,7 +44,6 @@ export default function SiteSettings({ settings, pages, update_url, flash }: Set
         home_page: settings.home_page !== null ? String(settings.home_page) : '',
         google_analytics_id: settings.google_analytics_id,
         github_token: '',
-        gitlab_token: '',
     });
 
     const submit: FormEventHandler = (event) => {
@@ -55,7 +52,6 @@ export default function SiteSettings({ settings, pages, update_url, flash }: Set
             preserveScroll: true,
             onSuccess: () => {
                 setData('github_token', '');
-                setData('gitlab_token', '');
             },
         });
     };
@@ -103,21 +99,6 @@ export default function SiteSettings({ settings, pages, update_url, flash }: Set
                     </GradientCard>
 
                     <GradientCard title="Integrations">
-                        <Input
-                            id="gitlab_token"
-                            type="password"
-                            label="GitLab Token"
-                            placeholder={settings.has_gitlab_token ? '••••••••••••' : ''}
-                            hint={
-                                settings.has_gitlab_token
-                                    ? 'Token configured. Enter a new value to replace it.'
-                                    : 'A GitLab personal access token with the read_api and read_repository scopes.'
-                            }
-                            value={data.gitlab_token}
-                            onChange={(event) => setData('gitlab_token', event.target.value)}
-                            error={errors.gitlab_token}
-                            autoComplete="new-password"
-                        />
                         <Input
                             id="github_token"
                             type="password"

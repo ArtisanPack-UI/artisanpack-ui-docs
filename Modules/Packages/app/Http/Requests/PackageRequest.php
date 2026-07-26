@@ -22,7 +22,7 @@ class PackageRequest extends FormRequest
                 'nullable',
                 'required_without:docs_url',
                 'url',
-                'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//',
+                'regex:/^https:\/\/(github\.com|raw\.githubusercontent\.com)\//',
             ],
             'docs_url' => [
                 'nullable',
@@ -33,7 +33,7 @@ class PackageRequest extends FormRequest
             'changelog_url' => [
                 'required',
                 'url',
-                'regex:/^https:\/\/(github\.com|gitlab\.com|raw\.githubusercontent\.com)\//',
+                'regex:/^https:\/\/(github\.com|raw\.githubusercontent\.com)\//',
             ],
             'icon' => ['nullable', 'string', 'max:255'],
             'version' => ['nullable', 'string', 'max:255'],
@@ -47,11 +47,11 @@ class PackageRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'wiki_url.regex' => 'The wiki URL must be a GitHub or GitLab URL.',
+            'wiki_url.regex' => 'The wiki URL must be a GitHub URL.',
             'wiki_url.required_without' => 'A wiki URL or docs URL is required.',
             'docs_url.regex' => 'The docs URL must be a GitHub repository URL.',
             'docs_url.required_without' => 'A docs URL or wiki URL is required.',
-            'changelog_url.regex' => 'The changelog URL must be a GitHub or GitLab URL.',
+            'changelog_url.regex' => 'The changelog URL must be a GitHub URL.',
         ];
     }
 

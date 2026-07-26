@@ -105,9 +105,9 @@ and visible at `/dashboard/audit-log` for admins.
 |--------------------|---------|----------|-------------------------------------------|
 | `name`             | string  | ✓        | Max 255                                   |
 | `slug`             | string  | ✓        | Max 255                                   |
-| `wiki_url`         | url     | one of\* | Must be a GitHub/GitLab URL               |
+| `wiki_url`         | url     | one of\* | Must be a GitHub URL                      |
 | `docs_url`         | url     | one of\* | Must be a GitHub URL                      |
-| `changelog_url`    | url     | ✓        | Must be a GitHub/GitLab URL               |
+| `changelog_url`    | url     | ✓        | Must be a GitHub URL                      |
 | `homepage`         | integer | –        |                                           |
 | `icon`             | string  | –        |                                           |
 | `version`          | string  | –        |                                           |

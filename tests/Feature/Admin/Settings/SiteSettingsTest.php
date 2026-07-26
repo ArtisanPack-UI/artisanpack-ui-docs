@@ -35,7 +35,6 @@ it('renders the settings page for admins', function (): void {
             ->where('settings.home_page', $page->id)
             ->where('settings.google_analytics_id', 'G-ABC123')
             ->where('settings.has_github_token', true)
-            ->where('settings.has_gitlab_token', false)
             ->where('update_url', route('dashboard.settings.update'))
             ->has('pages', 1)
         );
@@ -72,21 +71,17 @@ it('saves the home page and google analytics id', function (): void {
     expect(Setting::where('key', 'google_analytics_id')->value('value'))->toBe('G-XYZ789');
 });
 
-it('encrypts and stores new github and gitlab tokens', function (): void {
+it('encrypts and stores a new github token', function (): void {
     $this->actingAs(siteSettingsAdmin())
         ->patch(route('dashboard.settings.update'), [
             'github_token' => 'ghp_realtoken123',
-            'gitlab_token' => 'glpat-realtoken123',
         ])
         ->assertRedirect(route('dashboard.settings'));
 
     $github = Setting::where('key', 'github_token')->first();
-    $gitlab = Setting::where('key', 'gitlab_token')->first();
 
     expect($github)->not->toBeNull();
-    expect($gitlab)->not->toBeNull();
     expect(decrypt($github->value))->toBe('ghp_realtoken123');
-    expect(decrypt($gitlab->value))->toBe('glpat-realtoken123');
 });
 
 it('preserves an existing token when the field is submitted empty', function (): void {

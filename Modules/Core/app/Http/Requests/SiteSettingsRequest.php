@@ -16,7 +16,6 @@ class SiteSettingsRequest extends FormRequest
     {
         return [
             'home_page' => ['nullable', 'integer', 'exists:pages,id'],
-            'gitlab_token' => ['nullable', 'string'],
             'github_token' => ['nullable', 'string', 'regex:/^(ghp_|github_pat_)[a-zA-Z0-9_]+$/'],
             'google_analytics_id' => ['nullable', 'string', 'regex:/^G-[A-Z0-9]+$/'],
         ];

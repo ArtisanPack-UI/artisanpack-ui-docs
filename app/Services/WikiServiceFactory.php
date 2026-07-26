@@ -7,41 +7,33 @@ use App\Contracts\WikiServiceInterface;
 class WikiServiceFactory
 {
     /**
-     * Create the appropriate wiki service based on the given URL
+     * Create the wiki service for a GitHub wiki URL.
      *
      * @throws \Exception
      */
     public function make(string $url, string $token): WikiServiceInterface
     {
-        $source = $this->detectSource($url);
+        $this->assertGitHubUrl($url);
 
-        return match ($source) {
-            'github' => app()->make(GitHubService::class, ['token' => $token]),
-            'gitlab' => app()->make(GitLabWikiService::class, ['token' => $token]),
-        };
+        return app()->make(GitHubService::class, ['token' => $token]);
     }
 
     /**
-     * Create the appropriate documentation service for a repository docs/ directory
+     * Create the documentation service for a GitHub repository docs/ directory.
      *
      * @throws \Exception
      */
     public function makeDocsService(string $url, string $token): WikiServiceInterface
     {
-        $source = $this->detectSource($url);
+        $this->assertGitHubUrl($url);
 
-        return match ($source) {
-            'github' => app()->make(GitHubDocsService::class, ['token' => $token]),
-            default => throw new \Exception('Documentation import from a docs/ directory is only supported for GitHub repositories.'),
-        };
+        return app()->make(GitHubDocsService::class, ['token' => $token]);
     }
 
     /**
-     * Detect the source platform from a URL by parsing the host
-     *
      * @throws \Exception
      */
-    public function detectSource(string $url): string
+    protected function assertGitHubUrl(string $url): void
     {
         $host = parse_url($url, PHP_URL_HOST);
 
@@ -52,14 +44,8 @@ class WikiServiceFactory
         $host = strtolower($host);
         $host = preg_replace('/^www\./i', '', $host);
 
-        if (in_array($host, ['github.com', 'raw.githubusercontent.com'], true)) {
-            return 'github';
+        if (! in_array($host, ['github.com', 'raw.githubusercontent.com'], true)) {
+            throw new \Exception("Only GitHub wiki and repository URLs are supported. Got: {$url}");
         }
-
-        if ($host === 'gitlab.com') {
-            return 'gitlab';
-        }
-
-        throw new \Exception("Unable to detect wiki source from URL: {$url}");
     }
 }

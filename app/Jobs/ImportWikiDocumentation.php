@@ -41,8 +41,7 @@ class ImportWikiDocumentation implements ShouldQueue
             $sourceUrl = $useDocsSource ? $this->package->docs_url : $this->package->wiki_url;
 
             $factory = app()->make(WikiServiceFactory::class);
-            $source = $factory->detectSource($sourceUrl);
-            $token = $this->resolveToken($source);
+            $token = $this->resolveGitHubToken();
             $wikiService = $useDocsSource
                 ? $factory->makeDocsService($sourceUrl, $token)
                 : $factory->make($sourceUrl, $token);
