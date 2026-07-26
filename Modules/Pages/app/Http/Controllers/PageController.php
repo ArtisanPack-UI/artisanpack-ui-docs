@@ -10,44 +10,44 @@ use Modules\Pages\Page;
 
 class PageController extends Controller
 {
-	use AuthorizesRequests;
+    use AuthorizesRequests;
 
-	public function index()
-	{
-		$this->authorize( 'viewAny', Page::class );
+    public function index()
+    {
+        $this->authorize('viewAny', Page::class);
 
-		return PageResource::collection( Page::all() );
-	}
+        return PageResource::collection(Page::all());
+    }
 
-	public function store( PageRequest $request )
-	{
-		$this->authorize( 'create', Page::class );
+    public function store(PageRequest $request)
+    {
+        $this->authorize('create', Page::class);
 
-		return new PageResource( Page::create( $request->validated() ) );
-	}
+        return new PageResource(Page::create($request->validated()));
+    }
 
-	public function show( Page $page )
-	{
-		$this->authorize( 'view', $page );
+    public function show(Page $page)
+    {
+        $this->authorize('view', $page);
 
-		return new PageResource( $page );
-	}
+        return new PageResource($page);
+    }
 
-	public function update( PageRequest $request, Page $page )
-	{
-		$this->authorize( 'update', $page );
+    public function update(PageRequest $request, Page $page)
+    {
+        $this->authorize('update', $page);
 
-		$page->update( $request->validated() );
+        $page->update($request->validated());
 
-		return new PageResource( $page );
-	}
+        return new PageResource($page);
+    }
 
-	public function destroy( Page $page )
-	{
-		$this->authorize( 'delete', $page );
+    public function destroy(Page $page)
+    {
+        $this->authorize('delete', $page);
 
-		$page->delete();
+        $page->delete();
 
-		return response()->json();
-	}
+        return response()->json();
+    }
 }

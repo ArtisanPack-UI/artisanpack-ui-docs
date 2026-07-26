@@ -136,11 +136,7 @@ function Toolbar({ editor }: { editor: Editor }) {
                 {'</>'}
             </ToolbarButton>
             <span className="mx-1 h-4 w-px bg-border-subtle" aria-hidden />
-            <ToolbarButton
-                label="Link"
-                onClick={promptForLink}
-                active={editor.isActive('link')}
-            >
+            <ToolbarButton label="Link" onClick={promptForLink} active={editor.isActive('link')}>
                 🔗
             </ToolbarButton>
             <ToolbarButton
@@ -180,7 +176,11 @@ export function RichTextEditor({
     const editor = useEditor({
         extensions: [
             StarterKit.configure({ heading: { levels: [2, 3, 4] } }),
-            Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer nofollow' } }),
+            Link.configure({
+                openOnClick: false,
+                autolink: true,
+                HTMLAttributes: { rel: 'noopener noreferrer nofollow' },
+            }),
         ],
         content: value,
         onUpdate: ({ editor: instance }) => {

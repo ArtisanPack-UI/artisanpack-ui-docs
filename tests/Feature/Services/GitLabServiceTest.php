@@ -55,7 +55,7 @@ test('getWikiPages throws exception on failure', function () {
     ]);
 
     $this->service->getWikiPages('https://gitlab.com/group/project/-/wikis');
-})->throws(\Exception::class, 'Failed to fetch wiki pages');
+})->throws(Exception::class, 'Failed to fetch wiki pages');
 
 test('getWikiPage fetches specific wiki page successfully', function () {
     Http::fake([
@@ -79,7 +79,7 @@ test('getWikiPage throws exception on failure', function () {
     ]);
 
     $this->service->getWikiPage('https://gitlab.com/group/project/-/wikis', 'nonexistent');
-})->throws(\Exception::class, "Failed to fetch wiki page 'nonexistent'");
+})->throws(Exception::class, "Failed to fetch wiki page 'nonexistent'");
 
 test('extractProjectPath parses GitLab wiki URL correctly', function () {
     $service = new GitLabWikiService('test-token');
@@ -100,4 +100,4 @@ test('extractProjectPath throws exception for invalid URL', function () {
     $method->setAccessible(true);
 
     $method->invoke($service, 'https://invalid-url.com/something');
-})->throws(\Exception::class, 'Invalid GitLab wiki URL format');
+})->throws(Exception::class, 'Invalid GitLab wiki URL format');

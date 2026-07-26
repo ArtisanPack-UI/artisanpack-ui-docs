@@ -25,9 +25,7 @@ export function useCopyableCodeBlocks(
             return;
         }
 
-        const containers = article.querySelectorAll<HTMLDivElement>(
-            '.code-block-container',
-        );
+        const containers = article.querySelectorAll<HTMLDivElement>('.code-block-container');
         const cleanups: Array<() => void> = [];
 
         containers.forEach((container) => {
@@ -67,9 +65,7 @@ export function useCopyableCodeBlocks(
                         {
                             content_key: contentKey,
                             length: text.length,
-                            language:
-                                code.className.match(/language-([a-z0-9_+-]+)/i)?.[1] ??
-                                null,
+                            language: code.className.match(/language-([a-z0-9_+-]+)/i)?.[1] ?? null,
                         },
                         { category: 'docs' },
                     );

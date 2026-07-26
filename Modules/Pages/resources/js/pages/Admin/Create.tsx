@@ -70,7 +70,11 @@ export default function PagesCreate({ parent_options, store_url, cancel_url }: C
         <AdminLayout title="Add Page">
             <Head title="Add Page" />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-6xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-6xl flex-col gap-6"
+                noValidate
+            >
                 <div className="flex flex-col gap-6 md:flex-row">
                     <div className="flex flex-1 flex-col gap-6 md:flex-[2]">
                         <GradientCard title="Page">
@@ -143,7 +147,9 @@ export default function PagesCreate({ parent_options, store_url, cancel_url }: C
                                 maxLength={160}
                                 rows={3}
                                 value={data.meta_description}
-                                onChange={(event) => setData('meta_description', event.target.value)}
+                                onChange={(event) =>
+                                    setData('meta_description', event.target.value)
+                                }
                                 error={errors.meta_description}
                             />
 

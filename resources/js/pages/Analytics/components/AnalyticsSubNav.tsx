@@ -18,26 +18,22 @@ const ITEMS: AnalyticsSubNavItem[] = [
 
 export function AnalyticsSubNav() {
     const page = usePage<SharedProps>();
-    const currentPath = page.url.split( '?' )[ 0 ];
+    const currentPath = page.url.split('?')[0];
     const analytics = page.props.analyticsSource;
 
     // Longest-prefix match so a nested route (e.g. .../pages) doesn't
     // also highlight the shorter Overview link (which matches every
     // /dashboard/analytics/* url as a prefix).
-    const active = [ ...ITEMS ]
-        .sort( ( a, b ) => b.href.length - a.href.length )
-        .find( ( item ) => currentPath === item.href );
+    const active = [...ITEMS]
+        .sort((a, b) => b.href.length - a.href.length)
+        .find((item) => currentPath === item.href);
 
-    const handleSourceChange = ( event: React.ChangeEvent<HTMLSelectElement> ): void => {
-        if ( ! analytics ) {
+    const handleSourceChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+        if (!analytics) {
             return;
         }
 
-        router.post(
-            analytics.update_url,
-            { source: event.target.value },
-            { preserveScroll: true },
-        );
+        router.post(analytics.update_url, { source: event.target.value }, { preserveScroll: true });
     };
 
     return (
@@ -60,7 +56,7 @@ export function AnalyticsSubNav() {
             >
                 <div className="flex flex-wrap items-end justify-between gap-4 px-1 pb-3">
                     <ul className="flex flex-wrap gap-6">
-                        {ITEMS.map( ( item ) => {
+                        {ITEMS.map((item) => {
                             const isActive = active?.href === item.href;
                             return (
                                 <li key={item.href}>
@@ -76,7 +72,7 @@ export function AnalyticsSubNav() {
                                     </Link>
                                 </li>
                             );
-                        } )}
+                        })}
                     </ul>
                     {analytics ? (
                         <label className="flex items-center gap-2 text-small text-text-muted">
@@ -86,31 +82,30 @@ export function AnalyticsSubNav() {
                                 onChange={handleSourceChange}
                                 className="rounded-[8px] border border-border-subtle bg-surface px-3 py-1.5 text-small text-text focus:border-secondary focus:outline-none"
                             >
-                                {Object.entries( analytics.options ).map( ( [ id, label ] ) => (
+                                {Object.entries(analytics.options).map(([id, label]) => (
                                     <option
                                         key={id}
                                         value={id}
-                                        disabled={id === 'google' && ! analytics.google_available}
+                                        disabled={id === 'google' && !analytics.google_available}
                                     >
                                         {label}
-                                        {id === 'google' && ! analytics.google_available
+                                        {id === 'google' && !analytics.google_available
                                             ? ' (connect account)'
                                             : ''}
                                     </option>
-                                ) )}
+                                ))}
                             </select>
                         </label>
                     ) : null}
                 </div>
             </nav>
-            {analytics && analytics.active === 'google' && ! analytics.google_available ? (
+            {analytics && analytics.active === 'google' && !analytics.google_available ? (
                 <p className="px-1 text-xsmall text-text-subtle">
-                    Google is selected but no connected Google account is available. Connect
-                    one at{ ' ' }
+                    Google is selected but no connected Google account is available. Connect one at{' '}
                     <Link href="/dashboard/integrations/google" className="underline">
                         Integrations → Google
-                    </Link>
-                    { ' ' }or switch back to Local.
+                    </Link>{' '}
+                    or switch back to Local.
                 </p>
             ) : null}
         </div>

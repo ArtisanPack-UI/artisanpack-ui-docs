@@ -71,12 +71,7 @@ export default function TwoFactorChallenge() {
                     </div>
                 )}
 
-                <Button
-                    type="submit"
-                    color="primary"
-                    className="w-full"
-                    loading={processing}
-                >
+                <Button type="submit" color="primary" className="w-full" loading={processing}>
                     Log in
                 </Button>
 

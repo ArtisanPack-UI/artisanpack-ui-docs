@@ -52,7 +52,11 @@ export default function UsersCreate({ store_url, cancel_url, role_options }: Cre
         <AdminLayout title="Add User">
             <Head title="Add User" />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-3xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-3xl flex-col gap-6"
+                noValidate
+            >
                 <GradientCard title="User">
                     <Input
                         id="name"

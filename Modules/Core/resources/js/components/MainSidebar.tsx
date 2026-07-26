@@ -65,14 +65,8 @@ export function MainSidebar({ navigation }: MainSidebarProps) {
 
             {hasPackages ? (
                 <>
-                    <SectionLabel
-                        label="Packages"
-                        count={navigation.packages.length}
-                    />
-                    <nav
-                        aria-label="Packages"
-                        className="flex flex-col gap-0.5"
-                    >
+                    <SectionLabel label="Packages" count={navigation.packages.length} />
+                    <nav aria-label="Packages" className="flex flex-col gap-0.5">
                         {filteredPackages.map((pkg) => (
                             <PackageItem key={pkg.id} pkg={pkg} />
                         ))}
@@ -81,9 +75,7 @@ export function MainSidebar({ navigation }: MainSidebarProps) {
             ) : null}
 
             {!hasPages && !hasPackages ? (
-                <p className="px-3 py-2 text-small text-text-subtle">
-                    No matches.
-                </p>
+                <p className="px-3 py-2 text-small text-text-subtle">No matches.</p>
             ) : null}
         </div>
     );
@@ -96,9 +88,7 @@ function SectionLabel({ label, count }: { label: string; count?: number }) {
                 {label}
             </span>
             {typeof count === 'number' ? (
-                <span className="font-mono text-[11px] text-border-strong">
-                    {count}
-                </span>
+                <span className="font-mono text-[11px] text-border-strong">{count}</span>
             ) : null}
         </div>
     );
@@ -142,27 +132,16 @@ function pageHref(page: SidebarPageNode, parentSlug?: string): string {
     return `/${page.slug}`;
 }
 
-function PageItem({
-    page,
-    parentSlug,
-}: {
-    page: SidebarPageNode;
-    parentSlug?: string;
-}): ReactNode {
+function PageItem({ page, parentSlug }: { page: SidebarPageNode; parentSlug?: string }): ReactNode {
     const hasChildren = !!page.children && page.children.length > 0;
     const href = pageHref(page, parentSlug);
 
     if (hasChildren) {
         return (
-            <ExpandingDetails
-                defaultOpen={page.active}
-                className="rounded-[9px]"
-            >
+            <ExpandingDetails defaultOpen={page.active} className="rounded-[9px]">
                 <summary
                     className={`flex cursor-pointer list-none items-center gap-3 rounded-[9px] px-3.5 py-2.5 text-[15px] transition hover:bg-white/[0.02] ${
-                        page.active
-                            ? 'text-text'
-                            : 'text-text-muted hover:text-text'
+                        page.active ? 'text-text' : 'text-text-muted hover:text-text'
                     }`}
                 >
                     <SidebarIcon
@@ -178,11 +157,7 @@ function PageItem({
                         {page.title}
                     </NestedLink>
                     {page.children!.map((child) => (
-                        <PageItem
-                            key={child.id}
-                            page={child}
-                            parentSlug={page.slug}
-                        />
+                        <PageItem key={child.id} page={child} parentSlug={page.slug} />
                     ))}
                 </div>
             </ExpandingDetails>
@@ -214,9 +189,7 @@ function PackageItem({ pkg }: { pkg: SidebarPackage }): ReactNode {
         <ExpandingDetails defaultOpen={pkg.active} className="rounded-[9px]">
             <summary
                 className={`flex cursor-pointer list-none items-center gap-3 rounded-[9px] px-3.5 py-2.5 text-[15px] transition hover:bg-white/[0.02] ${
-                    pkg.active
-                        ? 'text-text'
-                        : 'text-text-muted hover:text-text'
+                    pkg.active ? 'text-text' : 'text-text-muted hover:text-text'
                 }`}
             >
                 <SidebarIcon
@@ -243,10 +216,7 @@ function PackageItem({ pkg }: { pkg: SidebarPackage }): ReactNode {
                     <DocItem key={doc.id} doc={doc} packageSlug={pkg.slug} />
                 ))}
                 {pkg.changelog ? (
-                    <NestedLink
-                        href={`/changelogs/${pkg.slug}`}
-                        active={pkg.changelog.active}
-                    >
+                    <NestedLink href={`/changelogs/${pkg.slug}`} active={pkg.changelog.active}>
                         {pkg.changelog.title}
                     </NestedLink>
                 ) : null}
@@ -255,13 +225,7 @@ function PackageItem({ pkg }: { pkg: SidebarPackage }): ReactNode {
     );
 }
 
-function DocItem({
-    doc,
-    packageSlug,
-}: {
-    doc: SidebarDocNode;
-    packageSlug: string;
-}): ReactNode {
+function DocItem({ doc, packageSlug }: { doc: SidebarDocNode; packageSlug: string }): ReactNode {
     const hasChildren = !!doc.children && doc.children.length > 0;
     const href = `/documentation/${packageSlug}/${doc.slug}`;
 
@@ -270,9 +234,7 @@ function DocItem({
             <ExpandingDetails defaultOpen={doc.active} className="rounded-[7px]">
                 <summary
                     className={`flex cursor-pointer list-none items-center gap-2 rounded-[7px] px-3 py-1.5 text-[14px] transition hover:bg-white/[0.02] ${
-                        doc.active
-                            ? 'text-text'
-                            : 'text-text-muted hover:text-text'
+                        doc.active ? 'text-text' : 'text-text-muted hover:text-text'
                     }`}
                 >
                     <span className="flex-1 truncate">{doc.title}</span>
@@ -283,11 +245,7 @@ function DocItem({
                         {doc.title}
                     </NestedLink>
                     {doc.children!.map((child) => (
-                        <DocItem
-                            key={child.id}
-                            doc={child}
-                            packageSlug={packageSlug}
-                        />
+                        <DocItem key={child.id} doc={child} packageSlug={packageSlug} />
                     ))}
                 </div>
             </ExpandingDetails>
@@ -331,11 +289,7 @@ function TopLevelLink({
                     style={{ background: 'var(--grad-neon)' }}
                     aria-hidden
                 />
-                <SidebarIcon
-                    icon={icon}
-                    fallbackClass={fallbackIcon}
-                    tone="active"
-                />
+                <SidebarIcon icon={icon} fallbackClass={fallbackIcon} tone="active" />
                 <span className="flex-1 truncate">{children}</span>
             </Link>
         );
@@ -346,11 +300,7 @@ function TopLevelLink({
             href={href}
             className="flex items-center gap-3 rounded-[9px] px-3.5 py-2.5 text-[15px] text-text-muted transition hover:bg-white/[0.02] hover:text-text"
         >
-            <SidebarIcon
-                icon={icon}
-                fallbackClass={fallbackIcon}
-                tone="muted"
-            />
+            <SidebarIcon icon={icon} fallbackClass={fallbackIcon} tone="muted" />
             <span className="flex-1 truncate">{children}</span>
         </Link>
     );
@@ -391,19 +341,14 @@ function ChevronToggle({ small = false }: { small?: boolean }) {
     );
 }
 
-function filterPages(
-    pages: SidebarPageNode[],
-    query: string,
-): SidebarPageNode[] {
+function filterPages(pages: SidebarPageNode[], query: string): SidebarPageNode[] {
     if (query.trim() === '') {
         return pages;
     }
     const q = query.toLowerCase();
     const result: SidebarPageNode[] = [];
     for (const page of pages) {
-        const children = page.children
-            ? filterPages(page.children, query)
-            : undefined;
+        const children = page.children ? filterPages(page.children, query) : undefined;
         const selfMatches = page.title.toLowerCase().includes(q);
         if (selfMatches || (children && children.length > 0)) {
             const next: SidebarPageNode = { ...page };
@@ -416,10 +361,7 @@ function filterPages(
     return result;
 }
 
-function filterPackages(
-    packages: SidebarPackage[],
-    query: string,
-): SidebarPackage[] {
+function filterPackages(packages: SidebarPackage[], query: string): SidebarPackage[] {
     if (query.trim() === '') {
         return packages;
     }

@@ -25,27 +25,19 @@ export default function VerifyEmail({ status }: VerifyEmailProps) {
             <Head title="Verify email" />
 
             {status === 'verification-link-sent' ? (
-                <div
-                    role="status"
-                    className="mb-4 text-center text-small text-success"
-                >
+                <div role="status" className="mb-4 text-center text-small text-success">
                     A new verification link has been sent to your email address.
                 </div>
             ) : null}
 
             <p className="mb-6 text-small text-text-muted">
-                Thanks for signing up. Before getting started, please verify your email
-                address by clicking on the link we just sent to you. If you didn&rsquo;t
-                receive the email, we&rsquo;ll gladly send you another.
+                Thanks for signing up. Before getting started, please verify your email address by
+                clicking on the link we just sent to you. If you didn&rsquo;t receive the email,
+                we&rsquo;ll gladly send you another.
             </p>
 
             <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
-                <Button
-                    type="submit"
-                    color="primary"
-                    className="w-full"
-                    loading={processing}
-                >
+                <Button type="submit" color="primary" className="w-full" loading={processing}>
                     Resend verification email
                 </Button>
 

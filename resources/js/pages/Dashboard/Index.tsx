@@ -178,14 +178,10 @@ function StatCard({
                 <span className="text-xsmall font-medium uppercase tracking-[0.12em] text-text-subtle">
                     {label}
                 </span>
-                <span
-                    className={`font-display text-h3 leading-none tabular-nums text-${accent}`}
-                >
+                <span className={`font-display text-h3 leading-none tabular-nums text-${accent}`}>
                     {value}
                 </span>
-                {hint ? (
-                    <span className="text-xsmall text-text-muted">{hint}</span>
-                ) : null}
+                {hint ? <span className="text-xsmall text-text-muted">{hint}</span> : null}
                 {sparklineData && sparklineData.length > 1 ? (
                     <div className="mt-1">
                         <Sparkline
@@ -273,9 +269,7 @@ function KeyValueRow({ label, value }: { label: ReactNode; value: ReactNode }) {
     return (
         <div className="flex items-center justify-between border-b border-border-subtle/40 py-2 last:border-b-0">
             <span className="text-small text-text-muted">{label}</span>
-            <span className="text-small font-semibold tabular-nums text-text">
-                {value}
-            </span>
+            <span className="text-small font-semibold tabular-nums text-text">{value}</span>
         </div>
     );
 }
@@ -311,7 +305,8 @@ export default function DashboardIndex(props: DashboardPageProps) {
                     <div>
                         <h1 className="font-display text-h3 text-text">Dashboard</h1>
                         <p className="text-small text-text-muted">
-                            A live snapshot of every package, download, and visitor across the docs site.
+                            A live snapshot of every package, download, and visitor across the docs
+                            site.
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -480,9 +475,7 @@ export default function DashboardIndex(props: DashboardPageProps) {
                                 data={registryBreakdown.map((row, index) => ({
                                     label: row.label,
                                     value: row.value,
-                                    color: (
-                                        ['primary', 'secondary', 'accent'] as const
-                                    )[index % 3],
+                                    color: (['primary', 'secondary', 'accent'] as const)[index % 3],
                                 }))}
                                 height={280}
                             />
@@ -580,11 +573,7 @@ export default function DashboardIndex(props: DashboardPageProps) {
                 </div>
 
                 {/* Row 5: main packages table + Packagist/NPM columns (admins only) */}
-                <div
-                    className={`grid gap-6 ${
-                        canViewAnalytics ? 'lg:grid-cols-3' : ''
-                    }`}
-                >
+                <div className={`grid gap-6 ${canViewAnalytics ? 'lg:grid-cols-3' : ''}`}>
                     <Panel
                         gradient="neon"
                         title="Packages overview"
@@ -606,9 +595,13 @@ export default function DashboardIndex(props: DashboardPageProps) {
                                 <thead className="sticky top-0 z-10 border-b border-border-subtle/60 bg-surface-2 text-xsmall uppercase tracking-[0.08em] text-text-subtle">
                                     <tr>
                                         <th className="px-5 py-3 font-medium">Package</th>
-                                        <th className="px-5 py-3 text-center font-medium">Version</th>
+                                        <th className="px-5 py-3 text-center font-medium">
+                                            Version
+                                        </th>
                                         <th className="px-5 py-3 text-center font-medium">Docs</th>
-                                        <th className="px-5 py-3 text-center font-medium">Last import</th>
+                                        <th className="px-5 py-3 text-center font-medium">
+                                            Last import
+                                        </th>
                                         <th className="px-5 py-3 text-right font-medium">Status</th>
                                     </tr>
                                 </thead>
@@ -661,7 +654,9 @@ export default function DashboardIndex(props: DashboardPageProps) {
                                                 </td>
                                                 <td className="px-5 py-3 text-center text-text-muted">
                                                     {pkg.last_import_human ?? (
-                                                        <span className="text-text-subtle">Never</span>
+                                                        <span className="text-text-subtle">
+                                                            Never
+                                                        </span>
                                                     )}
                                                 </td>
                                                 <td className="px-5 py-3 text-right">
@@ -676,169 +671,162 @@ export default function DashboardIndex(props: DashboardPageProps) {
                     </Panel>
 
                     {canViewAnalytics ? (
-                    <div className="flex flex-col gap-6">
-                        <Panel
-                            gradient="primary-secondary"
-                            title="Packagist"
-                            description="Composer package downloads"
-                        >
-                            {packagist.is_configured ? (
-                                <div className="flex flex-col gap-1">
-                                    <KeyValueRow
-                                        label="Monthly"
-                                        value={formatNumber(packagist.monthly)}
+                        <div className="flex flex-col gap-6">
+                            <Panel
+                                gradient="primary-secondary"
+                                title="Packagist"
+                                description="Composer package downloads"
+                            >
+                                {packagist.is_configured ? (
+                                    <div className="flex flex-col gap-1">
+                                        <KeyValueRow
+                                            label="Monthly"
+                                            value={formatNumber(packagist.monthly)}
+                                        />
+                                        <KeyValueRow
+                                            label="Daily"
+                                            value={formatNumber(packagist.daily)}
+                                        />
+                                        <KeyValueRow
+                                            label="Total"
+                                            value={formatNumber(packagist.total)}
+                                        />
+                                        <KeyValueRow
+                                            label="Stars"
+                                            value={formatNumber(packagist.stars)}
+                                        />
+                                        {packagist.top_packages.length > 0 ? (
+                                            <div className="mt-4 flex flex-col gap-2">
+                                                <span className="text-xsmall uppercase tracking-[0.1em] text-text-subtle">
+                                                    Top packages
+                                                </span>
+                                                {packagist.top_packages.slice(0, 3).map((p) => (
+                                                    <div
+                                                        key={p.name}
+                                                        className="flex items-center justify-between text-xsmall"
+                                                    >
+                                                        <span className="truncate font-mono text-text-muted">
+                                                            {p.name}
+                                                        </span>
+                                                        <span className="font-semibold tabular-nums text-text">
+                                                            {formatNumber(p.monthly)}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                ) : (
+                                    <EmptyState
+                                        title="No Packagist packages linked"
+                                        description="Set a package's registry to Packagist to see stats."
                                     />
-                                    <KeyValueRow
-                                        label="Daily"
-                                        value={formatNumber(packagist.daily)}
-                                    />
-                                    <KeyValueRow
-                                        label="Total"
-                                        value={formatNumber(packagist.total)}
-                                    />
-                                    <KeyValueRow
-                                        label="Stars"
-                                        value={formatNumber(packagist.stars)}
-                                    />
-                                    {packagist.top_packages.length > 0 ? (
-                                        <div className="mt-4 flex flex-col gap-2">
-                                            <span className="text-xsmall uppercase tracking-[0.1em] text-text-subtle">
-                                                Top packages
-                                            </span>
-                                            {packagist.top_packages.slice(0, 3).map((p) => (
-                                                <div
-                                                    key={p.name}
-                                                    className="flex items-center justify-between text-xsmall"
-                                                >
-                                                    <span className="truncate font-mono text-text-muted">
-                                                        {p.name}
-                                                    </span>
-                                                    <span className="font-semibold tabular-nums text-text">
-                                                        {formatNumber(p.monthly)}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : null}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    title="No Packagist packages linked"
-                                    description="Set a package's registry to Packagist to see stats."
-                                />
-                            )}
-                        </Panel>
+                                )}
+                            </Panel>
 
-                        <Panel
-                            gradient="primary-accent"
-                            title="NPM"
-                            description="JavaScript package downloads"
-                        >
-                            {npm.is_configured ? (
-                                <div className="flex flex-col gap-1">
-                                    <KeyValueRow
-                                        label="Monthly"
-                                        value={formatNumber(npm.monthly)}
+                            <Panel
+                                gradient="primary-accent"
+                                title="NPM"
+                                description="JavaScript package downloads"
+                            >
+                                {npm.is_configured ? (
+                                    <div className="flex flex-col gap-1">
+                                        <KeyValueRow
+                                            label="Monthly"
+                                            value={formatNumber(npm.monthly)}
+                                        />
+                                        <KeyValueRow
+                                            label="Weekly"
+                                            value={formatNumber(npm.weekly)}
+                                        />
+                                        <KeyValueRow
+                                            label="Total"
+                                            value={formatNumber(npm.total)}
+                                        />
+                                        {npm.top_packages.length > 0 ? (
+                                            <div className="mt-4 flex flex-col gap-2">
+                                                <span className="text-xsmall uppercase tracking-[0.1em] text-text-subtle">
+                                                    Top packages
+                                                </span>
+                                                {npm.top_packages.slice(0, 3).map((p) => (
+                                                    <div
+                                                        key={p.name}
+                                                        className="flex items-center justify-between text-xsmall"
+                                                    >
+                                                        <span className="truncate font-mono text-text-muted">
+                                                            {p.name}
+                                                        </span>
+                                                        <span className="font-semibold tabular-nums text-text">
+                                                            {formatNumber(p.monthly)}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                ) : (
+                                    <EmptyState
+                                        title="No NPM packages linked"
+                                        description="Set a package's registry to NPM to see stats."
                                     />
-                                    <KeyValueRow
-                                        label="Weekly"
-                                        value={formatNumber(npm.weekly)}
-                                    />
-                                    <KeyValueRow
-                                        label="Total"
-                                        value={formatNumber(npm.total)}
-                                    />
-                                    {npm.top_packages.length > 0 ? (
-                                        <div className="mt-4 flex flex-col gap-2">
-                                            <span className="text-xsmall uppercase tracking-[0.1em] text-text-subtle">
-                                                Top packages
-                                            </span>
-                                            {npm.top_packages.slice(0, 3).map((p) => (
-                                                <div
-                                                    key={p.name}
-                                                    className="flex items-center justify-between text-xsmall"
-                                                >
-                                                    <span className="truncate font-mono text-text-muted">
-                                                        {p.name}
-                                                    </span>
-                                                    <span className="font-semibold tabular-nums text-text">
-                                                        {formatNumber(p.monthly)}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : null}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    title="No NPM packages linked"
-                                    description="Set a package's registry to NPM to see stats."
-                                />
-                            )}
-                        </Panel>
-                    </div>
+                                )}
+                            </Panel>
+                        </div>
                     ) : null}
                 </div>
 
                 {/* Row 6: analytics (admins) + (optional) search console + recent imports */}
                 <div
                     className={`grid gap-6 ${
-                        analytics && searchConsole
-                            ? 'lg:grid-cols-3'
-                            : 'lg:grid-cols-2'
+                        analytics && searchConsole ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
                     }`}
                 >
                     {analytics ? (
-                    <Panel
-                        gradient="secondary-primary"
-                        title="Site analytics"
-                        description={`Last 30 days · ${analytics.source_label}`}
-                    >
-                        <div className="flex flex-col gap-1">
-                            <KeyValueRow
-                                label="Page views"
-                                value={formatNumber(analytics.page_views)}
-                            />
-                            <KeyValueRow
-                                label="Sessions"
-                                value={formatNumber(analytics.sessions)}
-                            />
-                            <KeyValueRow
-                                label={
-                                    analytics.source === 'google' ? 'Users' : 'Visitors'
-                                }
-                                value={formatNumber(analytics.users)}
-                            />
-                            <KeyValueRow
-                                label="Avg. session"
-                                value={analytics.avg_session_duration}
-                            />
-                            <KeyValueRow
-                                label="Bounce rate"
-                                value={analytics.bounce_rate}
-                            />
-                            {analytics.top_pages.length > 0 ? (
-                                <div className="mt-4 flex flex-col gap-2">
-                                    <span className="text-xsmall uppercase tracking-[0.1em] text-text-subtle">
-                                        Top pages
-                                    </span>
-                                    {analytics.top_pages.slice(0, 3).map((page) => (
-                                        <div
-                                            key={page.page}
-                                            className="flex items-center justify-between gap-3 text-xsmall"
-                                        >
-                                            <span className="truncate font-mono text-text-muted">
-                                                {page.page}
-                                            </span>
-                                            <span className="font-semibold tabular-nums text-text">
-                                                {formatNumber(page.views)}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : null}
-                        </div>
-                    </Panel>
+                        <Panel
+                            gradient="secondary-primary"
+                            title="Site analytics"
+                            description={`Last 30 days · ${analytics.source_label}`}
+                        >
+                            <div className="flex flex-col gap-1">
+                                <KeyValueRow
+                                    label="Page views"
+                                    value={formatNumber(analytics.page_views)}
+                                />
+                                <KeyValueRow
+                                    label="Sessions"
+                                    value={formatNumber(analytics.sessions)}
+                                />
+                                <KeyValueRow
+                                    label={analytics.source === 'google' ? 'Users' : 'Visitors'}
+                                    value={formatNumber(analytics.users)}
+                                />
+                                <KeyValueRow
+                                    label="Avg. session"
+                                    value={analytics.avg_session_duration}
+                                />
+                                <KeyValueRow label="Bounce rate" value={analytics.bounce_rate} />
+                                {analytics.top_pages.length > 0 ? (
+                                    <div className="mt-4 flex flex-col gap-2">
+                                        <span className="text-xsmall uppercase tracking-[0.1em] text-text-subtle">
+                                            Top pages
+                                        </span>
+                                        {analytics.top_pages.slice(0, 3).map((page) => (
+                                            <div
+                                                key={page.page}
+                                                className="flex items-center justify-between gap-3 text-xsmall"
+                                            >
+                                                <span className="truncate font-mono text-text-muted">
+                                                    {page.page}
+                                                </span>
+                                                <span className="font-semibold tabular-nums text-text">
+                                                    {formatNumber(page.views)}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+                        </Panel>
                     ) : null}
 
                     {searchConsole ? (

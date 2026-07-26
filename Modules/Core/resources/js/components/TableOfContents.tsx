@@ -12,10 +12,7 @@ export interface TableOfContentsProps {
     contentSelector?: string;
 }
 
-export function TableOfContents({
-    headings,
-    contentSelector = '#main',
-}: TableOfContentsProps) {
+export function TableOfContents({ headings, contentSelector = '#main' }: TableOfContentsProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
     const observerRef = useRef<IntersectionObserver | null>(null);
     const listRef = useRef<HTMLUListElement>(null);
@@ -81,15 +78,9 @@ export function TableOfContents({
         const listBox = listRef.current.getBoundingClientRect();
         const linkBox = active.getBoundingClientRect();
         const top = Math.max(0, linkBox.top - listBox.top);
-        const height = Math.min(
-            listBox.height - top,
-            linkBox.top - listBox.top + linkBox.height,
-        );
+        const height = Math.min(listBox.height - top, linkBox.top - listBox.top + linkBox.height);
         railRef.current.style.setProperty('--toc-progress-top', `${top}px`);
-        railRef.current.style.setProperty(
-            '--toc-progress-height',
-            `${Math.max(24, height)}px`,
-        );
+        railRef.current.style.setProperty('--toc-progress-height', `${Math.max(24, height)}px`);
     }, [activeId]);
 
     const handleClick = useCallback(
@@ -153,10 +144,7 @@ function TocItem({
 }: {
     heading: TocHeading;
     activeId: string | null;
-    onSelect: (
-        event: React.MouseEvent<HTMLAnchorElement>,
-        targetId: string,
-    ) => void;
+    onSelect: (event: React.MouseEvent<HTMLAnchorElement>, targetId: string) => void;
     depth?: number;
 }) {
     const isActive = activeId === heading.id;
@@ -169,9 +157,7 @@ function TocItem({
                 data-target={heading.id}
                 onClick={(event) => onSelect(event, heading.id)}
                 className={`block text-[14px] transition-colors ${indent} ${
-                    isActive
-                        ? 'font-semibold text-text'
-                        : 'text-text-muted hover:text-text'
+                    isActive ? 'font-semibold text-text' : 'text-text-muted hover:text-text'
                 }`}
             >
                 {heading.text}

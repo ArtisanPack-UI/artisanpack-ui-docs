@@ -15,14 +15,7 @@ import { LazyApexChart } from '@/components/LazyApexChart';
 export type DashChartType = 'bar' | 'line' | 'area' | 'donut' | 'pie';
 
 type SemanticColor =
-    | 'primary'
-    | 'secondary'
-    | 'accent'
-    | 'success'
-    | 'warning'
-    | 'error'
-    | 'info'
-    | 'neutral';
+    'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'info' | 'neutral';
 
 export interface DashChartDataPoint {
     label: string;
@@ -96,9 +89,7 @@ export function DashChart({
             return data.map((d, i) => resolveColor(d.color as string | undefined, i));
         }
         if (series.length > 0) {
-            return series.map((s, i) =>
-                resolveColor((s.color as string | undefined) ?? color, i),
-            );
+            return series.map((s, i) => resolveColor((s.color as string | undefined) ?? color, i));
         }
         return [resolveColor(color, 0)];
     }, [isPie, data, series, color]);
@@ -209,8 +200,7 @@ export function DashChart({
                         colors: 'var(--color-text-subtle)',
                         fontSize: '11px',
                     },
-                    formatter: (v: number) =>
-                        new Intl.NumberFormat().format(Math.round(v)),
+                    formatter: (v: number) => new Intl.NumberFormat().format(Math.round(v)),
                 },
             },
         };

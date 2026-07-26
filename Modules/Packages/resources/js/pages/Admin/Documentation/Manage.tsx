@@ -49,7 +49,8 @@ export default function ManageDocumentation({
                     <div className="flex flex-col gap-1">
                         <h2 className="font-display text-h6">Documentation Order</h2>
                         <p className="text-small text-text-muted">
-                            Drag and drop documentation pages to reorder them. Child pages will stay with their parent page.
+                            Drag and drop documentation pages to reorder them. Child pages will stay
+                            with their parent page.
                         </p>
                     </div>
                     <Link href={back_url} className="btn btn-ghost">

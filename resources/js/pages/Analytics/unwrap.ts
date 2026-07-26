@@ -16,17 +16,17 @@
  * caller-provided fallback so the vendor components never receive
  * `undefined` for a prop they treat as required.
  */
-export function unwrap<T>( value: T | { data: T } | null | undefined, fallback: T ): T {
-    if ( value === null || value === undefined ) {
+export function unwrap<T>(value: T | { data: T } | null | undefined, fallback: T): T {
+    if (value === null || value === undefined) {
         return fallback;
     }
     if (
-        typeof value === 'object'
-        && value !== null
-        && 'data' in value
-        && Object.keys( value as Record<string, unknown> ).length === 1
+        typeof value === 'object' &&
+        value !== null &&
+        'data' in value &&
+        Object.keys(value as Record<string, unknown>).length === 1
     ) {
-        return ( value as { data: T } ).data;
+        return (value as { data: T }).data;
     }
     return value as T;
 }

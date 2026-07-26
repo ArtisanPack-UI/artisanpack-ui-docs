@@ -88,7 +88,8 @@ export default function Profile({ user, mustVerifyEmail, isVerified, status }: P
                                     </Link>
                                     {status === 'verification-link-sent' ? (
                                         <p className="mt-2 font-medium text-success">
-                                            A new verification link has been sent to your email address.
+                                            A new verification link has been sent to your email
+                                            address.
                                         </p>
                                     ) : null}
                                 </div>

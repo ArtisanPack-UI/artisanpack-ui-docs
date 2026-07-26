@@ -73,7 +73,12 @@ const ACTION_COLOR: Record<AuditEntry['action'], string> = {
     reordered: 'bg-warning/15 text-warning',
 };
 
-export default function AuditLog({ entries, filters, resourceOptions, sourceOptions }: AuditLogProps) {
+export default function AuditLog({
+    entries,
+    filters,
+    resourceOptions,
+    sourceOptions,
+}: AuditLogProps) {
     const [form, setForm] = useState({
         resource: filters.resource ?? '',
         actor: filters.actor ?? '',
@@ -104,8 +109,8 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                 <header>
                     <h1 className="text-large font-semibold">Audit log</h1>
                     <p className="text-small text-text-muted">
-                        Every write to packages, documentation, and changelogs — from
-                        both the admin UI and the v1 API — is recorded here.
+                        Every write to packages, documentation, and changelogs — from both the admin
+                        UI and the v1 API — is recorded here.
                     </p>
                 </header>
 
@@ -117,7 +122,9 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                                 name="resource"
                                 label="Resource"
                                 value={form.resource}
-                                onChange={(event) => setForm({ ...form, resource: event.target.value })}
+                                onChange={(event) =>
+                                    setForm({ ...form, resource: event.target.value })
+                                }
                             >
                                 <option value="">All resources</option>
                                 {resourceOptions.map((option) => (
@@ -134,7 +141,9 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                                 label="Actor"
                                 placeholder="Name or token"
                                 value={form.actor}
-                                onChange={(event) => setForm({ ...form, actor: event.target.value })}
+                                onChange={(event) =>
+                                    setForm({ ...form, actor: event.target.value })
+                                }
                             />
 
                             <Select
@@ -142,7 +151,9 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                                 name="source"
                                 label="Source"
                                 value={form.source}
-                                onChange={(event) => setForm({ ...form, source: event.target.value })}
+                                onChange={(event) =>
+                                    setForm({ ...form, source: event.target.value })
+                                }
                             >
                                 <option value="">Any</option>
                                 {sourceOptions.map((option) => (
@@ -186,7 +197,8 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-medium font-semibold">
-                                {entries.meta.total} {entries.meta.total === 1 ? 'entry' : 'entries'}
+                                {entries.meta.total}{' '}
+                                {entries.meta.total === 1 ? 'entry' : 'entries'}
                             </h2>
                             <p className="text-small text-text-muted">
                                 Page {entries.meta.current_page} of {entries.meta.last_page}
@@ -247,7 +259,8 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                                                 <td className="py-3 pr-4">
                                                     <span
                                                         className={`rounded-box px-2 py-0.5 text-xsmall font-semibold uppercase ${
-                                                            ACTION_COLOR[entry.action] ?? 'bg-surface text-text-muted'
+                                                            ACTION_COLOR[entry.action] ??
+                                                            'bg-surface text-text-muted'
                                                         }`}
                                                     >
                                                         {entry.action}
@@ -257,11 +270,19 @@ export default function AuditLog({ entries, filters, resourceOptions, sourceOpti
                                                     {entry.changes ? (
                                                         <details>
                                                             <summary className="cursor-pointer text-text hover:text-primary">
-                                                                {Object.keys(entry.changes).length} field
-                                                                {Object.keys(entry.changes).length === 1 ? '' : 's'}
+                                                                {Object.keys(entry.changes).length}{' '}
+                                                                field
+                                                                {Object.keys(entry.changes)
+                                                                    .length === 1
+                                                                    ? ''
+                                                                    : 's'}
                                                             </summary>
                                                             <pre className="mt-2 max-h-64 overflow-auto rounded-box bg-surface p-2 text-xsmall">
-                                                                {JSON.stringify(entry.changes, null, 2)}
+                                                                {JSON.stringify(
+                                                                    entry.changes,
+                                                                    null,
+                                                                    2,
+                                                                )}
                                                             </pre>
                                                         </details>
                                                     ) : (

@@ -14,12 +14,7 @@ export interface SidebarIconProps {
  * normalized to `fill="currentColor"`, so they inherit the wrapping
  * span's text color. Font Awesome icons are rendered by class.
  */
-export function SidebarIcon({
-    icon,
-    fallbackClass,
-    tone,
-    small = false,
-}: SidebarIconProps) {
+export function SidebarIcon({ icon, fallbackClass, tone, small = false }: SidebarIconProps) {
     const color = tone === 'active' ? 'text-secondary' : 'text-text-subtle';
     const size = small ? 'text-[13px]' : 'text-[15px]';
     const box = small ? 'w-4' : 'w-[18px]';
@@ -37,12 +32,7 @@ export function SidebarIcon({
     }
 
     const className = icon?.type === 'class' ? icon.class : fallbackClass;
-    return (
-        <i
-            className={`${className} ${box} text-center ${size} ${color}`}
-            aria-hidden
-        />
-    );
+    return <i className={`${className} ${box} text-center ${size} ${color}`} aria-hidden />;
 }
 
 // Force the SVG to the target render size so different source viewBoxes

@@ -38,11 +38,11 @@ export interface GoogleConnectionManagerProps {
     csrfToken?: string | null;
     labels?: Partial<GoogleConnectionLabels>;
     onDisconnected?: () => void;
-    onStatus?: ( status: GoogleConnectionStatus ) => void;
+    onStatus?: (status: GoogleConnectionStatus) => void;
     connectUrl?: string;
     disconnectUrl?: string;
     reauthorizeUrl?: string;
     className?: string;
 }
 
-export const GoogleConnectionManager: ( props: GoogleConnectionManagerProps ) => JSX.Element;
+export const GoogleConnectionManager: (props: GoogleConnectionManagerProps) => JSX.Element;

@@ -41,12 +41,7 @@ export default function ConfirmPassword() {
                     error={errors.password}
                 />
 
-                <Button
-                    type="submit"
-                    color="primary"
-                    className="w-full"
-                    loading={processing}
-                >
+                <Button type="submit" color="primary" className="w-full" loading={processing}>
                     Confirm
                 </Button>
             </form>

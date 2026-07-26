@@ -26,11 +26,15 @@ export default function Appearance({ theme }: AppearanceProps) {
         const next = event.target.value as ColorScheme;
         setSelected(next);
         setColorScheme(next);
-        router.patch('/dashboard/settings/appearance', { theme: next }, {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => setSaved(true),
-        });
+        router.patch(
+            '/dashboard/settings/appearance',
+            { theme: next },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => setSaved(true),
+            },
+        );
     };
 
     return (

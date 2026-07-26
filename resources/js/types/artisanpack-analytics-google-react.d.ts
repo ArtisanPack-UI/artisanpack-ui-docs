@@ -25,7 +25,7 @@ export interface GaOverviewProps {
     initialDays?: number;
     propertyId?: string | null;
     baseUrl?: string;
-    fetchImpl?: ( input: RequestInfo | URL, init?: RequestInit ) => Promise<Response>;
+    fetchImpl?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
 
 export interface GaTopContentProps {
@@ -33,7 +33,7 @@ export interface GaTopContentProps {
     initialLimit?: number;
     propertyId?: string | null;
     baseUrl?: string;
-    fetchImpl?: ( input: RequestInfo | URL, init?: RequestInit ) => Promise<Response>;
+    fetchImpl?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 }
 
 export interface Ga4SnippetProps {
@@ -43,6 +43,6 @@ export interface Ga4SnippetProps {
     consentCategory?: string;
 }
 
-export const GaOverview: ( props: GaOverviewProps ) => JSX.Element;
-export const GaTopContent: ( props: GaTopContentProps ) => JSX.Element;
+export const GaOverview: (props: GaOverviewProps) => JSX.Element;
+export const GaTopContent: (props: GaTopContentProps) => JSX.Element;
 export const Ga4Snippet: ComponentType<Ga4SnippetProps>;

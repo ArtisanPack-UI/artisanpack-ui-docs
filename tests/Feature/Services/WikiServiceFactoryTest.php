@@ -35,7 +35,7 @@ test('throws exception for unsupported URLs', function () {
     $factory = new WikiServiceFactory;
 
     $factory->make('https://bitbucket.org/owner/repo', 'test-token');
-})->throws(\Exception::class, 'Unable to detect wiki source from URL');
+})->throws(Exception::class, 'Unable to detect wiki source from URL');
 
 test('detectSource returns github for github.com URLs', function () {
     $factory = new WikiServiceFactory;
@@ -56,4 +56,4 @@ test('detectSource throws exception for unknown URLs', function () {
     $factory = new WikiServiceFactory;
 
     $factory->detectSource('https://bitbucket.org/owner/repo');
-})->throws(\Exception::class, 'Unable to detect wiki source from URL');
+})->throws(Exception::class, 'Unable to detect wiki source from URL');

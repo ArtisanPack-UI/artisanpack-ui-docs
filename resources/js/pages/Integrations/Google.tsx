@@ -12,10 +12,10 @@ export interface GoogleIntegrationPageProps {
     hasCredentials: boolean;
 }
 
-export default function GoogleIntegrationPage( {
+export default function GoogleIntegrationPage({
     propertyId,
     hasCredentials,
-}: GoogleIntegrationPageProps ) {
+}: GoogleIntegrationPageProps) {
     return (
         <AdminLayout title="Integrations · Google">
             <Head title="Integrations · Google" />
@@ -23,8 +23,8 @@ export default function GoogleIntegrationPage( {
             <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
                 <header>
                     <p className="text-small text-text-muted">
-                        Connect a Google account so the docs site can pull GA4 reporting
-                        data alongside the local analytics stream.
+                        Connect a Google account so the docs site can pull GA4 reporting data
+                        alongside the local analytics stream.
                     </p>
                 </header>
 
@@ -50,8 +50,7 @@ export default function GoogleIntegrationPage( {
                                 <code className="rounded bg-surface px-1 py-0.5 font-mono text-xsmall">
                                     GOOGLE_REDIRECT_URI
                                 </code>{' '}
-                                in <code className="font-mono">.env</code> to enable this
-                                panel.
+                                in <code className="font-mono">.env</code> to enable this panel.
                             </p>
                         </div>
                     )}
@@ -67,8 +66,8 @@ export default function GoogleIntegrationPage( {
                             <code className="rounded bg-surface px-1 py-0.5 font-mono text-xsmall">
                                 GA4_PROPERTY_ID
                             </code>{' '}
-                            in <code className="font-mono">.env</code> and connect a Google
-                            account to see GA4 reporting here.
+                            in <code className="font-mono">.env</code> and connect a Google account
+                            to see GA4 reporting here.
                         </p>
                     )}
                 </Card>

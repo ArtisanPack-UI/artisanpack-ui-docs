@@ -39,11 +39,11 @@ declare global {
                 properties?: Record<string, unknown>,
                 options?: { category?: string; value?: number },
             ) => void;
-            pageView?: ( customData?: Record<string, unknown> ) => void;
+            pageView?: (customData?: Record<string, unknown>) => void;
             consent?: {
-                grant: ( categories?: string | string[] ) => void;
-                revoke: ( categories?: string | string[] ) => void;
-                hasConsent: ( category: string ) => boolean;
+                grant: (categories?: string | string[]) => void;
+                revoke: (categories?: string | string[]) => void;
+                hasConsent: (category: string) => boolean;
             };
         };
     }
@@ -58,8 +58,8 @@ const SENSITIVE_PATH_PATTERNS: RegExp[] = [
     /^\/user\/confirm-password(\/|$)/,
 ];
 
-export function isSensitivePath( pathname: string ): boolean {
-    return SENSITIVE_PATH_PATTERNS.some( ( pattern ) => pattern.test( pathname ) );
+export function isSensitivePath(pathname: string): boolean {
+    return SENSITIVE_PATH_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
 /**
@@ -75,11 +75,11 @@ export function isSensitivePath( pathname: string ): boolean {
  * defaults to `false` so production users never see console noise.
  */
 function isAnalyticsDebugEnabled(): boolean {
-    if ( typeof window === 'undefined' ) {
+    if (typeof window === 'undefined') {
         return false;
     }
     try {
-        if ( new URLSearchParams( window.location.search ).get( 'analytics-debug' ) === '1' ) {
+        if (new URLSearchParams(window.location.search).get('analytics-debug') === '1') {
             return true;
         }
     } catch {
@@ -87,19 +87,17 @@ function isAnalyticsDebugEnabled(): boolean {
         // but guard anyway so a hardened iframe can't crash the boot.
     }
     try {
-        return window.localStorage.getItem( 'analytics-debug' ) === '1';
+        return window.localStorage.getItem('analytics-debug') === '1';
     } catch {
         return false;
     }
 }
 
 export function shouldTrackAnalytics(): boolean {
-    if ( typeof document === 'undefined' ) {
+    if (typeof document === 'undefined') {
         return false;
     }
-    const meta = document.querySelector<HTMLMetaElement>(
-        'meta[name="analytics-track"]',
-    );
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="analytics-track"]');
     // Default to true when the tag is absent so removing it in a
     // partial migration errs on the side of collecting data (visitor
     // pages, guest sessions). There is no server-side belt: the
@@ -107,7 +105,7 @@ export function shouldTrackAnalytics(): boolean {
     // group which has no `StartSession`, so no server-side auth
     // check can distinguish authed vs guest beacons — this meta
     // gate is the whole story.
-    if ( ! meta ) {
+    if (!meta) {
         return true;
     }
     return meta.content.trim().toLowerCase() !== 'false';
@@ -123,13 +121,13 @@ const EVENT_QUEUE: Array<{
 let trackerReady = false;
 
 function flushQueue(): void {
-    if ( ! window.ArtisanPackAnalytics?.event ) {
+    if (!window.ArtisanPackAnalytics?.event) {
         return;
     }
     trackerReady = true;
-    while ( EVENT_QUEUE.length > 0 ) {
+    while (EVENT_QUEUE.length > 0) {
         const entry = EVENT_QUEUE.shift();
-        if ( ! entry ) {
+        if (!entry) {
             continue;
         }
         window.ArtisanPackAnalytics.event(
@@ -153,26 +151,26 @@ export function trackDocsEvent(
     properties: Record<string, unknown> = {},
     options: { category?: string; value?: number } = {},
 ): void {
-    if ( typeof window === 'undefined' ) {
+    if (typeof window === 'undefined') {
         return;
     }
-    if ( ! shouldTrackAnalytics() ) {
+    if (!shouldTrackAnalytics()) {
         return;
     }
-    if ( isSensitivePath( window.location.pathname ) ) {
+    if (isSensitivePath(window.location.pathname)) {
         return;
     }
-    if ( trackerReady && window.ArtisanPackAnalytics?.event ) {
-        window.ArtisanPackAnalytics.event( name, properties, options );
+    if (trackerReady && window.ArtisanPackAnalytics?.event) {
+        window.ArtisanPackAnalytics.event(name, properties, options);
         return;
     }
-    EVENT_QUEUE.push( { name, properties, ...options } );
+    EVENT_QUEUE.push({ name, properties, ...options });
 }
 
 if (
-    typeof window !== 'undefined'
-    && ! isSensitivePath( window.location.pathname )
-    && shouldTrackAnalytics()
+    typeof window !== 'undefined' &&
+    !isSensitivePath(window.location.pathname) &&
+    shouldTrackAnalytics()
 ) {
     window.__ARTISANPACK_ANALYTICS_CONFIG__ = {
         endpoint: '/api/analytics',
@@ -193,7 +191,7 @@ if (
 
     const client = window.PrivacyConsent;
 
-    if ( client ) {
+    if (client) {
         // The privacy client's `load()` intentionally calls setState with
         // `dispatch: false`, so `onChange` subscribers do NOT fire on
         // initial hydration. `whenConsented()` only checks the sync
@@ -206,15 +204,15 @@ if (
         // dispatch that DOES fire out of `setConsent`/`setConsents`).
         client
             .load()
-            .catch( () => {
+            .catch(() => {
                 // Network failure or 4xx from /api/privacy/consent. Do
                 // not block the consent gate on transport errors — fall
                 // through to `whenConsented` which will still resolve
                 // if the visitor grants consent via the UI.
-            } )
-            .then( () => client.whenConsented( 'analytics' ) )
-            .then( () => import( '@artisanpack-ui/analytics/tracker' ) )
-            .then( () => {
+            })
+            .then(() => client.whenConsented('analytics'))
+            .then(() => import('@artisanpack-ui/analytics/tracker'))
+            .then(() => {
                 // The tracker IIFE auto-inits on DOMContentLoaded; when the
                 // dynamic import lands post-load it inits synchronously.
                 // Either way, ArtisanPackAnalytics._initialized flips
@@ -239,14 +237,14 @@ if (
                 // the boot gate uses) so password-reset / verify-token
                 // URLs never leave the browser.
                 const onNavigate = (): void => {
-                    if ( isSensitivePath( window.location.pathname ) ) {
+                    if (isSensitivePath(window.location.pathname)) {
                         return;
                     }
                     window.ArtisanPackAnalytics?.pageView?.();
                 };
-                document.addEventListener( 'inertia:navigate', onNavigate );
-            } )
-            .catch( ( error: unknown ) => {
+                document.addEventListener('inertia:navigate', onNavigate);
+            })
+            .catch((error: unknown) => {
                 // Consent was withdrawn, the wait was aborted, or the
                 // tracker chunk failed to load. Silently drop queued
                 // events — they were opt-in data the visitor did not
@@ -255,10 +253,10 @@ if (
                 // on, so a future vendor bump that breaks init doesn't
                 // hide behind an empty catch.
                 EVENT_QUEUE.length = 0;
-                if ( isAnalyticsDebugEnabled() ) {
+                if (isAnalyticsDebugEnabled()) {
                     // eslint-disable-next-line no-console
-                    console.warn( '[analytics] tracker boot aborted', error );
+                    console.warn('[analytics] tracker boot aborted', error);
                 }
-            } );
+            });
     }
 }

@@ -20,7 +20,9 @@ export function AuthLayout({ children, title, description }: AuthLayoutProps) {
                     {title ? (
                         <header className="mb-6 text-center">
                             <h1 className="font-display text-h4">{title}</h1>
-                            {description ? <p className="mt-2 text-small text-text-muted">{description}</p> : null}
+                            {description ? (
+                                <p className="mt-2 text-small text-text-muted">{description}</p>
+                            ) : null}
                         </header>
                     ) : null}
 

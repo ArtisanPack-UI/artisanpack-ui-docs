@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Modules\Core\Setting;
 use Modules\Pages\Page;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 it('renders a top-level page at /{slug}', function () {
@@ -161,7 +162,7 @@ it('excludes reserved first segments from the pages viewer routes', function (st
         $matchedName = Route::getRoutes()->match(
             Request::create("/{$reserved}", 'GET')
         )->getName();
-    } catch (NotFoundHttpException|\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException) {
+    } catch (NotFoundHttpException|MethodNotAllowedHttpException) {
         $matchedName = null;
     }
 

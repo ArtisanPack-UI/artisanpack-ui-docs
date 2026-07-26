@@ -15,29 +15,29 @@ const COLUMNS: DataTableColumn<EventBreakdownItem>[] = [
     {
         key: 'name',
         label: 'Event',
-        render: ( row ) => <span className="font-mono text-text">{row.name}</span>,
+        render: (row) => <span className="font-mono text-text">{row.name}</span>,
     },
     {
         key: 'category',
         label: 'Category',
-        render: ( row ) => row.category || '—',
+        render: (row) => row.category || '—',
     },
     {
         key: 'count',
         label: 'Count',
         align: 'right',
-        render: ( row ) => row.count.toLocaleString(),
+        render: (row) => row.count.toLocaleString(),
     },
     {
         key: 'percentage',
         label: 'Share',
         align: 'right',
-        render: ( row ) => `${row.percentage.toFixed( 1 )}%`,
+        render: (row) => `${row.percentage.toFixed(1)}%`,
     },
 ];
 
-export default function AnalyticsEventsPage( props: EventsPageProps ) {
-    const eventBreakdown = unwrap<EventBreakdownItem[]>( props.eventBreakdown, [] );
+export default function AnalyticsEventsPage(props: EventsPageProps) {
+    const eventBreakdown = unwrap<EventBreakdownItem[]>(props.eventBreakdown, []);
 
     return (
         <AdminLayout title="Analytics · Events">
@@ -57,7 +57,7 @@ export default function AnalyticsEventsPage( props: EventsPageProps ) {
                     <DataTable<EventBreakdownItem>
                         rows={eventBreakdown}
                         columns={COLUMNS}
-                        getRowKey={( row ) => `${row.name}-${row.category}`}
+                        getRowKey={(row) => `${row.name}-${row.category}`}
                         emptyText="No events recorded in this range. Events will appear as visitors interact with the docs (search, copy code snippets, follow outbound links)."
                     />
                 </Panel>

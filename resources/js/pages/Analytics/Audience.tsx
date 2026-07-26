@@ -25,38 +25,38 @@ interface Row {
 }
 
 const COLUMNS: DataTableColumn<Row>[] = [
-    { key: 'label', label: 'Segment', render: ( row ) => row.label },
+    { key: 'label', label: 'Segment', render: (row) => row.label },
     {
         key: 'visitors',
         label: 'Visitors',
         align: 'right',
-        render: ( row ) => row.visitors.toLocaleString(),
+        render: (row) => row.visitors.toLocaleString(),
     },
     {
         key: 'percentage',
         label: 'Share',
         align: 'right',
-        render: ( row ) =>
-            typeof row.percentage === 'number' ? `${row.percentage.toFixed( 1 )}%` : '—',
+        render: (row) =>
+            typeof row.percentage === 'number' ? `${row.percentage.toFixed(1)}%` : '—',
     },
 ];
 
-export default function AnalyticsAudiencePage( props: AudiencePageProps ) {
-    const devices = unwrap<DeviceBreakdownItem[]>( props.deviceBreakdown, [] ).map( ( d ) => ( {
+export default function AnalyticsAudiencePage(props: AudiencePageProps) {
+    const devices = unwrap<DeviceBreakdownItem[]>(props.deviceBreakdown, []).map((d) => ({
         label: d.device,
         visitors: d.visitors,
         percentage: d.percentage,
-    } ) );
-    const browsers = unwrap<BrowserBreakdownItem[]>( props.browserBreakdown, [] ).map( ( b ) => ( {
+    }));
+    const browsers = unwrap<BrowserBreakdownItem[]>(props.browserBreakdown, []).map((b) => ({
         label: b.browser,
         visitors: b.visitors,
         percentage: b.percentage,
-    } ) );
-    const countries = unwrap<CountryBreakdownItem[]>( props.countryBreakdown, [] ).map( ( c ) => ( {
+    }));
+    const countries = unwrap<CountryBreakdownItem[]>(props.countryBreakdown, []).map((c) => ({
         label: c.country ?? c.country_code ?? 'Unknown',
         visitors: c.visitors,
         percentage: c.percentage,
-    } ) );
+    }));
 
     return (
         <AdminLayout title="Analytics · Audience">
@@ -76,14 +76,14 @@ export default function AnalyticsAudiencePage( props: AudiencePageProps ) {
                         <DataTable<Row>
                             rows={devices}
                             columns={COLUMNS}
-                            getRowKey={( row ) => `device-${row.label}`}
+                            getRowKey={(row) => `device-${row.label}`}
                         />
                     </Panel>
                     <Panel title="Browsers">
                         <DataTable<Row>
                             rows={browsers}
                             columns={COLUMNS}
-                            getRowKey={( row ) => `browser-${row.label}`}
+                            getRowKey={(row) => `browser-${row.label}`}
                         />
                     </Panel>
                 </div>
@@ -92,7 +92,7 @@ export default function AnalyticsAudiencePage( props: AudiencePageProps ) {
                     <DataTable<Row>
                         rows={countries}
                         columns={COLUMNS}
-                        getRowKey={( row ) => `country-${row.label}`}
+                        getRowKey={(row) => `country-${row.label}`}
                     />
                 </Panel>
             </div>

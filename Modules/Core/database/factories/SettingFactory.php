@@ -8,15 +8,15 @@ use Modules\Core\Setting;
 
 class SettingFactory extends Factory
 {
-	protected $model = Setting::class;
+    protected $model = Setting::class;
 
-	public function definition(): array
-	{
-		return [
-			'key'        => $this->faker->word(),
-			'value'      => $this->faker->word(),
-			'created_at' => Carbon::now(),
-			'updated_at' => Carbon::now(),
-		];
-	}
+    public function definition(): array
+    {
+        return [
+            'key' => $this->faker->word(),
+            'value' => $this->faker->word(),
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ];
+    }
 }

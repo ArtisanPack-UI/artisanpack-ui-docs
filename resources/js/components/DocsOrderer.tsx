@@ -76,7 +76,11 @@ function toChangeList(lists: Map<number, DocsOrdererItem[]>): DocsOrdererChangeI
  * scoped to same-level entries (root vs. same-parent children); a top-level
  * page can't be dropped onto a child and vice versa.
  */
-export function DocsOrderer({ items, onChange, emptyText = 'No documentation entries yet.' }: DocsOrdererProps) {
+export function DocsOrderer({
+    items,
+    onChange,
+    emptyText = 'No documentation entries yet.',
+}: DocsOrdererProps) {
     const itemsSignature = useMemo(
         () => items.map((item) => `${item.id}:${item.parent}:${item.menu_order}`).join('|'),
         [items],

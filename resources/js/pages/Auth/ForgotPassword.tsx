@@ -31,10 +31,7 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
             <Head title="Forgot password" />
 
             {status ? (
-                <div
-                    role="status"
-                    className="mb-4 text-center text-small text-success"
-                >
+                <div role="status" className="mb-4 text-center text-small text-success">
                     {status}
                 </div>
             ) : null}
@@ -54,12 +51,7 @@ export default function ForgotPassword({ status }: ForgotPasswordProps) {
                     error={errors.email}
                 />
 
-                <Button
-                    type="submit"
-                    color="primary"
-                    className="w-full"
-                    loading={processing}
-                >
+                <Button type="submit" color="primary" className="w-full" loading={processing}>
                     Email password reset link
                 </Button>
 

@@ -134,7 +134,7 @@ test('logs error and throws exception on failure', function () {
 
     $mock = Mockery::mock(WikiServiceInterface::class);
     $mock->shouldReceive('getWikiPagesWithContent')
-        ->andThrow(new \Exception('Failed to clone wiki repository'));
+        ->andThrow(new Exception('Failed to clone wiki repository'));
 
     $factory = Mockery::mock(WikiServiceFactory::class);
     $factory->shouldReceive('detectSource')->andReturn('github');
@@ -143,7 +143,7 @@ test('logs error and throws exception on failure', function () {
 
     $job = new ImportWikiDocumentation($package);
     $job->handle();
-})->throws(\Exception::class);
+})->throws(Exception::class);
 
 test('throws exception when github token is not configured', function () {
     Log::shouldReceive('error')->once();
@@ -157,7 +157,7 @@ test('throws exception when github token is not configured', function () {
 
     $job = new ImportWikiDocumentation($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
+})->throws(Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('extracts title from YAML front matter', function () {
     Log::shouldReceive('info')->times(3);

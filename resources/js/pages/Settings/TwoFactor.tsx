@@ -70,8 +70,8 @@ export default function TwoFactor({
             <div className="mx-auto w-full max-w-3xl">
                 <header className="mb-8">
                     <p className="text-small text-text-muted">
-                        Add an extra layer of security by requiring a code from your
-                        authenticator app when you sign in.
+                        Add an extra layer of security by requiring a code from your authenticator
+                        app when you sign in.
                     </p>
                 </header>
 
@@ -85,8 +85,8 @@ export default function TwoFactor({
                     {!enabled ? (
                         <div className="flex flex-col gap-4">
                             <p className="text-small text-text-muted">
-                                Two-factor authentication is not enabled. Enable it to
-                                secure your account with an authenticator app.
+                                Two-factor authentication is not enabled. Enable it to secure your
+                                account with an authenticator app.
                             </p>
                             <form onSubmit={enable}>
                                 <Button
@@ -103,9 +103,9 @@ export default function TwoFactor({
                             <div>
                                 <h2 className="font-display text-h6">Finish setting up</h2>
                                 <p className="mt-2 text-small text-text-muted">
-                                    Scan the QR code below with your authenticator app,
-                                    then enter the six-digit code it generates to finish
-                                    enabling two-factor authentication.
+                                    Scan the QR code below with your authenticator app, then enter
+                                    the six-digit code it generates to finish enabling two-factor
+                                    authentication.
                                 </p>
                             </div>
 
@@ -172,18 +172,16 @@ export default function TwoFactor({
                             <div>
                                 <h2 className="font-display text-h6">Recovery codes</h2>
                                 <p className="mt-2 text-small text-text-muted">
-                                    Store these recovery codes in a secure password
-                                    manager. They can be used to sign in if you lose
-                                    access to your authenticator device.
+                                    Store these recovery codes in a secure password manager. They
+                                    can be used to sign in if you lose access to your authenticator
+                                    device.
                                 </p>
 
                                 <div className="mt-3 flex flex-wrap gap-3">
                                     <Button
                                         type="button"
                                         color="secondary"
-                                        onClick={() =>
-                                            setShowingRecovery((previous) => !previous)
-                                        }
+                                        onClick={() => setShowingRecovery((previous) => !previous)}
                                     >
                                         {showingRecovery
                                             ? 'Hide recovery codes'
@@ -211,8 +209,8 @@ export default function TwoFactor({
                             <div>
                                 <h2 className="font-display text-h6">Disable</h2>
                                 <p className="mt-2 text-small text-text-muted">
-                                    Turning off two-factor authentication will remove
-                                    the requirement to enter a code when you sign in.
+                                    Turning off two-factor authentication will remove the
+                                    requirement to enter a code when you sign in.
                                 </p>
                                 <Button
                                     type="button"

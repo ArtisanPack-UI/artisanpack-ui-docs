@@ -48,7 +48,13 @@ const HEADERS: TableHeader<PackageRow>[] = [
     },
 ];
 
-export default function PackagesIndex({ packages, create_url, can_create, can_delete, flash }: IndexProps) {
+export default function PackagesIndex({
+    packages,
+    create_url,
+    can_create,
+    can_delete,
+    flash,
+}: IndexProps) {
     const handleDelete = (pkg: PackageRow) => {
         if (!window.confirm(`Delete package "${pkg.name}"?`)) {
             return;
@@ -72,9 +78,7 @@ export default function PackagesIndex({ packages, create_url, can_create, can_de
                     ) : null}
                 </header>
 
-                {flash?.success ? (
-                    <Alert color="success">{flash.success}</Alert>
-                ) : null}
+                {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
 
                 <Card>
                     <Table<PackageRow>

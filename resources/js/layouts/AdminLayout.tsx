@@ -22,14 +22,39 @@ export interface AdminLayoutProps {
 
 const DEFAULT_NAV: AdminNavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Analytics', href: '/dashboard/analytics', matchPrefix: '/dashboard/analytics', roles: ['admin'] },
+    {
+        label: 'Analytics',
+        href: '/dashboard/analytics',
+        matchPrefix: '/dashboard/analytics',
+        roles: ['admin'],
+    },
     { label: 'Packages', href: '/dashboard/packages' },
     { label: 'Pages', href: '/dashboard/pages' },
     { label: 'Users', href: '/dashboard/users', roles: ['admin'] },
-    { label: 'Integrations', href: '/dashboard/integrations/google', matchPrefix: '/dashboard/integrations', roles: ['admin'] },
-    { label: 'Privacy', href: '/dashboard/privacy', matchPrefix: '/dashboard/privacy', roles: ['admin'] },
-    { label: 'Audit Log', href: '/dashboard/audit-log', matchPrefix: '/dashboard/audit-log', roles: ['admin'] },
-    { label: 'Settings', href: '/dashboard/settings', matchPrefix: '/dashboard/settings', roles: ['admin'] },
+    {
+        label: 'Integrations',
+        href: '/dashboard/integrations/google',
+        matchPrefix: '/dashboard/integrations',
+        roles: ['admin'],
+    },
+    {
+        label: 'Privacy',
+        href: '/dashboard/privacy',
+        matchPrefix: '/dashboard/privacy',
+        roles: ['admin'],
+    },
+    {
+        label: 'Audit Log',
+        href: '/dashboard/audit-log',
+        matchPrefix: '/dashboard/audit-log',
+        roles: ['admin'],
+    },
+    {
+        label: 'Settings',
+        href: '/dashboard/settings',
+        matchPrefix: '/dashboard/settings',
+        roles: ['admin'],
+    },
 ];
 
 const ACCOUNT_LINKS: { label: string; href: string }[] = [
@@ -41,11 +66,12 @@ const ACCOUNT_LINKS: { label: string; href: string }[] = [
 ];
 
 function AccountMenu({ name }: { name: string }) {
-    const initials = name
-        .split(' ')
-        .map((part) => part.charAt(0).toUpperCase())
-        .slice(0, 2)
-        .join('') || '?';
+    const initials =
+        name
+            .split(' ')
+            .map((part) => part.charAt(0).toUpperCase())
+            .slice(0, 2)
+            .join('') || '?';
 
     return (
         <Dropdown
@@ -86,17 +112,30 @@ export function AdminLayout({ children, title, nav = DEFAULT_NAV }: AdminLayoutP
             const prefix = item.matchPrefix ?? item.href;
             return url === prefix || url.startsWith(`${prefix}/`);
         })
-        .sort((a, b) => (b.matchPrefix ?? b.href).length - (a.matchPrefix ?? a.href).length)[0]?.href;
+        .sort(
+            (a, b) => (b.matchPrefix ?? b.href).length - (a.matchPrefix ?? a.href).length,
+        )[0]?.href;
 
     return (
-        <div className="min-h-screen bg-base text-text" style={{ display: 'grid', gridTemplateColumns: '260px 1fr' }}>
-            <aside className="border-r border-border-subtle bg-surface-2" aria-label="Admin navigation">
+        <div
+            className="min-h-screen bg-base text-text"
+            style={{ display: 'grid', gridTemplateColumns: '260px 1fr' }}
+        >
+            <aside
+                className="border-r border-border-subtle bg-surface-2"
+                aria-label="Admin navigation"
+            >
                 <div className="sticky top-0 flex h-screen flex-col">
                     <div className="border-b border-border-subtle px-6 py-4">
-                        <Link href="/dashboard" className="font-display text-lg font-semibold tracking-tight">
+                        <Link
+                            href="/dashboard"
+                            className="font-display text-lg font-semibold tracking-tight"
+                        >
                             ArtisanPack UI
                         </Link>
-                        <p className="mt-1 text-xsmall uppercase tracking-wider text-text-subtle">Admin</p>
+                        <p className="mt-1 text-xsmall uppercase tracking-wider text-text-subtle">
+                            Admin
+                        </p>
                     </div>
                     <nav className="flex-1 overflow-y-auto px-3 py-4">
                         <ul className="flex flex-col gap-1">

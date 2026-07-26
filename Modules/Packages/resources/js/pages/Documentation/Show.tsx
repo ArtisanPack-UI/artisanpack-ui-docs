@@ -70,15 +70,9 @@ export default function Show({
 
             <div className="mb-5 flex items-center gap-2 font-mono text-[13px] text-text-subtle">
                 <span>Docs</span>
-                <i
-                    className="fa-solid fa-chevron-right text-[9px]"
-                    aria-hidden
-                />
+                <i className="fa-solid fa-chevron-right text-[9px]" aria-hidden />
                 <span>{pkg.name}</span>
-                <i
-                    className="fa-solid fa-chevron-right text-[9px]"
-                    aria-hidden
-                />
+                <i className="fa-solid fa-chevron-right text-[9px]" aria-hidden />
                 <span className="text-text-muted">{doc.title}</span>
             </div>
 
@@ -117,24 +111,14 @@ export default function Show({
                     ) : (
                         <span aria-hidden />
                     )}
-                    {next ? (
-                        <NeighborCard direction="next" link={next} />
-                    ) : (
-                        <span aria-hidden />
-                    )}
+                    {next ? <NeighborCard direction="next" link={next} /> : <span aria-hidden />}
                 </nav>
             ) : null}
         </DocsLayout>
     );
 }
 
-function NeighborCard({
-    direction,
-    link,
-}: {
-    direction: 'previous' | 'next';
-    link: NeighborLink;
-}) {
+function NeighborCard({ direction, link }: { direction: 'previous' | 'next'; link: NeighborLink }) {
     const isNext = direction === 'next';
     return (
         <Link
@@ -148,19 +132,9 @@ function NeighborCard({
                     isNext ? 'justify-end' : ''
                 }`}
             >
-                {isNext ? null : (
-                    <i
-                        className="fa-solid fa-arrow-left text-[10px]"
-                        aria-hidden
-                    />
-                )}
+                {isNext ? null : <i className="fa-solid fa-arrow-left text-[10px]" aria-hidden />}
                 {isNext ? 'Next' : 'Previous'}
-                {isNext ? (
-                    <i
-                        className="fa-solid fa-arrow-right text-[10px]"
-                        aria-hidden
-                    />
-                ) : null}
+                {isNext ? <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden /> : null}
             </span>
             <span className="text-[15px] font-semibold text-text transition group-hover:text-secondary">
                 {link.title}

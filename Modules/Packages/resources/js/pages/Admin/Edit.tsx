@@ -105,7 +105,11 @@ export default function PackagesEdit({
         <AdminLayout title="Edit Package">
             <Head title={`Edit ${pkg.name}`} />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-6xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-6xl flex-col gap-6"
+                noValidate
+            >
                 {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
 
                 <div className="flex flex-col gap-6 md:flex-row">
@@ -210,7 +214,9 @@ export default function PackagesEdit({
                                 optionLabel="name"
                                 hint="Package name is auto-generated from slug."
                                 value={data.package_registry}
-                                onChange={(event) => setData('package_registry', event.target.value)}
+                                onChange={(event) =>
+                                    setData('package_registry', event.target.value)
+                                }
                                 error={errors.package_registry}
                             />
 
@@ -223,7 +229,8 @@ export default function PackagesEdit({
 
                         <GradientCard title="Documentation">
                             <p className="text-small text-text-muted">
-                                Reorder the imported documentation pages. Docs themselves are pulled from GitHub.
+                                Reorder the imported documentation pages. Docs themselves are pulled
+                                from GitHub.
                             </p>
                             <div className="flex justify-end">
                                 <Link href={documentation_url} className="btn btn-secondary">

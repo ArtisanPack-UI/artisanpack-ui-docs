@@ -87,17 +87,6 @@
       0 => 'ArtisanPackUI\\Icons\\IconsServiceProvider',
     ),
   ),
-  'artisanpack-ui/livewire-ui-components' => 
-  array (
-    'aliases' => 
-    array (
-      'LivewireUiComponents' => 'ArtisanPack\\LivewireUiComponents\\Facades\\LivewireUiComponents',
-    ),
-    'providers' => 
-    array (
-      0 => 'ArtisanPack\\LivewireUiComponents\\LivewireUiComponentsServiceProvider',
-    ),
-  ),
   'artisanpack-ui/performance' => 
   array (
     'aliases' => 
@@ -140,13 +129,6 @@
     'providers' => 
     array (
       0 => 'ArtisanPackUI\\SEO\\Providers\\SEOServiceProvider',
-    ),
-  ),
-  'blade-ui-kit/blade-heroicons' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'BladeUI\\Heroicons\\BladeHeroiconsServiceProvider',
     ),
   ),
   'blade-ui-kit/blade-icons' => 
@@ -237,17 +219,6 @@
       0 => 'Laravel\\Tinker\\TinkerServiceProvider',
     ),
   ),
-  'livewire/flux' => 
-  array (
-    'aliases' => 
-    array (
-      'Flux' => 'Flux\\Flux',
-    ),
-    'providers' => 
-    array (
-      0 => 'Flux\\FluxServiceProvider',
-    ),
-  ),
   'livewire/livewire' => 
   array (
     'aliases' => 
@@ -257,20 +228,6 @@
     'providers' => 
     array (
       0 => 'Livewire\\LivewireServiceProvider',
-    ),
-  ),
-  'livewire/volt' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Livewire\\Volt\\VoltServiceProvider',
-    ),
-  ),
-  'mhmiton/laravel-modules-livewire' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Mhmiton\\LaravelModulesLivewire\\LaravelModulesLivewireServiceProvider',
     ),
   ),
   'nesbot/carbon' => 

@@ -75,12 +75,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                     error={errors.password_confirmation}
                 />
 
-                <Button
-                    type="submit"
-                    color="primary"
-                    className="w-full"
-                    loading={processing}
-                >
+                <Button type="submit" color="primary" className="w-full" loading={processing}>
                     Reset password
                 </Button>
             </form>

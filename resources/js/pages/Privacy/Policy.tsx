@@ -72,10 +72,7 @@ export default function Policy({ policy, history, policy_url, navigation }: Poli
                         <ul className="flex flex-col gap-1 text-text-muted">
                             {policy.sections.map((section) => (
                                 <li key={section.id}>
-                                    <a
-                                        href={`#${section.id}`}
-                                        className="hover:text-secondary"
-                                    >
+                                    <a href={`#${section.id}`} className="hover:text-secondary">
                                         {section.title}
                                     </a>
                                 </li>

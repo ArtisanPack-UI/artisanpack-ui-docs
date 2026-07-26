@@ -46,15 +46,9 @@ export default function Home({ page, navigation }: HomePageProps) {
 
             <div className="mb-5 flex items-center gap-2 font-mono text-[13px] text-text-subtle">
                 <span>Docs</span>
-                <i
-                    className="fa-solid fa-chevron-right text-[9px]"
-                    aria-hidden
-                />
+                <i className="fa-solid fa-chevron-right text-[9px]" aria-hidden />
                 <span>Guides</span>
-                <i
-                    className="fa-solid fa-chevron-right text-[9px]"
-                    aria-hidden
-                />
+                <i className="fa-solid fa-chevron-right text-[9px]" aria-hidden />
                 <span className="text-text-muted">Welcome</span>
             </div>
 
@@ -68,8 +62,8 @@ export default function Home({ page, navigation }: HomePageProps) {
                 </p>
             ) : !hasContent ? (
                 <p className="mb-10 max-w-[660px] text-[19px] leading-[1.6] text-text-muted">
-                    No home page has been configured yet. Set one in the admin
-                    dashboard to display it here.
+                    No home page has been configured yet. Set one in the admin dashboard to display
+                    it here.
                 </p>
             ) : null}
 

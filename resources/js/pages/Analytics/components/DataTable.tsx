@@ -4,14 +4,14 @@ export interface DataTableColumn<T> {
     key: string;
     label: ReactNode;
     align?: 'left' | 'right';
-    render: ( row: T ) => ReactNode;
+    render: (row: T) => ReactNode;
     width?: string;
 }
 
 export interface DataTableProps<T> {
     rows: T[];
     columns: DataTableColumn<T>[];
-    getRowKey: ( row: T, index: number ) => string;
+    getRowKey: (row: T, index: number) => string;
     emptyText?: ReactNode;
 }
 
@@ -20,13 +20,13 @@ export interface DataTableProps<T> {
  * a hairline `border-border-subtle` divider; the enclosing `<Panel>` is
  * responsible for the outer frame so tables sit flush inside it.
  */
-export function DataTable<T>( {
+export function DataTable<T>({
     rows,
     columns,
     getRowKey,
     emptyText = 'No data yet for the selected range.',
-}: DataTableProps<T> ) {
-    if ( rows.length === 0 ) {
+}: DataTableProps<T>) {
+    if (rows.length === 0) {
         return <p className="text-small text-text-muted">{emptyText}</p>;
     }
 
@@ -35,7 +35,7 @@ export function DataTable<T>( {
             <table className="w-full text-small">
                 <thead>
                     <tr className="border-b border-border-subtle text-xsmall uppercase tracking-[0.08em] text-text-subtle">
-                        {columns.map( ( column ) => (
+                        {columns.map((column) => (
                             <th
                                 key={column.key}
                                 className={`py-3 font-medium ${
@@ -45,16 +45,16 @@ export function DataTable<T>( {
                             >
                                 {column.label}
                             </th>
-                        ) )}
+                        ))}
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map( ( row, index ) => (
+                    {rows.map((row, index) => (
                         <tr
-                            key={getRowKey( row, index )}
+                            key={getRowKey(row, index)}
                             className="border-b border-border-subtle/50 last:border-b-0"
                         >
-                            {columns.map( ( column ) => (
+                            {columns.map((column) => (
                                 <td
                                     key={column.key}
                                     className={`py-3 ${
@@ -63,11 +63,11 @@ export function DataTable<T>( {
                                             : 'text-left'
                                     }`}
                                 >
-                                    {column.render( row )}
+                                    {column.render(row)}
                                 </td>
-                            ) )}
+                            ))}
                         </tr>
-                    ) )}
+                    ))}
                 </tbody>
             </table>
         </div>

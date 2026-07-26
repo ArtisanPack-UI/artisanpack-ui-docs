@@ -7,10 +7,7 @@ export function NewsletterCard() {
                 boxShadow: 'var(--glow-gradient)',
             }}
         >
-            <div
-                className="rounded-[13px] p-[22px]"
-                style={{ background: '#0A0E1B' }}
-            >
+            <div className="rounded-[13px] p-[22px]" style={{ background: '#0A0E1B' }}>
                 <div
                     className="mb-3.5 inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px]"
                     style={{ background: 'var(--grad-neon)' }}
@@ -25,8 +22,8 @@ export function NewsletterCard() {
                     Stay in the Loop
                 </h3>
                 <p className="mb-4 text-[13.5px] leading-[1.55] text-text-muted">
-                    Monthly tips, tutorials and package updates — plus a free
-                    Quick Start cheat sheet.
+                    Monthly tips, tutorials and package updates — plus a free Quick Start cheat
+                    sheet.
                 </p>
                 <a
                     href="https://artisanpackui.dev"
@@ -36,8 +33,7 @@ export function NewsletterCard() {
                         color: '#04070F',
                     }}
                 >
-                    Subscribe{' '}
-                    <i className="fa-solid fa-arrow-right" aria-hidden />
+                    Subscribe <i className="fa-solid fa-arrow-right" aria-hidden />
                 </a>
             </div>
         </div>

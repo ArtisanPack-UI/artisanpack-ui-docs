@@ -10,44 +10,44 @@ use Modules\Packages\Http\Resources\ChangelogResource;
 
 class ChangelogController extends Controller
 {
-	use AuthorizesRequests;
+    use AuthorizesRequests;
 
-	public function index()
-	{
-		$this->authorize( 'viewAny', Changelog::class );
+    public function index()
+    {
+        $this->authorize('viewAny', Changelog::class);
 
-		return ChangelogResource::collection( Changelog::all() );
-	}
+        return ChangelogResource::collection(Changelog::all());
+    }
 
-	public function store( ChangelogRequest $request )
-	{
-		$this->authorize( 'create', Changelog::class );
+    public function store(ChangelogRequest $request)
+    {
+        $this->authorize('create', Changelog::class);
 
-		return new ChangelogResource( Changelog::create( $request->validated() ) );
-	}
+        return new ChangelogResource(Changelog::create($request->validated()));
+    }
 
-	public function show( Changelog $changelog )
-	{
-		$this->authorize( 'view', $changelog );
+    public function show(Changelog $changelog)
+    {
+        $this->authorize('view', $changelog);
 
-		return new ChangelogResource( $changelog );
-	}
+        return new ChangelogResource($changelog);
+    }
 
-	public function update( ChangelogRequest $request, Changelog $changelog )
-	{
-		$this->authorize( 'update', $changelog );
+    public function update(ChangelogRequest $request, Changelog $changelog)
+    {
+        $this->authorize('update', $changelog);
 
-		$changelog->update( $request->validated() );
+        $changelog->update($request->validated());
 
-		return new ChangelogResource( $changelog );
-	}
+        return new ChangelogResource($changelog);
+    }
 
-	public function destroy( Changelog $changelog )
-	{
-		$this->authorize( 'delete', $changelog );
+    public function destroy(Changelog $changelog)
+    {
+        $this->authorize('delete', $changelog);
 
-		$changelog->delete();
+        $changelog->delete();
 
-		return response()->json();
-	}
+        return response()->json();
+    }
 }

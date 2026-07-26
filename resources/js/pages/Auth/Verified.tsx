@@ -12,8 +12,8 @@ export default function Verified() {
             <Head title="Email verified" />
 
             <p className="mb-6 text-small text-text-muted">
-                Thanks for confirming your email address. You now have full access to
-                your ArtisanPack UI account.
+                Thanks for confirming your email address. You now have full access to your
+                ArtisanPack UI account.
             </p>
 
             <Button

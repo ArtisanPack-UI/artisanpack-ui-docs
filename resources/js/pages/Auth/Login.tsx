@@ -38,10 +38,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             <Head title="Log in" />
 
             {status ? (
-                <div
-                    role="status"
-                    className="mb-4 text-center text-small text-success"
-                >
+                <div role="status" className="mb-4 text-center text-small text-success">
                     {status}
                 </div>
             ) : null}
@@ -91,12 +88,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     onChange={(event) => setData('remember', event.target.checked)}
                 />
 
-                <Button
-                    type="submit"
-                    color="primary"
-                    className="w-full"
-                    loading={processing}
-                >
+                <Button type="submit" color="primary" className="w-full" loading={processing}>
                     Log in
                 </Button>
             </form>

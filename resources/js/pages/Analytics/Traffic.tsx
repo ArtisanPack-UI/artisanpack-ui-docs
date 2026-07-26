@@ -15,29 +15,29 @@ const COLUMNS: DataTableColumn<TrafficSourceItem>[] = [
     {
         key: 'source',
         label: 'Source',
-        render: ( row ) => row.source || 'Direct',
+        render: (row) => row.source || 'Direct',
     },
     {
         key: 'medium',
         label: 'Medium',
-        render: ( row ) => row.medium || '—',
+        render: (row) => row.medium || '—',
     },
     {
         key: 'visitors',
         label: 'Visitors',
         align: 'right',
-        render: ( row ) => row.visitors.toLocaleString(),
+        render: (row) => row.visitors.toLocaleString(),
     },
     {
         key: 'sessions',
         label: 'Sessions',
         align: 'right',
-        render: ( row ) => row.sessions.toLocaleString(),
+        render: (row) => row.sessions.toLocaleString(),
     },
 ];
 
-export default function AnalyticsTrafficPage( props: TrafficPageProps ) {
-    const trafficSources = unwrap<TrafficSourceItem[]>( props.trafficSources, [] );
+export default function AnalyticsTrafficPage(props: TrafficPageProps) {
+    const trafficSources = unwrap<TrafficSourceItem[]>(props.trafficSources, []);
 
     return (
         <AdminLayout title="Analytics · Traffic">
@@ -56,7 +56,7 @@ export default function AnalyticsTrafficPage( props: TrafficPageProps ) {
                     <DataTable<TrafficSourceItem>
                         rows={trafficSources}
                         columns={COLUMNS}
-                        getRowKey={( row, index ) => `${row.source}-${row.medium}-${index}`}
+                        getRowKey={(row, index) => `${row.source}-${row.medium}-${index}`}
                     />
                 </Panel>
             </div>

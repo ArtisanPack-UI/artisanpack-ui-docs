@@ -53,9 +53,7 @@ export default function PagesIndex({ pages, create_url, menu_order_url, flash }:
                     </div>
                 </header>
 
-                {flash?.success ? (
-                    <Alert color="success">{flash.success}</Alert>
-                ) : null}
+                {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
 
                 <Card>
                     <Table<PageRow>
@@ -67,11 +65,7 @@ export default function PagesIndex({ pages, create_url, menu_order_url, flash }:
                                 <Link href={page.edit_url} className="btn btn-sm">
                                     Edit
                                 </Link>
-                                <Button
-                                    size="sm"
-                                    color="error"
-                                    onClick={() => handleDelete(page)}
-                                >
+                                <Button size="sm" color="error" onClick={() => handleDelete(page)}>
                                     Delete
                                 </Button>
                             </div>

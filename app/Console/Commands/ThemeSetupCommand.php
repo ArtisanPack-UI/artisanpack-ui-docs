@@ -27,20 +27,20 @@ class ThemeSetupCommand extends Command
      */
     public function handle()
     {
-		$primaryColor = $this->ask('What is your primary color? (e.g., #FFFFFF)');
-		$secondaryColor = $this->ask('What is your secondary color? (e.g., #000000)');
-		$accentColor = $this->ask('What is your accent color? (e.g., #FF0000)');
+        $primaryColor = $this->ask('What is your primary color? (e.g., #FFFFFF)');
+        $secondaryColor = $this->ask('What is your secondary color? (e.g., #000000)');
+        $accentColor = $this->ask('What is your accent color? (e.g., #FF0000)');
 
-		$this->info('Generating theme with your selected colors...');
+        $this->info('Generating theme with your selected colors...');
 
-		Artisan::call('artisanpack:generate-theme', [
-			'--primary' => $primaryColor,
-			'--secondary' => $secondaryColor,
-			'--accent' => $accentColor,
-		]);
+        Artisan::call('artisanpack:generate-theme', [
+            '--primary' => $primaryColor,
+            '--secondary' => $secondaryColor,
+            '--accent' => $accentColor,
+        ]);
 
-		$this->info('Theme generated successfully!');
+        $this->info('Theme generated successfully!');
 
-		return 0;
-	}
+        return 0;
+    }
 }

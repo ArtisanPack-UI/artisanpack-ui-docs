@@ -80,7 +80,11 @@ export default function UsersEdit({
         <AdminLayout title="Edit User">
             <Head title={`Edit ${user.name}`} />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-3xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-3xl flex-col gap-6"
+                noValidate
+            >
                 {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
 
                 <GradientCard title="User">

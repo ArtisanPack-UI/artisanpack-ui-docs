@@ -10,18 +10,13 @@
 interface ArtisanPackPrivacyConsentState {
     regulation: string | null;
     consents: Record<string, boolean>;
-    categories: Record<
-        string,
-        { name?: string; description?: string; required?: boolean }
-    >;
+    categories: Record<string, { name?: string; description?: string; required?: boolean }>;
 }
 
 interface WindowPrivacyConsent {
-    hasConsent: ( category: string ) => boolean;
+    hasConsent: (category: string) => boolean;
     load: () => Promise<ArtisanPackPrivacyConsentState>;
-    whenConsented: (
-        category: string,
-    ) => Promise<ArtisanPackPrivacyConsentState>;
+    whenConsented: (category: string) => Promise<ArtisanPackPrivacyConsentState>;
 }
 
 declare global {

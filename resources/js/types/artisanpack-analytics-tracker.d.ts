@@ -14,14 +14,14 @@ export interface APAnalyticsEventOptions {
 
 export interface APAnalyticsInstance {
     version: string;
-    configure: ( options: Record<string, unknown> ) => APAnalyticsInstance;
-    identify?: ( id: string, traits?: Record<string, unknown> ) => APAnalyticsInstance;
+    configure: (options: Record<string, unknown>) => APAnalyticsInstance;
+    identify?: (id: string, traits?: Record<string, unknown>) => APAnalyticsInstance;
     track: (
         name: string,
         properties?: Record<string, unknown>,
         options?: APAnalyticsEventOptions,
     ) => APAnalyticsInstance;
-    trackPageView?: ( url?: string, title?: string ) => APAnalyticsInstance;
+    trackPageView?: (url?: string, title?: string) => APAnalyticsInstance;
     enable?: () => APAnalyticsInstance;
     disable?: () => APAnalyticsInstance;
 }

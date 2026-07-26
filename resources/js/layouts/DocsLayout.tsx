@@ -80,187 +80,193 @@ export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
                     background: 'linear-gradient(180deg, var(--color-base) 0%, var(--ap-ink) 100%)',
                 }}
             >
-            <header ref={headerRef} className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]">
-                <div className="flex h-[72px] w-full items-center gap-3 px-4 md:gap-7 md:px-7">
-                    {sidebar ? (
-                        <button
-                            type="button"
-                            onClick={() => setMobileNavOpen(true)}
-                            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text xl:hidden"
-                            aria-label="Open navigation"
-                            aria-expanded={mobileNavOpen}
-                            aria-controls="docs-mobile-nav"
+                <header
+                    ref={headerRef}
+                    className="sticky top-0 z-40 bg-base/90 backdrop-blur-[14px]"
+                >
+                    <div className="flex h-[72px] w-full items-center gap-3 px-4 md:gap-7 md:px-7">
+                        {sidebar ? (
+                            <button
+                                type="button"
+                                onClick={() => setMobileNavOpen(true)}
+                                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text xl:hidden"
+                                aria-label="Open navigation"
+                                aria-expanded={mobileNavOpen}
+                                aria-controls="docs-mobile-nav"
+                            >
+                                <i className="fa-solid fa-bars text-[16px]" aria-hidden />
+                            </button>
+                        ) : null}
+
+                        <Link
+                            href="/"
+                            className="flex flex-shrink-0 items-center"
+                            aria-label="ArtisanPack UI home"
                         >
-                            <i className="fa-solid fa-bars text-[16px]" aria-hidden />
-                        </button>
-                    ) : null}
+                            <img
+                                src="/images/artisanpack-ui-wordmark-light-color@3x.png"
+                                alt="ArtisanPack UI"
+                                className="hidden h-9 w-auto dark:block"
+                            />
+                            <img
+                                src="/images/artisanpack-ui-wordmark-dark-color@3x.png"
+                                alt="ArtisanPack UI"
+                                className="block h-9 w-auto dark:hidden"
+                            />
+                        </Link>
 
-                    <Link
-                        href="/"
-                        className="flex flex-shrink-0 items-center"
-                        aria-label="ArtisanPack UI home"
-                    >
-                        <img
-                            src="/images/artisanpack-ui-wordmark-light-color@3x.png"
-                            alt="ArtisanPack UI"
-                            className="hidden h-9 w-auto dark:block"
-                        />
-                        <img
-                            src="/images/artisanpack-ui-wordmark-dark-color@3x.png"
-                            alt="ArtisanPack UI"
-                            className="block h-9 w-auto dark:hidden"
-                        />
-                    </Link>
-
-                    <button
-                        type="button"
-                        onClick={openSearch}
-                        className="hidden h-[42px] flex-1 items-center gap-2.5 rounded-[10px] border border-border-subtle bg-surface-2 px-4 text-left text-small transition hover:border-border md:flex"
-                        aria-label="Search the docs"
-                    >
-                        <i
-                            className="fa-solid fa-magnifying-glass text-[14px] text-text-muted"
-                            aria-hidden
-                        />
-                        <span className="flex-1 text-text-muted">Search the docs</span>
-                        <span className="ml-auto inline-flex gap-1">
-                            <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
-                                ⌘
-                            </kbd>
-                            <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
-                                K
-                            </kbd>
-                        </span>
-                    </button>
-
-                    <div className="ml-auto flex items-center gap-1.5">
                         <button
                             type="button"
                             onClick={openSearch}
-                            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text md:hidden"
-                            aria-label="Open search"
+                            className="hidden h-[42px] flex-1 items-center gap-2.5 rounded-[10px] border border-border-subtle bg-surface-2 px-4 text-left text-small transition hover:border-border md:flex"
+                            aria-label="Search the docs"
                         >
-                            <i className="fa-solid fa-magnifying-glass text-[14px]" aria-hidden />
+                            <i
+                                className="fa-solid fa-magnifying-glass text-[14px] text-text-muted"
+                                aria-hidden
+                            />
+                            <span className="flex-1 text-text-muted">Search the docs</span>
+                            <span className="ml-auto inline-flex gap-1">
+                                <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
+                                    ⌘
+                                </kbd>
+                                <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
+                                    K
+                                </kbd>
+                            </span>
                         </button>
-                        <ThemeToggle />
-                        <span
-                            className="mx-1.5 hidden h-[22px] w-px bg-border-subtle md:block"
-                            aria-hidden
-                        />
-                        <SocialIconLink
-                            href="https://github.com/ArtisanPack-UI"
-                            icon="fa-brands fa-github"
-                            label="GitHub"
-                        />
-                        <BlueskyIconLink href="https://bsky.app/profile/artisanpackui.dev" />
-                        <SocialIconLink
-                            href="https://mastodon.social/@artisanpackui"
-                            icon="fa-brands fa-mastodon"
-                            label="Mastodon"
-                        />
+
+                        <div className="ml-auto flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={openSearch}
+                                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[9px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text md:hidden"
+                                aria-label="Open search"
+                            >
+                                <i
+                                    className="fa-solid fa-magnifying-glass text-[14px]"
+                                    aria-hidden
+                                />
+                            </button>
+                            <ThemeToggle />
+                            <span
+                                className="mx-1.5 hidden h-[22px] w-px bg-border-subtle md:block"
+                                aria-hidden
+                            />
+                            <SocialIconLink
+                                href="https://github.com/ArtisanPack-UI"
+                                icon="fa-brands fa-github"
+                                label="GitHub"
+                            />
+                            <BlueskyIconLink href="https://bsky.app/profile/artisanpackui.dev" />
+                            <SocialIconLink
+                                href="https://mastodon.social/@artisanpackui"
+                                icon="fa-brands fa-mastodon"
+                                label="Mastodon"
+                            />
+                        </div>
                     </div>
-                </div>
-                <div
-                    className="h-[2px] w-full opacity-85"
-                    style={{ backgroundImage: 'var(--grad-neon)' }}
-                    aria-hidden
-                />
-            </header>
-
-            <div className="grid w-full grid-cols-1 xl:grid-cols-[290px_1fr_264px]">
-                <aside
-                    className="sticky hidden self-start overflow-y-auto border-r border-border-subtle px-4 py-6 xl:block"
-                    style={{
-                        top: 'var(--docs-header-h, 76px)',
-                        maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
-                        background: 'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
-                    }}
-                    aria-label="Documentation navigation"
-                >
-                    {sidebar}
-                </aside>
-
-                <main className="min-w-0 px-6 py-10 md:px-16 md:py-14">
-                    {children}
-
-                    {toc && !isDesktop ? (
-                        <div className="mt-12 border-t border-border-subtle pt-8">{toc}</div>
-                    ) : null}
-                </main>
-
-                <aside
-                    className="sticky hidden self-start overflow-y-auto px-6 py-10 xl:block"
-                    style={{
-                        top: 'var(--docs-header-h, 76px)',
-                        maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
-                    }}
-                    aria-label="Table of contents"
-                >
-                    {isDesktop ? toc : null}
-                </aside>
-            </div>
-
-            {sidebar ? (
-                <div
-                    className={`fixed inset-0 z-50 xl:hidden ${mobileNavOpen ? '' : 'pointer-events-none'}`}
-                    aria-hidden={!mobileNavOpen}
-                >
                     <div
-                        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${mobileNavOpen ? 'opacity-100' : 'opacity-0'}`}
-                        onClick={() => setMobileNavOpen(false)}
+                        className="h-[2px] w-full opacity-85"
+                        style={{ backgroundImage: 'var(--grad-neon)' }}
+                        aria-hidden
                     />
+                </header>
+
+                <div className="grid w-full grid-cols-1 xl:grid-cols-[290px_1fr_264px]">
                     <aside
-                        id="docs-mobile-nav"
-                        className={`absolute inset-y-0 left-0 flex w-[290px] max-w-[85vw] flex-col border-r border-border-subtle transition-transform duration-200 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                        className="sticky hidden self-start overflow-y-auto border-r border-border-subtle px-4 py-6 xl:block"
                         style={{
+                            top: 'var(--docs-header-h, 76px)',
+                            maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
                             background: 'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
                         }}
                         aria-label="Documentation navigation"
-                        // Removes the drawer's contents from tab
-                        // order + AT semantics when closed, which
-                        // aria-hidden + pointer-events-none don't
-                        // guarantee on their own.
-                        inert={!mobileNavOpen}
                     >
-                        <div className="flex items-center justify-between border-b border-border-subtle px-4 py-4">
-                            <span className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
-                                Menu
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setMobileNavOpen(false)}
-                                className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text"
-                                aria-label="Close navigation"
-                            >
-                                <i className="fa-solid fa-xmark text-[15px]" aria-hidden />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto px-4 py-6">{sidebar}</div>
+                        {sidebar}
+                    </aside>
+
+                    <main className="min-w-0 px-6 py-10 md:px-16 md:py-14">
+                        {children}
+
+                        {toc && !isDesktop ? (
+                            <div className="mt-12 border-t border-border-subtle pt-8">{toc}</div>
+                        ) : null}
+                    </main>
+
+                    <aside
+                        className="sticky hidden self-start overflow-y-auto px-6 py-10 xl:block"
+                        style={{
+                            top: 'var(--docs-header-h, 76px)',
+                            maxHeight: 'calc(100vh - var(--docs-header-h, 76px))',
+                        }}
+                        aria-label="Table of contents"
+                    >
+                        {isDesktop ? toc : null}
                     </aside>
                 </div>
-            ) : null}
 
-            <footer
-                className="flex flex-col items-center gap-2 border-t-2 py-6 text-center"
-                style={{
-                    borderTopColor: 'var(--color-primary)',
-                    background: 'var(--ap-ink)',
-                }}
-            >
-                <span className="font-display text-sm font-bold text-text">
-                    © ArtisanPack UI {new Date().getFullYear()}
-                </span>
-                <Link
-                    href="/policy"
-                    className="cursor-pointer text-[13px] text-text-muted transition hover:text-secondary"
+                {sidebar ? (
+                    <div
+                        className={`fixed inset-0 z-50 xl:hidden ${mobileNavOpen ? '' : 'pointer-events-none'}`}
+                        aria-hidden={!mobileNavOpen}
+                    >
+                        <div
+                            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${mobileNavOpen ? 'opacity-100' : 'opacity-0'}`}
+                            onClick={() => setMobileNavOpen(false)}
+                        />
+                        <aside
+                            id="docs-mobile-nav"
+                            className={`absolute inset-y-0 left-0 flex w-[290px] max-w-[85vw] flex-col border-r border-border-subtle transition-transform duration-200 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                            style={{
+                                background: 'linear-gradient(180deg, #080C16 0%, #05070E 100%)',
+                            }}
+                            aria-label="Documentation navigation"
+                            // Removes the drawer's contents from tab
+                            // order + AT semantics when closed, which
+                            // aria-hidden + pointer-events-none don't
+                            // guarantee on their own.
+                            inert={!mobileNavOpen}
+                        >
+                            <div className="flex items-center justify-between border-b border-border-subtle px-4 py-4">
+                                <span className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
+                                    Menu
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setMobileNavOpen(false)}
+                                    className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border-subtle bg-surface-2 text-text-muted transition hover:text-text"
+                                    aria-label="Close navigation"
+                                >
+                                    <i className="fa-solid fa-xmark text-[15px]" aria-hidden />
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto px-4 py-6">{sidebar}</div>
+                        </aside>
+                    </div>
+                ) : null}
+
+                <footer
+                    className="flex flex-col items-center gap-2 border-t-2 py-6 text-center"
+                    style={{
+                        borderTopColor: 'var(--color-primary)',
+                        background: 'var(--ap-ink)',
+                    }}
                 >
-                    Privacy
-                </Link>
-            </footer>
+                    <span className="font-display text-sm font-bold text-text">
+                        © ArtisanPack UI {new Date().getFullYear()}
+                    </span>
+                    <Link
+                        href="/policy"
+                        className="cursor-pointer text-[13px] text-text-muted transition hover:text-secondary"
+                    >
+                        Privacy
+                    </Link>
+                </footer>
 
-            {searchOpen ? <SearchOverlay onClose={closeSearch} /> : null}
+                {searchOpen ? <SearchOverlay onClose={closeSearch} /> : null}
 
-            <PrivacyBanners />
+                <PrivacyBanners />
             </div>
         </>
     );

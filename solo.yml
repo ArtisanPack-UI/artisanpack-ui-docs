@@ -1,0 +1,10 @@
+name: ArtisanPack UI Docs
+icon: public/web-app-manifest-512x512.png
+processes:
+  Composer Run Dev:
+    command: composer run dev
+    working_dir: null
+    auto_start: true
+    auto_restart: true
+    restart_when_changed: []
+    env: {}

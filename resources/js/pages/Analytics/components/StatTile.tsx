@@ -10,12 +10,12 @@ export interface StatTileProps {
     } | null;
 }
 
-function formatChange( change: number ): string {
+function formatChange(change: number): string {
     const sign = change > 0 ? '+' : '';
-    return `${sign}${change.toFixed( 1 )}%`;
+    return `${sign}${change.toFixed(1)}%`;
 }
 
-export function StatTile( { label, value, hint, trend }: StatTileProps ) {
+export function StatTile({ label, value, hint, trend }: StatTileProps) {
     const trendClass = trend
         ? trend.positive === false
             ? 'text-error'
@@ -38,7 +38,7 @@ export function StatTile( { label, value, hint, trend }: StatTileProps ) {
                 <span className="flex items-center gap-2 text-xsmall text-text-muted">
                     {trend ? (
                         <span className={`tabular-nums font-medium ${trendClass}`}>
-                            {formatChange( trend.change )}
+                            {formatChange(trend.change)}
                         </span>
                     ) : null}
                     {hint ? <span>{hint}</span> : null}

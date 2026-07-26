@@ -17,7 +17,8 @@ export default function ServerError({ status = 500, message }: ServerErrorProps)
                     </p>
                     <h1 className="mt-4 font-display text-h1 font-bold">Something went wrong</h1>
                     <p className="mt-4 max-w-lg text-body text-text-muted">
-                        {message ?? "An unexpected error broke through on our end. The team has been notified — please try again in a moment."}
+                        {message ??
+                            'An unexpected error broke through on our end. The team has been notified — please try again in a moment.'}
                     </p>
                     <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                         <Button color="primary" link="/">
@@ -28,7 +29,11 @@ export default function ServerError({ status = 500, message }: ServerErrorProps)
                         </Button>
                     </div>
                     <p className="mt-10 text-xsmall text-text-subtle">
-                        Still stuck? <Link href="/" className="underline hover:text-text">Return to ArtisanPack UI</Link>.
+                        Still stuck?{' '}
+                        <Link href="/" className="underline hover:text-text">
+                            Return to ArtisanPack UI
+                        </Link>
+                        .
                     </p>
                 </div>
             </main>

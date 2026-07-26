@@ -18,7 +18,7 @@ const COLUMNS: DataTableColumn<RecentPageView>[] = [
     {
         key: 'path',
         label: 'Page',
-        render: ( row ) => (
+        render: (row) => (
             <div className="flex flex-col gap-0.5">
                 <span className="font-mono text-text">{row.path || '/'}</span>
                 {row.title ? (
@@ -31,9 +31,9 @@ const COLUMNS: DataTableColumn<RecentPageView>[] = [
         key: 'timestamp',
         label: 'When',
         align: 'right',
-        render: ( row ) => {
+        render: (row) => {
             try {
-                return new Date( row.timestamp ).toLocaleTimeString();
+                return new Date(row.timestamp).toLocaleTimeString();
             } catch {
                 return row.timestamp;
             }
@@ -41,37 +41,37 @@ const COLUMNS: DataTableColumn<RecentPageView>[] = [
     },
 ];
 
-export default function AnalyticsRealtimePage( { realtime }: RealtimePageProps ) {
-    const [ data, setData ] = useState<RealtimePayload>( realtime );
+export default function AnalyticsRealtimePage({ realtime }: RealtimePageProps) {
+    const [data, setData] = useState<RealtimePayload>(realtime);
 
-    useEffect( () => {
+    useEffect(() => {
         const controller = new AbortController();
-        const timer = window.setInterval( async () => {
+        const timer = window.setInterval(async () => {
             try {
                 // App-side companion of the vendor realtime endpoint —
                 // supplements `active_visitors` with a `recent_pageviews`
                 // list queried directly from `analytics_page_views`.
                 // See `App\Http\Controllers\Analytics\RealtimeController::feed`.
-                const response = await fetch( '/dashboard/analytics/realtime/feed', {
+                const response = await fetch('/dashboard/analytics/realtime/feed', {
                     signal: controller.signal,
                     credentials: 'same-origin',
                     headers: { Accept: 'application/json' },
-                } );
-                if ( ! response.ok ) {
+                });
+                if (!response.ok) {
                     return;
                 }
-                const next = ( await response.json() ) as RealtimePayload;
-                setData( next );
+                const next = (await response.json()) as RealtimePayload;
+                setData(next);
             } catch {
                 // Aborted or offline — the next tick will retry.
             }
-        }, 10_000 );
+        }, 10_000);
 
         return () => {
-            window.clearInterval( timer );
+            window.clearInterval(timer);
             controller.abort();
         };
-    }, [] );
+    }, []);
 
     return (
         <AdminLayout title="Analytics · Realtime">
@@ -94,7 +94,7 @@ export default function AnalyticsRealtimePage( { realtime }: RealtimePageProps )
                     />
                     <StatTile
                         label="Recent pageviews"
-                        value={( data.recent_pageviews?.length ?? 0 ).toLocaleString()}
+                        value={(data.recent_pageviews?.length ?? 0).toLocaleString()}
                         hint={`most recent samples (max 20) in the last ${data.window_minutes ?? 5} minutes`}
                     />
                 </div>
@@ -103,7 +103,7 @@ export default function AnalyticsRealtimePage( { realtime }: RealtimePageProps )
                     <DataTable<RecentPageView>
                         rows={data.recent_pageviews ?? []}
                         columns={COLUMNS}
-                        getRowKey={( row, index ) => `${row.path}-${row.timestamp}-${index}`}
+                        getRowKey={(row, index) => `${row.path}-${row.timestamp}-${index}`}
                     />
                 </Panel>
             </div>

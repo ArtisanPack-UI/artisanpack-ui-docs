@@ -17,7 +17,8 @@ export default function NotFound({ status = 404, message }: NotFoundProps) {
                     </p>
                     <h1 className="mt-4 font-display text-h1 font-bold">Page not found</h1>
                     <p className="mt-4 max-w-lg text-body text-text-muted">
-                        {message ?? "The page you're looking for has wandered off. Try heading back home or dig into the docs."}
+                        {message ??
+                            "The page you're looking for has wandered off. Try heading back home or dig into the docs."}
                     </p>
                     <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                         <Button color="primary" link="/">
@@ -28,7 +29,11 @@ export default function NotFound({ status = 404, message }: NotFoundProps) {
                         </Button>
                     </div>
                     <p className="mt-10 text-xsmall text-text-subtle">
-                        Need help? <Link href="/" className="underline hover:text-text">Return to ArtisanPack UI</Link>.
+                        Need help?{' '}
+                        <Link href="/" className="underline hover:text-text">
+                            Return to ArtisanPack UI
+                        </Link>
+                        .
                     </p>
                 </div>
             </main>

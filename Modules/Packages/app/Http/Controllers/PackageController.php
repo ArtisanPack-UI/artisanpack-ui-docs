@@ -10,44 +10,44 @@ use Modules\Packages\Package;
 
 class PackageController extends Controller
 {
-	use AuthorizesRequests;
+    use AuthorizesRequests;
 
-	public function index()
-	{
-		$this->authorize( 'viewAny', Package::class );
+    public function index()
+    {
+        $this->authorize('viewAny', Package::class);
 
-		return PackageResource::collection( Package::all() );
-	}
+        return PackageResource::collection(Package::all());
+    }
 
-	public function store( PackageRequest $request )
-	{
-		$this->authorize( 'create', Package::class );
+    public function store(PackageRequest $request)
+    {
+        $this->authorize('create', Package::class);
 
-		return new PackageResource( Package::create( $request->validated() ) );
-	}
+        return new PackageResource(Package::create($request->validated()));
+    }
 
-	public function show( Package $package )
-	{
-		$this->authorize( 'view', $package );
+    public function show(Package $package)
+    {
+        $this->authorize('view', $package);
 
-		return new PackageResource( $package );
-	}
+        return new PackageResource($package);
+    }
 
-	public function update( PackageRequest $request, Package $package )
-	{
-		$this->authorize( 'update', $package );
+    public function update(PackageRequest $request, Package $package)
+    {
+        $this->authorize('update', $package);
 
-		$package->update( $request->validated() );
+        $package->update($request->validated());
 
-		return new PackageResource( $package );
-	}
+        return new PackageResource($package);
+    }
 
-	public function destroy( Package $package )
-	{
-		$this->authorize( 'delete', $package );
+    public function destroy(Package $package)
+    {
+        $this->authorize('delete', $package);
 
-		$package->delete();
+        $package->delete();
 
-		return response()->json();
-	}
+        return response()->json();
+    }
 }

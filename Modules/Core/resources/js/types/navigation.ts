@@ -1,6 +1,4 @@
-export type ResolvedIcon =
-    | { type: 'svg'; markup: string }
-    | { type: 'class'; class: string };
+export type ResolvedIcon = { type: 'svg'; markup: string } | { type: 'class'; class: string };
 
 export interface SidebarPageNode {
     id: number;

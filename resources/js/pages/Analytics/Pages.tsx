@@ -5,11 +5,7 @@ import { AnalyticsSubNav } from './components/AnalyticsSubNav';
 import { DataTable, type DataTableColumn } from './components/DataTable';
 import { PageViewsChart } from './components/PageViewsChart';
 import { Panel } from './components/Panel';
-import type {
-    PageViewTimeSeriesPoint,
-    TopPageItem,
-    WrappedResource,
-} from './types';
+import type { PageViewTimeSeriesPoint, TopPageItem, WrappedResource } from './types';
 import { unwrap } from './unwrap';
 
 interface PagesPageProps {
@@ -21,7 +17,7 @@ const COLUMNS: DataTableColumn<TopPageItem>[] = [
     {
         key: 'path',
         label: 'Page',
-        render: ( row ) => (
+        render: (row) => (
             <div className="flex flex-col gap-0.5">
                 <span className="font-mono text-text">{row.path || '/'}</span>
                 {row.title ? (
@@ -34,19 +30,19 @@ const COLUMNS: DataTableColumn<TopPageItem>[] = [
         key: 'views',
         label: 'Views',
         align: 'right',
-        render: ( row ) => row.views.toLocaleString(),
+        render: (row) => row.views.toLocaleString(),
     },
     {
         key: 'unique_views',
         label: 'Unique visitors',
         align: 'right',
-        render: ( row ) => row.unique_views.toLocaleString(),
+        render: (row) => row.unique_views.toLocaleString(),
     },
 ];
 
-export default function AnalyticsPagesPage( props: PagesPageProps ) {
-    const topPages = unwrap<TopPageItem[]>( props.topPages, [] );
-    const chartData = unwrap<PageViewTimeSeriesPoint[]>( props.chartData, [] );
+export default function AnalyticsPagesPage(props: PagesPageProps) {
+    const topPages = unwrap<TopPageItem[]>(props.topPages, []);
+    const chartData = unwrap<PageViewTimeSeriesPoint[]>(props.chartData, []);
 
     return (
         <AdminLayout title="Analytics · Pages">
@@ -69,7 +65,7 @@ export default function AnalyticsPagesPage( props: PagesPageProps ) {
                     <DataTable<TopPageItem>
                         rows={topPages}
                         columns={COLUMNS}
-                        getRowKey={( row ) => row.path}
+                        getRowKey={(row) => row.path}
                     />
                 </Panel>
             </div>

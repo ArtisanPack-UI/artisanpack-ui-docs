@@ -10,3 +10,9 @@ package-lock.json
 Modules/*/node_modules
 Modules/*/vendor
 Modules/*/resources/assets
+
+# Design-system CSS uses hand-aligned whitespace and uppercase hex
+# values as regression signals (see tests/Feature/DesignSystemTokensTest.php);
+# Prettier would normalize both and break those assertions.
+resources/css/tokens
+resources/css/app.css

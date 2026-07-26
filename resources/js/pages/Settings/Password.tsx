@@ -81,7 +81,9 @@ export default function Password() {
                             autoComplete="new-password"
                             required
                             value={data.password_confirmation}
-                            onChange={(event) => setData('password_confirmation', event.target.value)}
+                            onChange={(event) =>
+                                setData('password_confirmation', event.target.value)
+                            }
                             error={errors.password_confirmation}
                         />
 

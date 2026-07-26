@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Modules\Core\Setting;
 
 trait ResolvesServiceTokens
@@ -24,7 +25,7 @@ trait ResolvesServiceTokens
 
         try {
             $token = $encryptedToken ? decrypt($encryptedToken) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+        } catch (DecryptException $e) {
             $token = null;
         }
 

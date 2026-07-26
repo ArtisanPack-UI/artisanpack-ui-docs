@@ -57,8 +57,9 @@ export default function Verify({ token, data_request, expired, status_message }:
                         Verify your request
                     </h1>
                     <p className="text-small text-text-muted">
-                        This confirms your identity for the {TYPE_LABELS[data_request.type] ?? data_request.type} you
-                        submitted. Once verified we'll start processing it.
+                        This confirms your identity for the{' '}
+                        {TYPE_LABELS[data_request.type] ?? data_request.type} you submitted. Once
+                        verified we'll start processing it.
                     </p>
                 </header>
 

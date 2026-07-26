@@ -29,7 +29,7 @@ export interface PanelProps {
  * `.ap-border-gradient` utility uses, inlined so the padding-box fill
  * matches `bg-surface-2` (the utility hardcodes `--color-surface`).
  */
-export function Panel( {
+export function Panel({
     title,
     description,
     actions,
@@ -37,8 +37,8 @@ export function Panel( {
     padded = true,
     className = '',
     accent = false,
-}: PanelProps ) {
-    const hasHeader = Boolean( title || description || actions );
+}: PanelProps) {
+    const hasHeader = Boolean(title || description || actions);
 
     const frameClass = accent
         ? `rounded-box border border-transparent ${className}`.trim()
@@ -56,9 +56,7 @@ export function Panel( {
             {hasHeader ? (
                 <header className="flex items-start justify-between gap-4 border-b border-border-subtle px-6 py-4">
                     <div className="flex flex-col gap-1">
-                        {title ? (
-                            <h2 className="font-display text-h6 text-text">{title}</h2>
-                        ) : null}
+                        {title ? <h2 className="font-display text-h6 text-text">{title}</h2> : null}
                         {description ? (
                             <p className="text-small text-text-muted">{description}</p>
                         ) : null}

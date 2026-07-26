@@ -73,7 +73,11 @@ export default function PackagesCreate({ store_url, cancel_url }: CreateProps) {
         <AdminLayout title="Add Package">
             <Head title="Add Package" />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-6xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-6xl flex-col gap-6"
+                noValidate
+            >
                 <div className="flex flex-col gap-6 md:flex-row">
                     <div className="flex flex-1 flex-col gap-6 md:flex-[2]">
                         <GradientCard title="Package">
@@ -156,7 +160,9 @@ export default function PackagesCreate({ store_url, cancel_url }: CreateProps) {
                                 optionLabel="name"
                                 hint="Package name is auto-generated from slug."
                                 value={data.package_registry}
-                                onChange={(event) => setData('package_registry', event.target.value)}
+                                onChange={(event) =>
+                                    setData('package_registry', event.target.value)
+                                }
                                 error={errors.package_registry}
                             />
 

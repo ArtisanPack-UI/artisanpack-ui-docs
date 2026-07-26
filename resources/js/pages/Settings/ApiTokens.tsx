@@ -57,7 +57,13 @@ function formatDate(value: string | null): string {
     }
 }
 
-export default function ApiTokens({ tokens, availableAbilities, newToken, status, rotationAgeDays }: ApiTokensProps) {
+export default function ApiTokens({
+    tokens,
+    availableAbilities,
+    newToken,
+    status,
+    rotationAgeDays,
+}: ApiTokensProps) {
     const { data, setData, post, processing, errors, reset } = useForm<CreateForm>({
         name: '',
         abilities: [],
@@ -75,7 +81,10 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
         if (checked) {
             setData('abilities', Array.from(new Set([...data.abilities, value])));
         } else {
-            setData('abilities', data.abilities.filter((ability) => ability !== value));
+            setData(
+                'abilities',
+                data.abilities.filter((ability) => ability !== value),
+            );
         }
     };
 
@@ -115,9 +124,8 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
                 <header>
                     <p className="text-small text-text-muted">
                         Personal access tokens let external clients — like{' '}
-                        <code>artisanpackui.dev</code> — call this site's API on your
-                        behalf. Grant only the abilities the client needs and rotate
-                        tokens every 90 days.
+                        <code>artisanpackui.dev</code> — call this site's API on your behalf. Grant
+                        only the abilities the client needs and rotate tokens every 90 days.
                     </p>
                 </header>
 
@@ -136,9 +144,7 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
                 {newToken ? (
                     <Alert color="warning">
                         <div className="flex flex-col gap-2">
-                            <p className="font-semibold">
-                                New token for "{newToken.name}"
-                            </p>
+                            <p className="font-semibold">New token for "{newToken.name}"</p>
                             <p className="text-small">
                                 Copy this token now — it will not be shown again.
                             </p>
@@ -230,7 +236,9 @@ export default function ApiTokens({ tokens, availableAbilities, newToken, status
                                                 key={token.id}
                                                 className="border-t border-border"
                                                 data-testid={`token-row-${token.id}`}
-                                                data-needs-rotation={token.needs_rotation ? 'true' : 'false'}
+                                                data-needs-rotation={
+                                                    token.needs_rotation ? 'true' : 'false'
+                                                }
                                             >
                                                 <td className="py-3 pr-4 font-medium text-text">
                                                     <div className="flex items-center gap-2">

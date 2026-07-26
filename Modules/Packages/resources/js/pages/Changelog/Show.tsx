@@ -26,11 +26,7 @@ export type ChangelogShowProps = PageProps<{
     navigation: SidebarNavigation;
 }>;
 
-export default function Show({
-    package: pkg,
-    changelog,
-    navigation,
-}: ChangelogShowProps) {
+export default function Show({ package: pkg, changelog, navigation }: ChangelogShowProps) {
     const articleRef = useRef<HTMLElement>(null);
     useCopyableCodeBlocks(articleRef, `${pkg.slug}:changelog`);
 
@@ -55,15 +51,9 @@ export default function Show({
 
             <div className="mb-5 flex items-center gap-2 font-mono text-[13px] text-text-subtle">
                 <span>Docs</span>
-                <i
-                    className="fa-solid fa-chevron-right text-[9px]"
-                    aria-hidden
-                />
+                <i className="fa-solid fa-chevron-right text-[9px]" aria-hidden />
                 <span>{pkg.name}</span>
-                <i
-                    className="fa-solid fa-chevron-right text-[9px]"
-                    aria-hidden
-                />
+                <i className="fa-solid fa-chevron-right text-[9px]" aria-hidden />
                 <span className="text-text-muted">Changelog</span>
             </div>
 

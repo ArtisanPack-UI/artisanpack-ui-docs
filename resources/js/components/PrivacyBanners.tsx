@@ -14,11 +14,11 @@ import type { SharedProps } from '@/types/inertia';
 const RECONSENT_DISMISS_KEY = 'artisanpack.reconsent.dismissed_version';
 
 function readDismissedVersion(): string | null {
-    if ( typeof window === 'undefined' ) {
+    if (typeof window === 'undefined') {
         return null;
     }
     try {
-        return window.localStorage.getItem( RECONSENT_DISMISS_KEY );
+        return window.localStorage.getItem(RECONSENT_DISMISS_KEY);
     } catch {
         // Private mode / disk full / storage disabled — treat as "no
         // dismissal remembered" so the banner still surfaces at least
@@ -28,12 +28,12 @@ function readDismissedVersion(): string | null {
     }
 }
 
-function persistDismissedVersion( version: string ): void {
-    if ( typeof window === 'undefined' ) {
+function persistDismissedVersion(version: string): void {
+    if (typeof window === 'undefined') {
         return;
     }
     try {
-        window.localStorage.setItem( RECONSENT_DISMISS_KEY, version );
+        window.localStorage.setItem(RECONSENT_DISMISS_KEY, version);
     } catch {
         // Same rationale as readDismissedVersion — if we can't write,
         // fall back to in-memory state; the banner will reappear on
@@ -228,7 +228,7 @@ function PolicyReconsentBanner() {
         // the policy version changes. Also handles the empty case:
         // if reconsent is null on first render there's nothing to
         // rehydrate against, and the guard below returns null anyway.
-        if ( ! reconsent ) {
+        if (!reconsent) {
             return false;
         }
         return readDismissedVersion() === reconsent.version;
@@ -241,15 +241,15 @@ function PolicyReconsentBanner() {
     // component is mounted, reset local `dismissed` so the banner
     // reappears exactly once for the new version.
     useEffect(() => {
-        if ( ! reconsent ) {
+        if (!reconsent) {
             return;
         }
-        setDismissed( readDismissedVersion() === reconsent.version );
+        setDismissed(readDismissedVersion() === reconsent.version);
     }, [reconsent?.version]);
 
     const dismiss = () => {
-        if ( reconsent ) {
-            persistDismissedVersion( reconsent.version );
+        if (reconsent) {
+            persistDismissedVersion(reconsent.version);
         }
         setDismissed(true);
     };
@@ -279,8 +279,8 @@ function PolicyReconsentBanner() {
                 }),
             });
             if (response.ok) {
-                if ( reconsent ) {
-                    persistDismissedVersion( reconsent.version );
+                if (reconsent) {
+                    persistDismissedVersion(reconsent.version);
                 }
                 setDismissed(true);
                 return;

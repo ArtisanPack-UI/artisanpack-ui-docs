@@ -86,7 +86,11 @@ export default function PagesEdit({
         <AdminLayout title="Edit Page">
             <Head title={`Edit ${page.title}`} />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-6xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-6xl flex-col gap-6"
+                noValidate
+            >
                 {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
 
                 <div className="flex flex-col gap-6 md:flex-row">
@@ -168,7 +172,9 @@ export default function PagesEdit({
                                 maxLength={160}
                                 rows={3}
                                 value={data.meta_description}
-                                onChange={(event) => setData('meta_description', event.target.value)}
+                                onChange={(event) =>
+                                    setData('meta_description', event.target.value)
+                                }
                                 error={errors.meta_description}
                             />
 

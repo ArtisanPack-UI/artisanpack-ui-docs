@@ -60,13 +60,20 @@ export default function SiteSettings({ settings, pages, update_url, flash }: Set
         });
     };
 
-    const pageOptions = [{ id: '', title: 'Select a page' }, ...pages.map((page) => ({ id: String(page.id), title: page.title }))];
+    const pageOptions = [
+        { id: '', title: 'Select a page' },
+        ...pages.map((page) => ({ id: String(page.id), title: page.title })),
+    ];
 
     return (
         <AdminLayout title="Settings">
             <Head title="Settings" />
 
-            <form onSubmit={submit} className="mx-auto flex w-full max-w-4xl flex-col gap-6" noValidate>
+            <form
+                onSubmit={submit}
+                className="mx-auto flex w-full max-w-4xl flex-col gap-6"
+                noValidate
+            >
                 {flash?.success ? <Alert color="success">{flash.success}</Alert> : null}
                 {recentlySuccessful && !flash?.success ? (
                     <Alert color="success">Settings saved successfully.</Alert>
