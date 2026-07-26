@@ -13,6 +13,19 @@ class Package extends Model
     use HasFactory;
     use HasSeo;
 
+    /**
+     * Matches GitHub content URLs — repo, blob, or raw. Used for wiki and
+     * changelog URLs where either github.com or raw.githubusercontent.com
+     * is acceptable.
+     */
+    public const GITHUB_URL_REGEX = '/^https:\/\/(github\.com|raw\.githubusercontent\.com)\//';
+
+    /**
+     * Matches GitHub repository URLs only (no raw host). Used for docs_url
+     * where we need to walk a repo tree.
+     */
+    public const GITHUB_REPO_URL_REGEX = '/^https:\/\/github\.com\//';
+
     /*
      * See Page::bootHasSeo — the package's default trait boot calls
      * `static::observe(...)`, which throws under Laravel 13 because the
@@ -85,6 +98,25 @@ class Package extends Model
     public function getSeoTitle(): string
     {
         return $this->name;
+    }
+
+    /**
+     * The field the documentation import job reads from, given the current
+     * URLs. `docs_url` wins over `wiki_url`; returns null if neither is set.
+     * Single source of truth for the priority rule (see also
+     * `ImportWikiDocumentation::handle`).
+     */
+    public static function documentationSourceField(?string $docsUrl, ?string $wikiUrl): ?string
+    {
+        if (! empty($docsUrl)) {
+            return 'docs_url';
+        }
+
+        if (! empty($wikiUrl)) {
+            return 'wiki_url';
+        }
+
+        return null;
     }
 
     public function needsDocumentationReimport(int $daysThreshold = 7): bool

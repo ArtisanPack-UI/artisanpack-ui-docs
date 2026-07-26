@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Packages\Http\Controllers\Admin\DocumentationController as AdminDocumentationController;
+use Modules\Packages\Http\Controllers\Admin\ImportChangelogController as AdminImportChangelogController;
+use Modules\Packages\Http\Controllers\Admin\ImportDocumentationController as AdminImportDocumentationController;
 use Modules\Packages\Http\Controllers\Admin\PackagesController as AdminPackagesController;
 use Modules\Packages\Http\Controllers\ChangelogViewerController;
 use Modules\Packages\Http\Controllers\DocumentationReorderController;
@@ -41,4 +43,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/packages/{package}', [AdminPackagesController::class, 'edit'])->name('dashboard.packages.edit');
     Route::patch('/dashboard/packages/{package}', [AdminPackagesController::class, 'update'])->name('dashboard.packages.update');
     Route::delete('/dashboard/packages/{package}', [AdminPackagesController::class, 'destroy'])->name('dashboard.packages.destroy');
+
+    Route::post('/dashboard/packages/{package}/import-documentation', AdminImportDocumentationController::class)
+        ->middleware('throttle:10,1')
+        ->name('dashboard.packages.import-documentation');
+    Route::post('/dashboard/packages/{package}/import-changelog', AdminImportChangelogController::class)
+        ->middleware('throttle:10,1')
+        ->name('dashboard.packages.import-changelog');
 });

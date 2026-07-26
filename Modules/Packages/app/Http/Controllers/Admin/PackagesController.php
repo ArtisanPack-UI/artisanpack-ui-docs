@@ -88,6 +88,8 @@ class PackagesController extends Controller
             'destroy_url' => route('dashboard.packages.destroy', $package),
             'index_url' => route('dashboard.packages'),
             'documentation_url' => route('dashboard.packages.documentation', $package),
+            'import_documentation_url' => route('dashboard.packages.import-documentation', $package),
+            'import_changelog_url' => route('dashboard.packages.import-changelog', $package),
             'can_delete' => request()->user()?->can('delete', $package) ?? false,
         ]);
     }
