@@ -35,7 +35,7 @@ it('mounts the SearchOverlay inside DocsLayout and wires the header button to it
         ->toContain('useSearchOverlay()')
         ->toContain('<SearchOverlay')
         ->toContain('onClick={openSearch}')
-        ->toContain('aria-label="Open search (⌘K)"');
+        ->toContain('aria-label="Search the docs"');
 });
 
 it('registers the /search route pointing at SearchController@search', function () {
