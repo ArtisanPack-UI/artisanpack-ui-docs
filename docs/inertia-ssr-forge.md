@@ -45,7 +45,7 @@ The deploy script must build both bundles **before** restarting the SSR
 daemon so the new bundle is on disk when the daemon reloads:
 
 ```bash
-cd /home/forge/docs.artisanpack.dev
+cd /home/forge/docs.artisanpackui.dev
 
 git pull origin release/3.0
 
