@@ -26,6 +26,15 @@
         <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins/poppins-400-latin.woff2" crossorigin>
         <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins/poppins-500-latin.woff2" crossorigin>
 
+        {{--
+            Font-face declarations live outside Vite so their
+            `url('/fonts/...')` paths survive the build verbatim.
+            Tailwind's Vite CSS pipeline rewrites absolute /fonts/*
+            paths to /build/fonts/* — which 404s in production because
+            the woff2s live at /fonts/*, not /build/fonts/*.
+        --}}
+        <link rel="stylesheet" href="/css/fonts.css">
+
         @include('partials.theme-boot')
 
         @viteReactRefresh
