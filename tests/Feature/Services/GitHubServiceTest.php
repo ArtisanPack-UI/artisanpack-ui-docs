@@ -115,7 +115,7 @@ test('readWikiPage rejects symlinks pointing outside clone directory', function 
 
     // The symlinked page resolves outside the clone — readWikiPage should throw
     expect(fn () => $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki'))
-        ->toThrow(\Exception::class, 'not found or path is outside repository');
+        ->toThrow(Exception::class, 'not found or path is outside repository');
 
     // Clean up outside dir
     unlink("{$outsideDir}/secret.md");
@@ -127,12 +127,12 @@ test('getWikiPagesWithContent throws exception when clone fails', function () {
     {
         protected function cloneWikiRepo(string $wikiUrl): string
         {
-            throw new \Exception("Failed to clone wiki repository for 'owner/repo': remote: Repository not found.");
+            throw new Exception("Failed to clone wiki repository for 'owner/repo': remote: Repository not found.");
         }
     };
 
     $service->getWikiPagesWithContent('https://github.com/owner/repo/wiki');
-})->throws(\Exception::class, 'Failed to clone wiki repository');
+})->throws(Exception::class, 'Failed to clone wiki repository');
 
 test('getFileContent fetches raw file content successfully', function () {
     Http::fake([
@@ -170,7 +170,7 @@ test('getFileContent throws exception on failure', function () {
     ]);
 
     $this->service->getFileContent('https://github.com/owner/repo/blob/main/MISSING.md');
-})->throws(\Exception::class, 'Failed to fetch file content');
+})->throws(Exception::class, 'Failed to fetch file content');
 
 test('getFileContent throws exception on server error', function () {
     Http::fake([
@@ -178,7 +178,7 @@ test('getFileContent throws exception on server error', function () {
     ]);
 
     $this->service->getFileContent('https://github.com/owner/repo/blob/main/CHANGELOG.md');
-})->throws(\Exception::class, 'Failed to fetch file content');
+})->throws(Exception::class, 'Failed to fetch file content');
 
 test('extractRepoPath parses GitHub URLs correctly', function () {
     $service = new GitHubService('test-token');
@@ -201,7 +201,7 @@ test('extractRepoPath throws exception for invalid URL', function () {
     $method->setAccessible(true);
 
     $method->invoke($service, 'https://invalid-url.com/something');
-})->throws(\Exception::class, 'Invalid GitHub URL format');
+})->throws(Exception::class, 'Invalid GitHub URL format');
 
 test('extractFilePathFromUrl parses GitHub file URLs correctly', function () {
     $service = new GitHubService('test-token');
@@ -229,7 +229,7 @@ test('extractFilePathFromUrl throws exception for invalid URL', function () {
     $method->setAccessible(true);
 
     $method->invoke($service, 'https://github.com/owner/repo/tree/main');
-})->throws(\Exception::class, 'Invalid GitHub file URL format');
+})->throws(Exception::class, 'Invalid GitHub file URL format');
 
 test('request handles rate limiting', function () {
     Http::fake([
@@ -241,7 +241,7 @@ test('request handles rate limiting', function () {
     ]);
 
     $this->service->getFileContent('https://github.com/owner/repo/blob/main/test.md');
-})->throws(\Exception::class, 'GitHub API rate limit exceeded');
+})->throws(Exception::class, 'GitHub API rate limit exceeded');
 
 test('request sends correct authentication headers', function () {
     Http::fake([

@@ -1,0 +1,69 @@
+/* ArtisanPack UI — Spacing, radius, border, shadow & layout tokens.
+   The "box-design" language lives here: 12px radius / 3px borders /
+   colored + gradient options are expressed as reusable tokens. */
+
+:root {
+  /* ---- Spacing scale (4px base) --------------------------------- */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-30: 120px;   /* section rhythm */
+
+  /* ---- Radius --------------------------------------------------- */
+  --radius-xs:   3px;
+  --radius-sm:   5px;    /* buttons & form controls (plan spec) */
+  --radius-md:   8px;
+  --radius-lg:   12px;   /* box-design default */
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-pill: 999px;
+  --radius-card: 12px;   /* box-design panels, media, boxes */
+
+  /* ---- Box-design language -------------------------------------- */
+  --box-radius:       12px;   /* boxes, media, blockquotes, panels */
+  --box-border-width: 2px;    /* box-design border */
+  --btn-radius:       5px;    /* buttons (plan spec) */
+  --btn-border-width: 2px;    /* button border = background color */
+  --field-radius:     5px;    /* form elements (plan spec) */
+  --field-border-width: 2px;
+
+  /* ---- Border widths -------------------------------------------- */
+  --border-thin:   1px;
+  --border-medium: 2px;
+  --border-thick:  3px;
+
+  /* ---- Neutral shadows (non-glow) ------------------------------- */
+  --shadow-xs:    0 1px 2px 0 rgba(0,0,0,0.25);
+  --shadow-sm:    0 1px 3px 0 rgba(0,0,0,0.35), 0 1px 2px -1px rgba(0,0,0,0.30);
+  --shadow-md:    0 6px 18px 0 rgba(0,0,0,0.40);
+  --shadow-lg:    0 14px 40px 0 rgba(0,0,0,0.45);
+  --shadow-xl:    0 24px 60px 0 rgba(0,0,0,0.50);
+  --shadow-panel: 0 10px 50px 0 rgba(0,0,0,0.35);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --shadow-drop5: 0 5px 5px 0 rgba(0,0,0,0.35);   /* plan's "5px dropshadow" */
+
+  /* ---- Layout --------------------------------------------------- */
+  --container-max:  1200px;
+  --container-wide: 1320px;
+  --content-rail:   1600px;
+  --gutter:    24px;
+  --gutter-lg: 48px;
+
+  /* ---- Motion --------------------------------------------------- */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);    /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);   /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);/* @kind other */
+  --dur-fast: 120ms;  /* @kind other */
+  --dur-base: 220ms;  /* @kind other */
+  --dur-slow: 360ms;  /* @kind other */
+}

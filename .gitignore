@@ -17,11 +17,15 @@ yarn-error.log
 .DS_Store
 Thumbs.db
 
+# Pest browser
+/tests/Browser/Screenshots
+
 # Node
 node_modules/
 
 # Vite
 /public/build
+/bootstrap/ssr
 
 # Modules (if using nwidart/laravel-modules)
 /Modules/*/node_modules
@@ -40,3 +44,6 @@ node_modules/
 # that should not be committed to the repository.
 # For example:
 # /.gitlab-ci-cache/
+
+# Solo (soloterm) local project config — per-user process runner setup
+solo.yml

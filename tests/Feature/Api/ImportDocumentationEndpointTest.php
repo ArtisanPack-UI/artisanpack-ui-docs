@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\ImportWikiDocumentation;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
@@ -27,7 +28,7 @@ test('the endpoint queues an import for a package with a docs url', function () 
         'docs_url' => 'https://github.com/owner/repo',
     ]);
 
-    $response = $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authenticate::class)
+    $response = $this->withoutMiddleware(Authenticate::class)
         ->postJson(route('api.packages.import-docs', $package));
 
     $response->assertAccepted()
@@ -47,7 +48,7 @@ test('the endpoint reports the wiki source when only a wiki url is set', functio
         'docs_url' => null,
     ]);
 
-    $response = $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authenticate::class)
+    $response = $this->withoutMiddleware(Authenticate::class)
         ->postJson(route('api.packages.import-docs', $package));
 
     $response->assertAccepted()
@@ -64,7 +65,7 @@ test('the endpoint rejects a package without any source url', function () {
         'docs_url' => null,
     ]);
 
-    $response = $this->withoutMiddleware(\Illuminate\Auth\Middleware\Authenticate::class)
+    $response = $this->withoutMiddleware(Authenticate::class)
         ->postJson(route('api.packages.import-docs', $package));
 
     $response->assertUnprocessable();

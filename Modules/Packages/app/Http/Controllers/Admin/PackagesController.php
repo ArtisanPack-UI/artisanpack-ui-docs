@@ -1,0 +1,135 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Packages\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Services\AuditLogger;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Packages\Http\Requests\PackageRequest;
+use Modules\Packages\Package;
+
+class PackagesController extends Controller
+{
+    public function __construct(protected AuditLogger $audit) {}
+
+    public function index(): Response
+    {
+        $packages = Package::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'version', 'package_registry'])
+            ->map(fn (Package $package): array => [
+                'id' => $package->id,
+                'name' => $package->name,
+                'slug' => $package->slug,
+                'version' => $package->version,
+                'package_registry' => $package->package_registry,
+                'edit_url' => route('dashboard.packages.edit', $package),
+                'destroy_url' => route('dashboard.packages.destroy', $package),
+            ])
+            ->all();
+
+        return Inertia::render('Packages::Admin/Index', [
+            'packages' => $packages,
+            'create_url' => route('dashboard.packages.add'),
+            'can_create' => request()->user()?->can('create', Package::class) ?? false,
+            'can_delete' => request()->user()?->can('delete', new Package) ?? false,
+        ]);
+    }
+
+    public function create(): Response
+    {
+        $this->authorize('create', Package::class);
+
+        return Inertia::render('Packages::Admin/Create', [
+            'store_url' => route('dashboard.packages.store'),
+            'cancel_url' => route('dashboard.packages'),
+        ]);
+    }
+
+    public function store(PackageRequest $request): RedirectResponse
+    {
+        $this->authorize('create', Package::class);
+
+        $package = Package::create($this->normalize($request->validated()));
+
+        $this->audit->record(AuditLogger::ACTION_CREATED, $package, null, $package->getAttributes());
+
+        return redirect()
+            ->route('dashboard.packages.edit', $package)
+            ->with('success', 'Package added successfully!');
+    }
+
+    public function edit(Package $package): Response
+    {
+        return Inertia::render('Packages::Admin/Edit', [
+            'package' => [
+                'id' => $package->id,
+                'name' => $package->name,
+                'slug' => $package->slug,
+                'homepage' => $package->homepage,
+                'wiki_url' => $package->wiki_url ?? '',
+                'docs_url' => $package->docs_url ?? '',
+                'changelog_url' => $package->changelog_url,
+                'icon' => $package->icon ?? '',
+                'version' => $package->version ?? '',
+                'package_registry' => $package->package_registry,
+            ],
+            'documentation_options' => $package->documentation()
+                ->orderBy('menu_order')
+                ->orderBy('title')
+                ->get(['id', 'title'])
+                ->map(fn ($doc): array => ['id' => $doc->id, 'name' => $doc->title])
+                ->all(),
+            'update_url' => route('dashboard.packages.update', $package),
+            'destroy_url' => route('dashboard.packages.destroy', $package),
+            'index_url' => route('dashboard.packages'),
+            'documentation_url' => route('dashboard.packages.documentation', $package),
+            'can_delete' => request()->user()?->can('delete', $package) ?? false,
+        ]);
+    }
+
+    public function update(PackageRequest $request, Package $package): RedirectResponse
+    {
+        $original = $package->getOriginal();
+        $package->update($this->normalize($request->validated()));
+
+        $this->audit->record(AuditLogger::ACTION_UPDATED, $package, $original, $package->getAttributes());
+
+        return redirect()
+            ->route('dashboard.packages.edit', $package)
+            ->with('success', 'Package updated successfully!');
+    }
+
+    public function destroy(Package $package): RedirectResponse
+    {
+        $this->authorize('delete', $package);
+
+        $snapshot = $package->getOriginal();
+        $package->delete();
+
+        $this->audit->record(AuditLogger::ACTION_DELETED, $package, $snapshot, null);
+
+        return redirect()
+            ->route('dashboard.packages')
+            ->with('success', 'Package deleted.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    protected function normalize(array $validated): array
+    {
+        foreach (['wiki_url', 'docs_url', 'icon', 'version'] as $nullable) {
+            if (array_key_exists($nullable, $validated) && $validated[$nullable] === '') {
+                $validated[$nullable] = null;
+            }
+        }
+
+        return $validated;
+    }
+}

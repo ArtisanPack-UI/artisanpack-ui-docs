@@ -9,17 +9,18 @@ use Modules\Packages\Changelog;
 /** @mixin Changelog */
 class ChangelogResource extends JsonResource
 {
-	public function toArray( Request $request ): array
-	{
-		return [
-			'id'         => $this->id,
-			'content'    => $this->content,
-			'created_at' => $this->created_at,
-			'updated_at' => $this->updated_at,
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'content' => $this->content,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
 
-			'package_id' => $this->package_id,
+            'package_id' => $this->package_id,
 
-			'package' => new PackageResource( $this->whenLoaded( 'package' ) ),
-		];
-	}
+            'package' => new PackageResource($this->whenLoaded('package')),
+        ];
+    }
 }

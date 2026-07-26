@@ -99,7 +99,7 @@ test('logs error and throws exception on failure', function () {
     $mock->shouldReceive('getFileContent')
         ->once()
         ->with($package->changelog_url)
-        ->andThrow(new \Exception('Failed to fetch file content'));
+        ->andThrow(new Exception('Failed to fetch file content'));
 
     $factory = Mockery::mock(WikiServiceFactory::class);
     $factory->shouldReceive('detectSource')->andReturn('github');
@@ -108,7 +108,7 @@ test('logs error and throws exception on failure', function () {
 
     $job = new ImportChangelog($package);
     $job->handle();
-})->throws(\Exception::class);
+})->throws(Exception::class);
 
 test('throws exception when github token is not configured', function () {
     Log::shouldReceive('error')->once();
@@ -122,7 +122,7 @@ test('throws exception when github token is not configured', function () {
 
     $job = new ImportChangelog($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
+})->throws(Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('throws exception when github token is malformed', function () {
     Log::shouldReceive('error')->once();
@@ -136,7 +136,7 @@ test('throws exception when github token is malformed', function () {
 
     $job = new ImportChangelog($package);
     $job->handle();
-})->throws(\Exception::class, 'GitHub token not configured or could not be decrypted');
+})->throws(Exception::class, 'GitHub token not configured or could not be decrypted');
 
 test('handles changelog in subdirectory', function () {
     Log::shouldReceive('info')->once();

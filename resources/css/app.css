@@ -1,0 +1,726 @@
+@import 'tailwindcss';
+@import '@artisanpack-ui/tokens/css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+@import './tokens/fonts.css';
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './tokens/base.css';
+
+@source '../js/**/*.tsx';
+@source '../js/**/*.ts';
+@source '../../Modules/*/resources/js/**/*.tsx';
+@source '../../node_modules/@artisanpack-ui/react/dist/**/*.mjs';
+
+@plugin "daisyui" {
+    themes: light --default, dark --prefersdark;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =====================================================================
+ * Tailwind v4 @theme — register utilities that resolve to AP-UI tokens.
+ *
+ * Values are inlined as raw literals (never `var(--same-name)`) so
+ * Tailwind's opacity modifiers — `bg-primary/50`, `text-secondary/70`,
+ * etc. — bake a resolvable `color-mix(in oklab, var(--color-primary)…)`
+ * chain at build time. The `[data-theme="light"]` block in
+ * resources/css/tokens/colors.css then overrides these same custom
+ * properties at the cascade level, so utilities pick up light-mode
+ * values automatically without a second @theme declaration.
+ *
+ * Dark theme values are the source of truth here — matched to the
+ * `:root` block in tokens/colors.css.
+ * ===================================================================== */
+@theme {
+    /* Colors — surfaces */
+    --color-base: #111827;
+    --color-section: #1F2937;
+    --color-surface: #1F2937;
+    --color-surface-2: #111827;
+    --color-ink: #0B1120;
+
+    /* Colors — neon triad (theme-aware via tokens/colors.css) */
+    --color-primary: #2962FF;
+    --color-secondary: #00E5FF;
+    --color-accent: #E040FB;
+
+    /* Colors — text */
+    --color-text: #FFFFFF;
+    --color-text-muted: #9CA3AF;
+    --color-text-subtle: #6B7280;
+    --color-text-invert: #111827;
+    --color-text-link: #00E5FF;
+
+    /* Colors — borders */
+    --color-border: #374151;
+    --color-border-subtle: #263143;
+    --color-border-strong: #4B5563;
+
+    /* Colors — semantic */
+    --color-valid: #22C55E;
+    --color-invalid: #EF4444;
+    --color-success: #22C55E;
+    --color-error: #EF4444;
+    --color-warning: #F59E0B;
+    --color-info: #2962FF;
+
+    /* Typography — families */
+    /* Override Tailwind v4's default --font-sans so the `font-sans` utility
+       (used by the Blade root <body>) and every unclassed text element
+       inherit Poppins instead of ui-sans-serif. */
+    --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-display: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-ui: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-alt: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "Space Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    /* Typography — desktop scale */
+    --text-h1: 56px;
+    --text-h2: 44px;
+    --text-h3: 36px;
+    --text-h4: 28px;
+    --text-h5: 22px;
+    --text-h6: 18px;
+    --text-body: 16px;
+    --text-small: 14px;
+    --text-xsmall: 13px;
+    --text-blockquote: 28px;
+    --text-code: 14px;
+    --text-eyebrow: 13px;
+
+    /* Spacing (4px base) */
+    --spacing-0: 0;
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+    --spacing-12: 48px;
+    --spacing-16: 64px;
+    --spacing-20: 80px;
+    --spacing-24: 96px;
+    --spacing-30: 120px;
+
+    /* Radius — including box-design defaults (rounded-box, rounded-btn, rounded-field) */
+    --radius-xs: 3px;
+    --radius-sm: 5px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-pill: 999px;
+    --radius-card: 12px;
+    --radius-box: 12px;
+    --radius-btn: 5px;
+    --radius-field: 5px;
+
+    /* Shadows — neutral + focus */
+    --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.25);
+    --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.35), 0 1px 2px -1px rgba(0,0,0,0.30);
+    --shadow-md: 0 6px 18px 0 rgba(0,0,0,0.40);
+    --shadow-lg: 0 14px 40px 0 rgba(0,0,0,0.45);
+    --shadow-xl: 0 24px 60px 0 rgba(0,0,0,0.50);
+    --shadow-panel: 0 10px 50px 0 rgba(0,0,0,0.35);
+    --shadow-focus: 0 0 0 3px color-mix(in srgb, #2962FF 40%, transparent);
+    --shadow-drop5: 0 5px 5px 0 rgba(0,0,0,0.35);
+
+    /* Shadows — neon glows */
+    --shadow-glow-primary: 0 0 24px color-mix(in srgb, #2962FF 50%, transparent);
+    --shadow-glow-secondary: 0 0 24px color-mix(in srgb, #00E5FF 55%, transparent);
+    --shadow-glow-accent: 0 0 24px color-mix(in srgb, #E040FB 55%, transparent);
+    --shadow-glow-primary-lg: 0 0 48px color-mix(in srgb, #2962FF 45%, transparent);
+    --shadow-glow-secondary-lg: 0 0 48px color-mix(in srgb, #00E5FF 45%, transparent);
+    --shadow-glow-accent-lg: 0 0 48px color-mix(in srgb, #E040FB 45%, transparent);
+    --shadow-glow-gradient: 0 0 20px color-mix(in srgb, #2962FF 45%, transparent), 0 0 34px color-mix(in srgb, #E040FB 40%, transparent);
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 120ms;
+    --duration-base: 220ms;
+    --duration-slow: 360ms;
+}
+
+/* Secondary buttons run on neon cyan (#00E5FF) — white text fails WCAG AA
+   against that background. Force black text so the label stays readable. */
+.btn-secondary,
+.btn-secondary:hover,
+.btn-secondary:focus {
+    color: #000;
+}
+
+/* Docs article prose — applies AP-UI display type + spacing to raw HTML
+   authored by page editors (kses-sanitized HTML rendered through
+   dangerouslySetInnerHTML in the Home page and future docs pages). */
+.docs-prose > * + * {
+    margin-top: 1.3rem;
+}
+.docs-prose h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    margin-top: 2.25rem;
+}
+.docs-prose h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--color-text);
+    margin-top: 1.75rem;
+}
+.docs-prose p,
+.docs-prose li {
+    color: var(--color-text-muted);
+}
+.docs-prose strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+.docs-prose ul {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: disc;
+}
+.docs-prose ol {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: decimal;
+}
+.docs-prose a {
+    color: var(--color-secondary);
+}
+.docs-prose a:hover {
+    color: var(--color-text);
+}
+.docs-prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-text);
+}
+.docs-prose pre {
+    margin: 0;
+    padding: 1.1rem 1.25rem;
+    border-radius: 12px;
+    background: #0b1120;
+    border: 1px solid var(--color-border-subtle);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+}
+.docs-prose pre code {
+    background: transparent;
+    padding: 0;
+}
+.docs-prose blockquote {
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--color-secondary);
+    background: rgba(0, 229, 255, 0.06);
+    border-radius: 8px;
+    color: var(--color-text);
+}
+
+/* Inertia navigation progress bar.
+   app.tsx sets `includeCSS: false` so Inertia does NOT append its own
+   NProgress stylesheet at boot; if it did, the runtime-injected
+   `<style>` would land after this file in document order and win the
+   cascade with identical specificity, flattening the gradient bar
+   back to a single color. Own the full ruleset here instead. */
+#nprogress {
+    pointer-events: none;
+}
+#nprogress .bar {
+    background: var(--grad-neon);
+    position: fixed;
+    z-index: 1031;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+}
+#nprogress .peg {
+    display: block;
+    position: absolute;
+    right: 0;
+    width: 100px;
+    height: 100%;
+    box-shadow:
+        0 0 10px var(--color-secondary),
+        0 0 5px var(--color-secondary);
+    opacity: 1;
+    transform: rotate(3deg) translate(0, -4px);
+}
+#nprogress .spinner {
+    display: block;
+    position: fixed;
+    z-index: 1031;
+    top: 15px;
+    right: 15px;
+}
+#nprogress .spinner-icon {
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border: solid 2px transparent;
+    border-top-color: var(--color-secondary);
+    border-left-color: var(--color-secondary);
+    border-radius: 50%;
+    animation: nprogress-spinner 400ms linear infinite;
+}
+.nprogress-custom-parent {
+    overflow: hidden;
+    position: relative;
+}
+.nprogress-custom-parent #nprogress .spinner,
+.nprogress-custom-parent #nprogress .bar {
+    position: absolute;
+}
+@keyframes nprogress-spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* =====================================================================
+ * Rich text editor content styles.
+ *
+ * Scoped to the ProseMirror editable inside .ap-rte so admin RTE input
+ * looks like the rendered page (paragraphs, lists, links, headings,
+ * blockquotes, code) without pulling in @tailwindcss/typography.
+ * ===================================================================== */
+.ap-rte .ProseMirror {
+    outline: none;
+    color: var(--color-text);
+    line-height: 1.6;
+}
+.ap-rte .ProseMirror > * + * {
+    margin-top: 0.75em;
+}
+.ap-rte .ProseMirror p {
+    margin: 0;
+}
+.ap-rte .ProseMirror a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: text;
+}
+.ap-rte .ProseMirror a:hover {
+    text-decoration-thickness: 2px;
+}
+.ap-rte .ProseMirror h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.25em;
+}
+.ap-rte .ProseMirror h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 1em;
+}
+.ap-rte .ProseMirror h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1em;
+}
+.ap-rte .ProseMirror ul,
+.ap-rte .ProseMirror ol {
+    padding-left: 1.5rem;
+}
+.ap-rte .ProseMirror ul {
+    list-style: disc;
+}
+.ap-rte .ProseMirror ol {
+    list-style: decimal;
+}
+.ap-rte .ProseMirror li + li {
+    margin-top: 0.25em;
+}
+.ap-rte .ProseMirror li > p {
+    margin: 0;
+}
+.ap-rte .ProseMirror blockquote {
+    border-left: 3px solid var(--color-border);
+    padding-left: 1rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+.ap-rte .ProseMirror code {
+    background: color-mix(in oklab, var(--color-surface-muted) 80%, transparent);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+}
+.ap-rte .ProseMirror pre {
+    background: var(--color-surface-muted);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+}
+.ap-rte .ProseMirror pre code {
+    background: transparent;
+    padding: 0;
+}
+.ap-rte .ProseMirror hr {
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    margin: 1.5em 0;
+}
+
+/*
+ * artisanpack-ui/privacy admin components
+ *
+ * The shipped React admin components render with hard-coded BEM class
+ * names (privacy-admin-*), no utility classes. The rules below map that
+ * markup onto the site's design tokens so /dashboard/privacy pages
+ * look native rather than browser-default. Anything wrapped in
+ * `.privacy-admin-shell` inherits these; each admin Inertia page
+ * mounts inside that shell.
+ */
+.privacy-admin-shell {
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.privacy-admin-shell header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.privacy-admin-shell h2,
+.privacy-admin-shell h3 {
+    font-family: var(--font-display, inherit);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.privacy-admin-shell h2 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+}
+
+.privacy-admin-shell h3 {
+    font-size: 1.125rem;
+    line-height: 1.3;
+}
+
+.privacy-admin-shell p {
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.privacy-admin-shell section {
+    background: color-mix(in oklab, var(--color-surface-2) 70%, transparent);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.privacy-admin-shell form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.privacy-admin-shell label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.privacy-admin-shell input[type='text'],
+.privacy-admin-shell input[type='email'],
+.privacy-admin-shell input[type='number'],
+.privacy-admin-shell input[type='date'],
+.privacy-admin-shell input[type='datetime-local'],
+.privacy-admin-shell input[type='search'],
+.privacy-admin-shell select,
+.privacy-admin-shell textarea {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    transition: border-color 0.15s ease;
+    box-sizing: border-box;
+}
+
+/*
+ * `<select>` needs an explicit height + `appearance: none` to render
+ * at the same visual size as the text/date inputs in the same filter
+ * row — otherwise the browser draws the native chrome at its own
+ * default height and the row loses baseline alignment.
+ */
+.privacy-admin-shell select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+        linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+    background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 12px) 50%;
+    background-size:
+        6px 6px,
+        6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 2rem;
+}
+
+.privacy-admin-shell input[type='text'],
+.privacy-admin-shell input[type='email'],
+.privacy-admin-shell input[type='number'],
+.privacy-admin-shell input[type='date'],
+.privacy-admin-shell input[type='datetime-local'],
+.privacy-admin-shell input[type='search'],
+.privacy-admin-shell select {
+    height: 2.375rem;
+}
+
+.privacy-admin-shell input:focus,
+.privacy-admin-shell select:focus,
+.privacy-admin-shell textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.privacy-admin-shell textarea {
+    min-height: 6rem;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.privacy-admin-shell button,
+.privacy-admin-shell a.privacy-admin-shell__link,
+.privacy-admin-shell [class$='__report-link'] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    padding: 0 0.875rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-subtle);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+    text-decoration: none;
+}
+
+.privacy-admin-shell button:hover:not(:disabled),
+.privacy-admin-shell [class$='__report-link']:hover {
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.privacy-admin-shell button[type='submit'] {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.privacy-admin-shell button[type='submit']:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--color-primary) 88%, black);
+    border-color: color-mix(in oklab, var(--color-primary) 88%, black);
+}
+
+.privacy-admin-shell button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.privacy-admin-shell table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+    color: var(--color-text);
+}
+
+.privacy-admin-shell thead th {
+    text-align: left;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: color-mix(in oklab, var(--color-surface-2) 60%, transparent);
+}
+
+.privacy-admin-shell tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    vertical-align: top;
+}
+
+.privacy-admin-shell tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.privacy-admin-shell tbody tr:hover td {
+    background: color-mix(in oklab, var(--color-surface-2) 40%, transparent);
+}
+
+.privacy-admin-shell [class$='__pager'] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+/*
+ * `.privacy-admin-shell section` defaults every section to a vertical
+ * stack, which is right for most of them. `__filters` overrides that
+ * with a horizontal wrapping row so filter fields sit side by side on
+ * desktop and wrap onto multiple lines on tablet/mobile instead of
+ * stacking full-width down the right rail. Higher specificity than the
+ * base section rule via `.privacy-admin-shell` + attribute selector.
+ */
+.privacy-admin-shell [class$='__filters'] {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: flex-end;
+    justify-content: flex-start;
+}
+
+.privacy-admin-shell [class$='__filters'] > * {
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.privacy-admin-shell [class$='__filters'] > button,
+.privacy-admin-shell [class$='__filters'] > [class$='__actions'] {
+    flex: 0 0 auto;
+}
+
+.privacy-admin-shell [class$='__header'] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.privacy-admin-shell [class$='__actions'] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+}
+
+.privacy-admin-shell [class$='__error'] {
+    color: var(--color-error);
+    background: color-mix(in oklab, var(--color-error) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-error) 30%, transparent);
+    padding: 0.625rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+}
+
+.privacy-admin-shell [class$='__success'] {
+    color: var(--color-success);
+    background: color-mix(in oklab, var(--color-success) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-success) 30%, transparent);
+    padding: 0.625rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+}
+
+.privacy-admin-shell [class$='__overdue'] {
+    color: var(--color-warning);
+    font-weight: 500;
+}
+
+.privacy-admin-shell [class$='__subject-id'] {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.privacy-admin-shell [class$='__grid'] {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.privacy-admin-shell ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.privacy-admin-shell dl {
+    display: grid;
+    grid-template-columns: minmax(160px, auto) 1fr;
+    row-gap: 0.375rem;
+    column-gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.privacy-admin-shell dt {
+    color: var(--color-text-subtle);
+}
+
+.privacy-admin-shell dd {
+    color: var(--color-text);
+    margin: 0;
+}
+
+.privacy-admin-shell input[type='checkbox'] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-primary);
+}

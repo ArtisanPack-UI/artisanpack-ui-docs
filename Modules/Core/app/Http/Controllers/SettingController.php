@@ -10,44 +10,44 @@ use Modules\Core\Setting;
 
 class SettingController extends Controller
 {
-	use AuthorizesRequests;
+    use AuthorizesRequests;
 
-	public function index()
-	{
-		$this->authorize( 'viewAny', Setting::class );
+    public function index()
+    {
+        $this->authorize('viewAny', Setting::class);
 
-		return SettingResource::collection( Setting::all() );
-	}
+        return SettingResource::collection(Setting::all());
+    }
 
-	public function store( SettingRequest $request )
-	{
-		$this->authorize( 'create', Setting::class );
+    public function store(SettingRequest $request)
+    {
+        $this->authorize('create', Setting::class);
 
-		return new SettingResource( Setting::create( $request->validated() ) );
-	}
+        return new SettingResource(Setting::create($request->validated()));
+    }
 
-	public function show( Setting $setting )
-	{
-		$this->authorize( 'view', $setting );
+    public function show(Setting $setting)
+    {
+        $this->authorize('view', $setting);
 
-		return new SettingResource( $setting );
-	}
+        return new SettingResource($setting);
+    }
 
-	public function update( SettingRequest $request, Setting $setting )
-	{
-		$this->authorize( 'update', $setting );
+    public function update(SettingRequest $request, Setting $setting)
+    {
+        $this->authorize('update', $setting);
 
-		$setting->update( $request->validated() );
+        $setting->update($request->validated());
 
-		return new SettingResource( $setting );
-	}
+        return new SettingResource($setting);
+    }
 
-	public function destroy( Setting $setting )
-	{
-		$this->authorize( 'delete', $setting );
+    public function destroy(Setting $setting)
+    {
+        $this->authorize('delete', $setting);
 
-		$setting->delete();
+        $setting->delete();
 
-		return response()->json();
-	}
+        return response()->json();
+    }
 }

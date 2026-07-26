@@ -1,0 +1,27 @@
+meta {
+  name: Delete documentation
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/api/v1/documentation/:documentation
+  body: none
+  auth: bearer
+}
+
+params:path {
+  documentation: 1
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `docs:write` ability. Returns 204 on success.
+}

@@ -1,6 +1,3 @@
-import "@artisanpack-ui/livewire-drag-and-drop";
-
-// Re-apply theme on Livewire navigation to prevent theme flickering
 function applyTheme() {
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -11,7 +8,6 @@ function applyTheme() {
     }
 }
 
-// Listen for Livewire navigation events
-document.addEventListener('livewire:navigated', () => {
+document.addEventListener('inertia:navigated', () => {
     applyTheme();
 });

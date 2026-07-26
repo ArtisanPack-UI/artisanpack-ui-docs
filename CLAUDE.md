@@ -10,10 +10,10 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 - php - 8.4.13
 - laravel/fortify (FORTIFY) - v1
-- laravel/framework (LARAVEL) - v12
+- laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - livewire/flux (FLUXUI_FREE) - v2
-- livewire/livewire (LIVEWIRE) - v3
+- livewire/livewire (LIVEWIRE) - v4
 - livewire/volt (VOLT) - v1
 - laravel/mcp (MCP) - v0
 - laravel/pint (PINT) - v1
@@ -159,14 +159,14 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
 
 
-=== laravel/v12 rules ===
+=== laravel/v13 rules ===
 
-## Laravel 12
+## Laravel 13
 
 - Use the `search-docs` tool to get version specific documentation.
 - Since Laravel 11, Laravel has a new streamlined file structure which this project uses.
 
-### Laravel 12 Structure
+### Laravel 13 Structure
 - No middleware files in `app/Http/Middleware/`.
 - `bootstrap/app.php` is the file to register middleware, exceptions, and routing files.
 - `bootstrap/providers.php` contains application specific service providers.

@@ -1,0 +1,39 @@
+meta {
+  name: Reorder documentation
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/api/v1/packages/:package/documentation/reorder
+  body: json
+  auth: bearer
+}
+
+params:path {
+  package: 1
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "items": [
+      { "id": 12, "menu_order": 0 },
+      { "id": 13, "menu_order": 1 }
+    ]
+  }
+}
+
+docs {
+  Requires the `docs:write` ability. Only `menu_order` is mutated — the
+  parent/child structure comes from the imported GitHub docs. Throttled
+  to 60 requests/minute on top of the global `throttle:api` limiter.
+}

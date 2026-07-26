@@ -1,39 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Volt\Volt;
+use Inertia\Testing\AssertableInertia;
 
-test('password can be updated', function () {
-    $user = User::factory()->create([
-        'password' => Hash::make('password'),
-    ]);
+it('renders the Inertia password page for authenticated users', function () {
+    $user = User::factory()->create();
 
-    $this->actingAs($user);
+    $response = $this->actingAs($user)->get(route('dashboard.settings.password'));
 
-    $response = Volt::test('settings.password')
-        ->set('current_password', 'password')
-        ->set('password', 'new-password')
-        ->set('password_confirmation', 'new-password')
-        ->call('updatePassword');
-
-    $response->assertHasNoErrors();
-
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    $response->assertOk();
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('Settings/Password')
+        ->has('status')
+    );
 });
 
-test('correct password must be provided to update password', function () {
+it('updates the password via Fortify PUT /user/password', function () {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
     ]);
 
-    $this->actingAs($user);
+    $response = $this->actingAs($user)
+        ->from(route('dashboard.settings.password'))
+        ->put('/user/password', [
+            'current_password' => 'password',
+            'password' => 'Str0ng-Passw0rd!',
+            'password_confirmation' => 'Str0ng-Passw0rd!',
+        ]);
 
-    $response = Volt::test('settings.password')
-        ->set('current_password', 'wrong-password')
-        ->set('password', 'new-password')
-        ->set('password_confirmation', 'new-password')
-        ->call('updatePassword');
+    $response->assertRedirect(route('dashboard.settings.password'));
 
-    $response->assertHasErrors(['current_password']);
+    expect(Hash::check('Str0ng-Passw0rd!', $user->refresh()->password))->toBeTrue();
+});
+
+it('rejects password updates when current password is wrong', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+    ]);
+
+    $response = $this->actingAs($user)
+        ->from(route('dashboard.settings.password'))
+        ->put('/user/password', [
+            'current_password' => 'wrong-password',
+            'password' => 'Str0ng-Passw0rd!',
+            'password_confirmation' => 'Str0ng-Passw0rd!',
+        ]);
+
+    $response->assertSessionHasErrors(['current_password'], null, 'updatePassword');
 });

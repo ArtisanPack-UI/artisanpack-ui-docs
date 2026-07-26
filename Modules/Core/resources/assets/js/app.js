@@ -1,24 +1,16 @@
-// Add copy buttons to code blocks
 function addCopyButtons() {
     const codeContainers = document.querySelectorAll('.code-block-container');
-    console.log(`Found ${codeContainers.length} code block containers`);
 
     codeContainers.forEach((container, index) => {
-        // Skip if button already exists
         if (container.querySelector('.copy-code-button')) {
-            console.log(`Container ${index} already has a copy button`);
             return;
         }
 
         const codeBlock = container.querySelector('code');
         if (!codeBlock) {
-            console.log(`Container ${index} has no code element`);
             return;
         }
 
-        console.log(`Adding copy button to container ${index}`);
-
-        // Create copy button
         const button = document.createElement('button');
         button.className = 'copy-code-button';
         button.type = 'button'; // Prevent form submission
@@ -35,15 +27,12 @@ function addCopyButtons() {
             e.preventDefault();
             e.stopPropagation();
 
-            console.log('Copy button clicked');
             const code = codeBlock.textContent;
             let copySuccessful = false;
 
-            // Try modern clipboard API first
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 try {
                     await navigator.clipboard.writeText(code);
-                    console.log('Code copied successfully using Clipboard API');
                     copySuccessful = true;
                 } catch (err) {
                     console.error('Clipboard API failed:', err);
@@ -66,7 +55,6 @@ function addCopyButtons() {
                     document.body.removeChild(textarea);
 
                     if (successful) {
-                        console.log('Code copied using fallback method');
                         copySuccessful = true;
                     } else {
                         console.error('Fallback copy command returned false');
@@ -102,34 +90,21 @@ function addCopyButtons() {
         });
 
         container.appendChild(button);
-        console.log(`Copy button added to container ${index}`);
     });
 }
 
-// Initialize Prism and copy buttons
 function initializeCodeBlocks() {
-    console.log('Initializing code blocks...');
-
-    // Wait for Prism to highlight
     if (typeof Prism !== 'undefined') {
-        console.log('Prism found, highlighting code...');
         Prism.highlightAll();
-    } else {
-        console.log('Prism not found');
     }
 
-    // Add copy buttons after a short delay to ensure Prism has finished
     setTimeout(() => {
-        console.log('Adding copy buttons...');
         addCopyButtons();
     }, 100);
 }
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', initializeCodeBlocks);
 
-// Re-initialize after Livewire navigation
-document.addEventListener('livewire:navigated', () => {
-    console.log('Livewire navigated, re-initializing code blocks...');
+document.addEventListener('inertia:navigated', () => {
     initializeCodeBlocks();
 });

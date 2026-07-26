@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Packages\Policies;
 
 use App\Models\User;
@@ -8,34 +10,40 @@ use Modules\Packages\Changelog;
 
 class ChangelogPolicy
 {
-	use HandlesAuthorization;
+    use HandlesAuthorization;
 
-	public function viewAny( User $user ): bool
-	{
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
 
-	}
+    public function view(User $user, Changelog $changelog): bool
+    {
+        return true;
+    }
 
-	public function view( User $user, Changelog $changelog ): bool
-	{
-	}
+    public function create(User $user): bool
+    {
+        return $user->isAdmin();
+    }
 
-	public function create( User $user ): bool
-	{
-	}
+    public function update(User $user, Changelog $changelog): bool
+    {
+        return true;
+    }
 
-	public function update( User $user, Changelog $changelog ): bool
-	{
-	}
+    public function delete(User $user, Changelog $changelog): bool
+    {
+        return $user->isAdmin();
+    }
 
-	public function delete( User $user, Changelog $changelog ): bool
-	{
-	}
+    public function restore(User $user, Changelog $changelog): bool
+    {
+        return true;
+    }
 
-	public function restore( User $user, Changelog $changelog ): bool
-	{
-	}
-
-	public function forceDelete( User $user, Changelog $changelog ): bool
-	{
-	}
+    public function forceDelete(User $user, Changelog $changelog): bool
+    {
+        return $user->isAdmin();
+    }
 }

@@ -2,16 +2,29 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Role;
+use ArtisanPackUI\Privacy\Concerns\HasPersonalData;
+use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    /** @use HasFactory<UserFactory> */
+    use HasApiTokens, HasFactory, HasPersonalData, Notifiable, TwoFactorAuthenticatable;
+
+    /**
+     * Columns on this model that hold personal data, exposed to the
+     * privacy package's export / erasure / rectification workflows.
+     *
+     * @var array<int, string>
+     */
+    protected array $personalDataColumns = ['name', 'email'];
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +35,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -32,6 +46,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_recovery_codes',
+        'two_factor_secret',
     ];
 
     /**
@@ -44,7 +60,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => Role::class,
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === Role::Admin;
+    }
+
+    public function isEditor(): bool
+    {
+        return $this->role === Role::Editor;
     }
 
     /**

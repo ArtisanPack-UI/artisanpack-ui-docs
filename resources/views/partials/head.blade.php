@@ -6,18 +6,12 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+<link rel="preload" as="font" type="font/woff2" href="/fonts/poppins/poppins-400-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/poppins/poppins-500-latin.woff2" crossorigin>
+
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
 @vite(['resources/css/app.css', 'resources/js/auth.js'])
 
-<script>
-    // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.documentElement.classList.add('dark')
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.classList.remove('dark')
-    }
-</script>
+@include('partials.theme-boot')

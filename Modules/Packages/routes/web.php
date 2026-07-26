@@ -1,18 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Modules\Packages\Http\Controllers\PackagesController;
-use Modules\Packages\Livewire\Admin\AddPackage;
-use Modules\Packages\Livewire\Admin\EditPackage;
-use Modules\Packages\Livewire\Admin\ManageDocumentation;
-use Modules\Packages\Livewire\Admin\Packages;
-use Modules\Packages\Livewire\Public\Changelog;
-use Modules\Packages\Livewire\Public\Documentation;
+declare(strict_types=1);
 
-// Public documentation route - test route
-Route::get('/documentation/test', function () {
-    return 'Documentation route is working!';
-});
+use Illuminate\Support\Facades\Route;
+use Modules\Packages\Http\Controllers\Admin\DocumentationController as AdminDocumentationController;
+use Modules\Packages\Http\Controllers\Admin\PackagesController as AdminPackagesController;
+use Modules\Packages\Http\Controllers\ChangelogViewerController;
+use Modules\Packages\Http\Controllers\DocumentationReorderController;
+use Modules\Packages\Http\Controllers\DocumentationViewerController;
 
 // Redirect old changelog documentation pages to changelogs section
 Route::get('/documentation/{package}/changelog', function ($package) {
@@ -24,19 +19,26 @@ Route::get('/documentation/{package}/changelogs', function ($package) {
 });
 
 // Public documentation route
-Route::get('/documentation/{package}/{slug}', Documentation::class)
+Route::get('/documentation/{package}/{slug}', [DocumentationViewerController::class, 'show'])
     ->where('slug', '.*')
     ->name('documentation.show');
 
 // Public changelog route
-Route::get('/changelogs/{package}', Changelog::class)
+Route::get('/changelogs/{package}', [ChangelogViewerController::class, 'show'])
     ->name('changelog.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('packages', PackagesController::class)->names('packages');
+    Route::get('/dashboard/packages', [AdminPackagesController::class, 'index'])->name('dashboard.packages');
+    Route::get('/dashboard/packages/add-package', [AdminPackagesController::class, 'create'])->name('dashboard.packages.add');
+    Route::post('/dashboard/packages', [AdminPackagesController::class, 'store'])->name('dashboard.packages.store');
 
-    Route::get('/dashboard/packages/add-package/', AddPackage::class)->name('dashboard.packages.add');
-    Route::get('/dashboard/packages/{package}/documentation', ManageDocumentation::class)->name('dashboard.packages.documentation');
-    Route::get('/dashboard/packages/{package}', EditPackage::class)->name('dashboard.packages.edit');
-    Route::get('/dashboard/packages/', Packages::class)->name('dashboard.packages');
+    Route::get('/dashboard/packages/{package}/documentation', [AdminDocumentationController::class, 'index'])
+        ->name('dashboard.packages.documentation');
+    Route::post('/dashboard/packages/{package}/documentation/reorder', DocumentationReorderController::class)
+        ->middleware('throttle:60,1')
+        ->name('dashboard.packages.documentation.reorder');
+
+    Route::get('/dashboard/packages/{package}', [AdminPackagesController::class, 'edit'])->name('dashboard.packages.edit');
+    Route::patch('/dashboard/packages/{package}', [AdminPackagesController::class, 'update'])->name('dashboard.packages.update');
+    Route::delete('/dashboard/packages/{package}', [AdminPackagesController::class, 'destroy'])->name('dashboard.packages.destroy');
 });

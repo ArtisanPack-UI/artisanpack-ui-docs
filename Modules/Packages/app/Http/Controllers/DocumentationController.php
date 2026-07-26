@@ -10,44 +10,44 @@ use Modules\Packages\Http\Resources\DocumentationResource;
 
 class DocumentationController extends Controller
 {
-	use AuthorizesRequests;
+    use AuthorizesRequests;
 
-	public function index()
-	{
-		$this->authorize( 'viewAny', Documentation::class );
+    public function index()
+    {
+        $this->authorize('viewAny', Documentation::class);
 
-		return DocumentationResource::collection( Documentation::all() );
-	}
+        return DocumentationResource::collection(Documentation::all());
+    }
 
-	public function store( DocumentationRequest $request )
-	{
-		$this->authorize( 'create', Documentation::class );
+    public function store(DocumentationRequest $request)
+    {
+        $this->authorize('create', Documentation::class);
 
-		return new DocumentationResource( Documentation::create( $request->validated() ) );
-	}
+        return new DocumentationResource(Documentation::create($request->validated()));
+    }
 
-	public function show( Documentation $documentation )
-	{
-		$this->authorize( 'view', $documentation );
+    public function show(Documentation $documentation)
+    {
+        $this->authorize('view', $documentation);
 
-		return new DocumentationResource( $documentation );
-	}
+        return new DocumentationResource($documentation);
+    }
 
-	public function update( DocumentationRequest $request, Documentation $documentation )
-	{
-		$this->authorize( 'update', $documentation );
+    public function update(DocumentationRequest $request, Documentation $documentation)
+    {
+        $this->authorize('update', $documentation);
 
-		$documentation->update( $request->validated() );
+        $documentation->update($request->validated());
 
-		return new DocumentationResource( $documentation );
-	}
+        return new DocumentationResource($documentation);
+    }
 
-	public function destroy( Documentation $documentation )
-	{
-		$this->authorize( 'delete', $documentation );
+    public function destroy(Documentation $documentation)
+    {
+        $this->authorize('delete', $documentation);
 
-		$documentation->delete();
+        $documentation->delete();
 
-		return response()->json();
-	}
+        return response()->json();
+    }
 }

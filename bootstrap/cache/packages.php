@@ -10,15 +10,61 @@
       0 => 'ArtisanPack\\Accessibility\\Laravel\\A11yServiceProvider',
     ),
   ),
+  'artisanpack-ui/ai' => 
+  array (
+    'aliases' => 
+    array (
+      'Ai' => 'ArtisanPackUI\\Ai\\Facades\\Ai',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Ai\\AiServiceProvider',
+    ),
+  ),
+  'artisanpack-ui/analytics' => 
+  array (
+    'aliases' => 
+    array (
+      'Analytics' => 'ArtisanPackUI\\Analytics\\Facades\\Analytics',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Analytics\\AnalyticsServiceProvider',
+    ),
+  ),
+  'artisanpack-ui/analytics-google' => 
+  array (
+    'aliases' => 
+    array (
+      'AnalyticsGoogle' => 'ArtisanPackUI\\AnalyticsGoogle\\Facades\\AnalyticsGoogle',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\AnalyticsGoogle\\AnalyticsGoogleServiceProvider',
+    ),
+  ),
   'artisanpack-ui/core' => 
   array (
     'aliases' => 
     array (
       'Core' => 'ArtisanPackUI\\Core\\Facades\\Core',
+      'ArtisanPackLog' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackLog',
+      'ArtisanPackConfig' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackConfig',
     ),
     'providers' => 
     array (
       0 => 'ArtisanPackUI\\Core\\CoreServiceProvider',
+    ),
+  ),
+  'artisanpack-ui/google' => 
+  array (
+    'aliases' => 
+    array (
+      'Google' => 'ArtisanPackUI\\Google\\Facades\\Google',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Google\\GoogleServiceProvider',
     ),
   ),
   'artisanpack-ui/hooks' => 
@@ -41,15 +87,26 @@
       0 => 'ArtisanPackUI\\Icons\\IconsServiceProvider',
     ),
   ),
-  'artisanpack-ui/livewire-ui-components' => 
+  'artisanpack-ui/performance' => 
   array (
     'aliases' => 
     array (
-      'LivewireUiComponents' => 'ArtisanPack\\LivewireUiComponents\\Facades\\LivewireUiComponents',
+      'Performance' => 'ArtisanPackUI\\Performance\\Facades\\Performance',
     ),
     'providers' => 
     array (
-      0 => 'ArtisanPack\\LivewireUiComponents\\LivewireUiComponentsServiceProvider',
+      0 => 'ArtisanPackUI\\Performance\\PerformanceServiceProvider',
+    ),
+  ),
+  'artisanpack-ui/privacy' => 
+  array (
+    'aliases' => 
+    array (
+      'Privacy' => 'ArtisanPackUI\\Privacy\\Facades\\Privacy',
+    ),
+    'providers' => 
+    array (
+      0 => 'ArtisanPackUI\\Privacy\\PrivacyServiceProvider',
     ),
   ),
   'artisanpack-ui/security' => 
@@ -63,11 +120,15 @@
       0 => 'ArtisanPackUI\\Security\\SecurityServiceProvider',
     ),
   ),
-  'blade-ui-kit/blade-heroicons' => 
+  'artisanpack-ui/seo' => 
   array (
+    'aliases' => 
+    array (
+      'SEO' => 'ArtisanPackUI\\SEO\\Facades\\SEO',
+    ),
     'providers' => 
     array (
-      0 => 'BladeUI\\Heroicons\\BladeHeroiconsServiceProvider',
+      0 => 'ArtisanPackUI\\SEO\\Providers\\SEOServiceProvider',
     ),
   ),
   'blade-ui-kit/blade-icons' => 
@@ -77,6 +138,20 @@
       0 => 'BladeUI\\Icons\\BladeIconsServiceProvider',
     ),
   ),
+  'inertiajs/inertia-laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Inertia\\ServiceProvider',
+    ),
+  ),
+  'laravel/ai' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Ai\\AiServiceProvider',
+    ),
+  ),
   'laravel/boost' => 
   array (
     'providers' => 
@@ -84,11 +159,18 @@
       0 => 'Laravel\\Boost\\BoostServiceProvider',
     ),
   ),
+  'laravel/fortify' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Fortify\\FortifyServiceProvider',
+    ),
+  ),
   'laravel/mcp' => 
   array (
     'aliases' => 
     array (
-      'Mcp' => 'Laravel\\Mcp\\Server\\Facades\\Mcp',
+      'Mcp' => 'Laravel\\Mcp\\Facades\\Mcp',
     ),
     'providers' => 
     array (
@@ -100,6 +182,13 @@
     'providers' => 
     array (
       0 => 'Laravel\\Pail\\PailServiceProvider',
+    ),
+  ),
+  'laravel/passkeys' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Passkeys\\PasskeysServiceProvider',
     ),
   ),
   'laravel/roster' => 
@@ -116,22 +205,18 @@
       0 => 'Laravel\\Sail\\SailServiceProvider',
     ),
   ),
+  'laravel/sanctum' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+    ),
+  ),
   'laravel/tinker' => 
   array (
     'providers' => 
     array (
       0 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    ),
-  ),
-  'livewire/flux' => 
-  array (
-    'aliases' => 
-    array (
-      'Flux' => 'Flux\\Flux',
-    ),
-    'providers' => 
-    array (
-      0 => 'Flux\\FluxServiceProvider',
     ),
   ),
   'livewire/livewire' => 
@@ -143,20 +228,6 @@
     'providers' => 
     array (
       0 => 'Livewire\\LivewireServiceProvider',
-    ),
-  ),
-  'livewire/volt' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Livewire\\Volt\\VoltServiceProvider',
-    ),
-  ),
-  'mhmiton/laravel-modules-livewire' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Mhmiton\\LaravelModulesLivewire\\LaravelModulesLivewireServiceProvider',
     ),
   ),
   'nesbot/carbon' => 

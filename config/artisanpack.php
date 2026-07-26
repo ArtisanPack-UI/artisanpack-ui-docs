@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ArtisanPack UI Unified Configuration.
  *
@@ -7,51 +8,21 @@
  * You can safely modify these values to customize your application.
  */
 return [
-    'livewire-ui-components' => [
-        'prefix' => 'artisanpack',
-        'route_prefix' => '',
-        'components' => [
-            'spotlight' => [
-                'class' => 'Modules\\Core\\Spotlight',
+    'icons' => [
+        'sets' => [
+            'artisanpack' => [
+                'path' => resource_path('icons/artisanpack'),
+                'prefix' => 'ap',
             ],
         ],
-        'icons' => [
-            'list_item' => [
-                'bullet' => 'o-minus',
-                'checkmark' => 'o-check',
-                'arrow' => 'o-chevron-right',
-                'dot' => 'o-ellipsis-horizontal',
-                'status' => [
-                    'new' => 'o-sparkles',
-                    'completed' => 'o-check-circle',
-                    'error' => 'o-exclamation-triangle',
-                    'warning' => 'o-exclamation-circle',
-                    'info' => 'o-information-circle',
-                ],
-                'type' => [
-                    'user' => 'o-user',
-                    'file' => 'o-document',
-                    'folder' => 'o-folder',
-                    'email' => 'o-envelope',
-                    'notification' => 'o-bell',
-                ],
-            ],
-            'loading' => [
-                'spinner' => 'o-arrow-path',
-                'dots' => NULL,
-                'ring' => NULL,
-                'custom_svg' => NULL,
-                'default_type' => 'css',
-            ],
-        ],
-        'theme_output_path' => '/Users/jacobmartella/Herd/artisanpack-ui-docs/resources/css/artisanpack-ui-theme.css',
     ],
-	'icons'                  => [
-		'sets' => [
-			'artisanpack' => [
-				'path'   => resource_path( 'icons/artisanpack' ),
-				'prefix' => 'ap',
-			],
-		],
-	],
+
+    /*
+     * Remote-admin API knobs (V2_REFACTOR_PLAN.md §8.2, §9.6 #43).
+     * `rate_limit_per_minute` is consumed by the `api` limiter
+     * registered in AppServiceProvider.
+     */
+    'api' => [
+        'rate_limit_per_minute' => (int) env('API_RATE_LIMIT_PER_MINUTE', 60),
+    ],
 ];

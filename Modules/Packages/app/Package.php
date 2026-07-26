@@ -2,6 +2,7 @@
 
 namespace Modules\Packages;
 
+use ArtisanPackUI\SEO\Traits\HasSeo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,14 @@ use Modules\Packages\Database\Factories\PackageFactory;
 class Package extends Model
 {
     use HasFactory;
+    use HasSeo;
+
+    /*
+     * See Page::bootHasSeo — the package's default trait boot calls
+     * `static::observe(...)`, which throws under Laravel 13 because the
+     * model is still booting when observe() constructs a new instance.
+     */
+    public static function bootHasSeo(): void {}
 
     protected $fillable = [
         'name',
@@ -54,6 +63,28 @@ class Package extends Model
     public function changelog(): ?Changelog
     {
         return $this->changelogs()->first() ?? null;
+    }
+
+    public function getUrl(): string
+    {
+        $home = $this->home();
+
+        if ($home) {
+            return route('documentation.show', [
+                'package' => $this->slug,
+                'slug' => $home->slug,
+            ]);
+        }
+
+        return route('documentation.show', [
+            'package' => $this->slug,
+            'slug' => $this->slug,
+        ]);
+    }
+
+    public function getSeoTitle(): string
+    {
+        return $this->name;
     }
 
     public function needsDocumentationReimport(int $daysThreshold = 7): bool

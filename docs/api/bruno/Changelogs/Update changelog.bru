@@ -1,0 +1,36 @@
+meta {
+  name: Update changelog
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{base_url}}/api/v1/changelogs/:changelog
+  body: json
+  auth: bearer
+}
+
+params:path {
+  changelog: 1
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "v3.0.1",
+    "content": "## Fixed\n\n- Something."
+  }
+}
+
+docs {
+  Requires the `changelogs:write` ability. `package_id` cannot be moved
+  via this endpoint — it's pinned to the changelog's current owner.
+}
