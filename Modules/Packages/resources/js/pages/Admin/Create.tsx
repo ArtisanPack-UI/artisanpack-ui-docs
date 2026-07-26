@@ -102,7 +102,7 @@ export default function PackagesCreate({ store_url, cancel_url }: CreateProps) {
                                 id="wiki_url"
                                 type="url"
                                 label="Wiki URL"
-                                hint="GitHub or GitLab wiki URL (e.g. https://github.com/owner/repo/wiki)."
+                                hint="GitHub wiki URL (e.g. https://github.com/owner/repo/wiki)."
                                 value={data.wiki_url}
                                 onChange={(event) => setData('wiki_url', event.target.value)}
                                 error={errors.wiki_url}
@@ -121,7 +121,7 @@ export default function PackagesCreate({ store_url, cancel_url }: CreateProps) {
                                 type="url"
                                 label="Changelog URL"
                                 required
-                                hint="GitHub or GitLab file URL for the CHANGELOG."
+                                hint="GitHub file URL for the CHANGELOG."
                                 value={data.changelog_url}
                                 onChange={(event) => setData('changelog_url', event.target.value)}
                                 error={errors.changelog_url}

@@ -135,7 +135,7 @@ export default function PackagesEdit({
                                 id="wiki_url"
                                 type="url"
                                 label="Wiki URL"
-                                hint="GitHub or GitLab wiki URL."
+                                hint="GitHub wiki URL."
                                 value={data.wiki_url}
                                 onChange={(event) => setData('wiki_url', event.target.value)}
                                 error={errors.wiki_url}
@@ -154,7 +154,7 @@ export default function PackagesEdit({
                                 type="url"
                                 label="Changelog URL"
                                 required
-                                hint="GitHub or GitLab file URL for the CHANGELOG."
+                                hint="GitHub file URL for the CHANGELOG."
                                 value={data.changelog_url}
                                 onChange={(event) => setData('changelog_url', event.target.value)}
                                 error={errors.changelog_url}

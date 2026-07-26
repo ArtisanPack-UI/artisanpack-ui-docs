@@ -1,8 +1,8 @@
 <?php
 
 use App\Contracts\WikiServiceInterface;
+use App\Services\GitHubDocsService;
 use App\Services\GitHubService;
-use App\Services\GitLabWikiService;
 use App\Services\WikiServiceFactory;
 
 test('creates GitHubService for github.com URLs', function () {
@@ -14,15 +14,6 @@ test('creates GitHubService for github.com URLs', function () {
         ->and($service)->toBeInstanceOf(WikiServiceInterface::class);
 });
 
-test('creates GitLabWikiService for gitlab.com URLs', function () {
-    $factory = new WikiServiceFactory;
-
-    $service = $factory->make('https://gitlab.com/group/project/-/wikis', 'test-token');
-
-    expect($service)->toBeInstanceOf(GitLabWikiService::class)
-        ->and($service)->toBeInstanceOf(WikiServiceInterface::class);
-});
-
 test('creates GitHubService for raw.githubusercontent.com URLs', function () {
     $factory = new WikiServiceFactory;
 
@@ -31,29 +22,29 @@ test('creates GitHubService for raw.githubusercontent.com URLs', function () {
     expect($service)->toBeInstanceOf(GitHubService::class);
 });
 
-test('throws exception for unsupported URLs', function () {
+test('make() rejects non-GitHub URLs', function () {
+    $factory = new WikiServiceFactory;
+
+    $factory->make('https://gitlab.com/group/project/-/wikis', 'test-token');
+})->throws(Exception::class, 'Only GitHub wiki and repository URLs are supported');
+
+test('make() rejects unknown hosts', function () {
     $factory = new WikiServiceFactory;
 
     $factory->make('https://bitbucket.org/owner/repo', 'test-token');
-})->throws(Exception::class, 'Unable to detect wiki source from URL');
+})->throws(Exception::class, 'Only GitHub wiki and repository URLs are supported');
 
-test('detectSource returns github for github.com URLs', function () {
+test('makeDocsService creates GitHubDocsService for github.com URLs', function () {
     $factory = new WikiServiceFactory;
 
-    expect($factory->detectSource('https://github.com/owner/repo/wiki'))->toBe('github')
-        ->and($factory->detectSource('https://github.com/owner/repo/blob/main/CHANGELOG.md'))->toBe('github')
-        ->and($factory->detectSource('https://raw.githubusercontent.com/owner/repo/main/file.md'))->toBe('github');
+    $service = $factory->makeDocsService('https://github.com/owner/repo', 'test-token');
+
+    expect($service)->toBeInstanceOf(GitHubDocsService::class)
+        ->and($service)->toBeInstanceOf(WikiServiceInterface::class);
 });
 
-test('detectSource returns gitlab for gitlab.com URLs', function () {
+test('makeDocsService rejects non-GitHub URLs', function () {
     $factory = new WikiServiceFactory;
 
-    expect($factory->detectSource('https://gitlab.com/group/project/-/wikis'))->toBe('gitlab')
-        ->and($factory->detectSource('https://gitlab.com/group/project/-/blob/main/CHANGELOG.md'))->toBe('gitlab');
-});
-
-test('detectSource throws exception for unknown URLs', function () {
-    $factory = new WikiServiceFactory;
-
-    $factory->detectSource('https://bitbucket.org/owner/repo');
-})->throws(Exception::class, 'Unable to detect wiki source from URL');
+    $factory->makeDocsService('https://gitlab.com/group/project', 'test-token');
+})->throws(Exception::class, 'Only GitHub wiki and repository URLs are supported');

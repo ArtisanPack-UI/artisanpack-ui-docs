@@ -8,20 +8,13 @@ use Modules\Core\Setting;
 trait ResolvesServiceTokens
 {
     /**
-     * Resolve the API token from encrypted settings based on the detected source
+     * Resolve the encrypted GitHub PAT from the settings table.
      *
      * @throws \Exception
      */
-    protected function resolveToken(string $source): string
+    protected function resolveGitHubToken(): string
     {
-        $settingKey = "{$source}_token";
-        $brandName = match ($source) {
-            'github' => 'GitHub',
-            'gitlab' => 'GitLab',
-            default => ucfirst($source),
-        };
-
-        $encryptedToken = Setting::query()->where('key', $settingKey)->value('value');
+        $encryptedToken = Setting::query()->where('key', 'github_token')->value('value');
 
         try {
             $token = $encryptedToken ? decrypt($encryptedToken) : null;
@@ -30,7 +23,7 @@ trait ResolvesServiceTokens
         }
 
         if (empty($token)) {
-            throw new \Exception("{$brandName} token not configured or could not be decrypted");
+            throw new \Exception('GitHub token not configured or could not be decrypted');
         }
 
         return $token;

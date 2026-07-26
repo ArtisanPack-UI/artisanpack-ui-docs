@@ -36,8 +36,7 @@ class ImportChangelog implements ShouldQueue
     {
         try {
             $factory = app()->make(WikiServiceFactory::class);
-            $source = $factory->detectSource($this->package->changelog_url);
-            $token = $this->resolveToken($source);
+            $token = $this->resolveGitHubToken();
             $wikiService = $factory->make($this->package->changelog_url, $token);
 
             // Fetch the changelog content

@@ -36,7 +36,6 @@ class SettingsController extends Controller
                 'home_page' => $homePage !== null && $homePage !== '' ? (int) $homePage : null,
                 'google_analytics_id' => $settings->get('google_analytics_id')?->value ?? '',
                 'has_github_token' => ! empty($settings->get('github_token')?->value),
-                'has_gitlab_token' => ! empty($settings->get('gitlab_token')?->value),
             ],
             'pages' => $pages,
             'update_url' => route('dashboard.settings.update'),
@@ -71,13 +70,6 @@ class SettingsController extends Controller
             Setting::updateOrCreate(
                 ['key' => 'github_token'],
                 ['value' => encrypt($validated['github_token'])],
-            );
-        }
-
-        if (! empty($validated['gitlab_token'])) {
-            Setting::updateOrCreate(
-                ['key' => 'gitlab_token'],
-                ['value' => encrypt($validated['gitlab_token'])],
             );
         }
 

@@ -103,7 +103,7 @@ it('rejects non-GitHub docs URLs', function (): void {
         ->assertSessionHasErrors(['docs_url']);
 });
 
-it('rejects non-GitHub/GitLab wiki URLs', function (): void {
+it('rejects non-GitHub wiki URLs', function (): void {
     $this->actingAs(verifiedUser())
         ->post(route('dashboard.packages.store'), [
             'name' => 'Bitbucket',
@@ -114,7 +114,18 @@ it('rejects non-GitHub/GitLab wiki URLs', function (): void {
         ->assertSessionHasErrors(['wiki_url']);
 });
 
-it('rejects non-GitHub/GitLab changelog URLs', function (): void {
+it('rejects GitLab wiki URLs', function (): void {
+    $this->actingAs(verifiedUser())
+        ->post(route('dashboard.packages.store'), [
+            'name' => 'Gitlab Wiki',
+            'slug' => 'gitlab-wiki',
+            'wiki_url' => 'https://gitlab.com/group/project/-/wikis',
+            'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+        ])
+        ->assertSessionHasErrors(['wiki_url']);
+});
+
+it('rejects non-GitHub changelog URLs', function (): void {
     $this->actingAs(verifiedUser())
         ->post(route('dashboard.packages.store'), [
             'name' => 'Bitbucket Changelog',
