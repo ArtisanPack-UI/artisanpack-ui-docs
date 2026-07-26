@@ -10,13 +10,7 @@ this file references it rather than duplicating.
 
 - Production hostname: **`docs.artisanpackui.dev`**
 - Site root on Forge: `/home/forge/docs.artisanpackui.dev`
-- Deploy branch: **`release/3.0`** during the v3.0 cutover. Flip back
-  to `main` as part of the post-merge sequence in
-  [Post-release: flip Forge back to `main`](#post-release-flip-forge-back-to-main).
-  The deploy-script snippets in this file and in
-  [`inertia-ssr-forge.md`](./inertia-ssr-forge.md) both hard-code
-  `release/3.0` for the cutover window; update both to `main` when
-  you flip.
+- Deploy branch: **`main`**.
 
 ## Daemons
 
@@ -71,7 +65,7 @@ Forge's default deploy script needs three modifications for this app:
 ```bash
 cd /home/forge/docs.artisanpackui.dev
 
-git pull origin release/3.0
+git pull origin main
 
 $FORGE_COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
@@ -154,7 +148,7 @@ Rollbacks are ordered by blast radius — start with the smallest.
      state. Before the next normal deploy fires, reattach the
      configured branch so Forge's `git pull origin <branch>` succeeds:
      ```bash
-     git checkout release/3.0     # or `main` post-cutover
+     git checkout main
      git pull --ff-only
      ```
 3. **Bad migration**: if the migration is destructive, restore the most
@@ -172,26 +166,21 @@ back to the bad commit — the "rollback" evaporates on the next
 deploy. Use Forge's Redeploy button on the last-good commit, or the
 `git checkout <tag>` (detached) + reattach sequence above.
 
-## Post-release: flip Forge back to `main`
+## Major-version cutover pattern
 
-Run the steps in this order after #117 merges — the branch flip
-happens **before** deleting `release/3.0` so Forge always has a valid
-branch to pull from.
+For future `release/x.y` → `main` cutovers, run the flip in this order
+so Forge is never pointed at a nonexistent branch:
 
-1. Confirm the `release/3.0` → `main` PR is merged and the `v3.0.0`
-   tag exists on `main`.
-2. Forge → **Application** → set **Git Repository → Branch** to
-   `main`.
-3. Update the deploy script's `git pull origin release/3.0` line to
-   `git pull origin main`. Do the same to the snippet in
+1. Merge the release PR to `main` and tag on `main`.
+2. Forge → **Application** → set **Git Repository → Branch** to `main`
+   (or your target branch).
+3. Update the deploy-script snippet in this file and in
    [`inertia-ssr-forge.md`](./inertia-ssr-forge.md#deploy-script)
-   so the two runbooks stay consistent.
-4. Click **Deploy Now**. First deploy from `main` should be a no-op
-   diff against the merged tag.
-5. Once the `main` deploy is verified healthy (repeat the
-   [Post-deploy verification](#post-deploy-verification) checks),
-   delete the remote `release/3.0` branch:
-   `git push origin --delete release/3.0`.
+   to match the new branch name.
+4. Click **Deploy Now**. Verify against
+   [Post-deploy verification](#post-deploy-verification).
+5. Once healthy, delete the release branch:
+   `git push origin --delete release/x.y`.
 
 ## Related
 
