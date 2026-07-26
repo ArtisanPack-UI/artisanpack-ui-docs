@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@artisanpack-ui/tokens/css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
 @import './tokens/fonts.css';
 @import './tokens/colors.css';

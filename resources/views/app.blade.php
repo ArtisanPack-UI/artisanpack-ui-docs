@@ -26,8 +26,6 @@
         <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins/poppins-400-latin.woff2" crossorigin>
         <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins/poppins-500-latin.woff2" crossorigin>
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
         @include('partials.theme-boot')
 
         @viteReactRefresh

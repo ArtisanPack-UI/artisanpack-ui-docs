@@ -18,6 +18,8 @@ class TableOfContentsService
             $content = $this->convertMarkdown($content);
         }
 
+        $content = $this->normalizeAccessibility($content);
+
         // Extract and add IDs to headings
         $headings = [];
         $content = $this->addIdsToHeadings($content, $headings);
@@ -26,6 +28,21 @@ class TableOfContentsService
             'headings' => $headings,
             'content' => $content,
         ];
+    }
+
+    /**
+     * The Lexical editor emits `<li role="presentation">` on list items,
+     * which axe flags as `list` (a UL/OL may only contain LI elements
+     * without a presentation role). Strip the attribute on render so
+     * downstream a11y audits stay green.
+     */
+    protected function normalizeAccessibility(string $content): string
+    {
+        return preg_replace(
+            '/(<li\b[^>]*?)\s+role=(["\'])presentation\2/i',
+            '$1',
+            $content
+        ) ?? $content;
     }
 
     /**
