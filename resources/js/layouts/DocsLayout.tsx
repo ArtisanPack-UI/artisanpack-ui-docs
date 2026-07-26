@@ -116,13 +116,13 @@ export function DocsLayout({ children, sidebar, toc }: DocsLayoutProps) {
                         type="button"
                         onClick={openSearch}
                         className="hidden h-[42px] flex-1 items-center gap-2.5 rounded-[10px] border border-border-subtle bg-surface-2 px-4 text-left text-small transition hover:border-border md:flex"
-                        aria-label="Open search (⌘K)"
+                        aria-label="Search the docs"
                     >
                         <i
-                            className="fa-solid fa-magnifying-glass text-[14px] text-text-subtle"
+                            className="fa-solid fa-magnifying-glass text-[14px] text-text-muted"
                             aria-hidden
                         />
-                        <span className="flex-1 text-text-subtle">Search the docs</span>
+                        <span className="flex-1 text-text-muted">Search the docs</span>
                         <span className="ml-auto inline-flex gap-1">
                             <kbd className="rounded-[5px] border border-border-subtle bg-surface px-[7px] py-[2px] font-mono text-[11px] text-text-muted">
                                 ⌘

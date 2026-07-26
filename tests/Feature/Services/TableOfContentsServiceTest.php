@@ -102,3 +102,31 @@ test('builds empty nested structure for no headings', function () {
 
     expect($nested)->toBeEmpty();
 });
+
+test('strips role="presentation" from li elements emitted by Lexical', function () {
+    $service = new TableOfContentsService;
+
+    $html = '<ul>'
+        .'<li dir="ltr" role="presentation">First</li>'
+        .'<li role="presentation" dir="ltr">Second</li>'
+        .'<li>Kept as-is</li>'
+        .'</ul>';
+
+    $result = $service->process($html, isMarkdown: false);
+
+    expect($result['content'])->not->toContain('role="presentation"')
+        ->and($result['content'])->toContain('<li dir="ltr">First</li>')
+        ->and($result['content'])->toContain('<li dir="ltr">Second</li>')
+        ->and($result['content'])->toContain('<li>Kept as-is</li>');
+});
+
+test('preserves role="presentation" on non-li elements', function () {
+    $service = new TableOfContentsService;
+
+    $html = '<div role="presentation">Wrapper</div><table role="presentation"><tr><td>x</td></tr></table>';
+
+    $result = $service->process($html, isMarkdown: false);
+
+    expect($result['content'])->toContain('<div role="presentation">')
+        ->and($result['content'])->toContain('<table role="presentation">');
+});
