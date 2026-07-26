@@ -47,7 +47,7 @@ daemon so the new bundle is on disk when the daemon reloads:
 ```bash
 cd /home/forge/docs.artisanpackui.dev
 
-git pull origin release/3.0
+git pull origin main
 
 $FORGE_COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
