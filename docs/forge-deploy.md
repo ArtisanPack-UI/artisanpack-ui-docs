@@ -10,9 +10,13 @@ this file references it rather than duplicating.
 
 - Production hostname: **`docs.artisanpackui.dev`**
 - Site root on Forge: `/home/forge/docs.artisanpackui.dev`
-- Deploy branch: **`release/3.0`** during the v3.0 cutover; flip back to
-  `main` in Forge → Application → **Git Repository** immediately after
-  #117 merges (see [Post-release: flip Forge back to `main`](#post-release-flip-forge-back-to-main)).
+- Deploy branch: **`release/3.0`** during the v3.0 cutover. Flip back
+  to `main` as part of the post-merge sequence in
+  [Post-release: flip Forge back to `main`](#post-release-flip-forge-back-to-main).
+  The deploy-script snippets in this file and in
+  [`inertia-ssr-forge.md`](./inertia-ssr-forge.md) both hard-code
+  `release/3.0` for the cutover window; update both to `main` when
+  you flip.
 
 ## Daemons
 
@@ -108,9 +112,17 @@ ps -ef | grep "queue:work" | grep -v grep
 # Migrations applied?
 php artisan migrate:status | tail -20
 
-# Site returns 200 with hydrated HTML?
+# Site returns 200?
 curl -sS -o /dev/null -w "%{http_code}\n" https://docs.artisanpackui.dev/
-curl -sS https://docs.artisanpackui.dev/ | grep -c 'data-page='   # >0 means SSR rendered
+
+# Rendered on the server?
+# CSR fallback ships an empty `<div id="app" data-page="…"></div>`; SSR
+# fills that div with the pre-rendered app markup. Grep for a heading
+# inside the response body — 0 hits means SSR did not render (whether
+# the daemon is down or the middleware fell through).
+# `inertia:check-ssr` above is the authoritative daemon-liveness check;
+# this is the request-path check that the daemon actually got used.
+curl -sS https://docs.artisanpackui.dev/ | grep -Ec '<h[12][^>]*>'   # >0 means SSR rendered
 ```
 
 ## Rollback
@@ -122,17 +134,28 @@ Rollbacks are ordered by blast radius — start with the smallest.
    Details in [`inertia-ssr-forge.md`](./inertia-ssr-forge.md#rollback).
 2. **Bad deploy, code-level** (500s, wrong routes, broken assets):
    - In Forge → **Deployments**, click **Redeploy** on the last known-good
-     commit; OR
-   - SSH in and run:
+     commit — this is the preferred path; it stays on the configured
+     branch and Forge tracks the deployed SHA correctly.
+   - SSH fallback (only if Forge's Redeploy button is unavailable):
      ```bash
      cd /home/forge/docs.artisanpackui.dev
      git fetch --tags
      git checkout <last-good-tag>          # e.g. v2.0.0 during 3.0 cutover
      $FORGE_COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
      npm ci --no-audit --no-fund && npm run build
-     $FORGE_PHP artisan config:cache route:cache view:cache event:cache
+     $FORGE_PHP artisan config:cache
+     $FORGE_PHP artisan route:cache
+     $FORGE_PHP artisan view:cache
+     $FORGE_PHP artisan event:cache
      $FORGE_PHP artisan queue:restart
      $FORGE_PHP artisan inertia:stop-ssr
+     ```
+     `git checkout <tag>` leaves the working tree in detached-HEAD
+     state. Before the next normal deploy fires, reattach the
+     configured branch so Forge's `git pull origin <branch>` succeeds:
+     ```bash
+     git checkout release/3.0     # or `main` post-cutover
+     git pull --ff-only
      ```
 3. **Bad migration**: if the migration is destructive, restore the most
    recent Forge database snapshot from the **Database** panel *before*
@@ -142,19 +165,33 @@ Rollbacks are ordered by blast radius — start with the smallest.
 4. **Bad `.env` change**: revert the specific keys in Forge →
    **Environment**, then click **Deploy Now** to re-cache config.
 
-Do not use `git reset --hard` on the deploy checkout to roll back — it
-loses the `bootstrap/ssr/` bundle mid-request. `git checkout <tag>` +
-rebuild is the correct path.
+Do not use `git reset --hard <tag>` on the deploy checkout to roll
+back. It rewrites the local branch pointer without touching the
+remote, so the next `git pull origin <branch>` fast-forwards straight
+back to the bad commit — the "rollback" evaporates on the next
+deploy. Use Forge's Redeploy button on the last-good commit, or the
+`git checkout <tag>` (detached) + reattach sequence above.
 
 ## Post-release: flip Forge back to `main`
 
-After #117 merges and the release/3.0 branch is deleted:
+Run the steps in this order after #117 merges — the branch flip
+happens **before** deleting `release/3.0` so Forge always has a valid
+branch to pull from.
 
-1. Forge → **Application** → set **Git Repository → Branch** to `main`.
-2. Update the deploy script's `git pull origin release/3.0` line to
-   `git pull origin main`.
-3. Click **Deploy Now**. First deploy from `main` should be a no-op
+1. Confirm the `release/3.0` → `main` PR is merged and the `v3.0.0`
+   tag exists on `main`.
+2. Forge → **Application** → set **Git Repository → Branch** to
+   `main`.
+3. Update the deploy script's `git pull origin release/3.0` line to
+   `git pull origin main`. Do the same to the snippet in
+   [`inertia-ssr-forge.md`](./inertia-ssr-forge.md#deploy-script)
+   so the two runbooks stay consistent.
+4. Click **Deploy Now**. First deploy from `main` should be a no-op
    diff against the merged tag.
+5. Once the `main` deploy is verified healthy (repeat the
+   [Post-deploy verification](#post-deploy-verification) checks),
+   delete the remote `release/3.0` branch:
+   `git push origin --delete release/3.0`.
 
 ## Related
 
