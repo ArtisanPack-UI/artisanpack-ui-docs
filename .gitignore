@@ -44,3 +44,6 @@ node_modules/
 # that should not be committed to the repository.
 # For example:
 # /.gitlab-ci-cache/
+
+# Solo (soloterm) local project config — per-user process runner setup
+solo.yml
