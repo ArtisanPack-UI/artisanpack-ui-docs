@@ -1,7 +1,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Button, Input, Select } from '@artisanpack-ui/react/form';
 import { Alert } from '@artisanpack-ui/react/feedback';
-import type { FormEventHandler } from 'react';
+import { useState, type FormEventHandler } from 'react';
 
 import { AdminLayout } from '../../../../../../resources/js/layouts/AdminLayout';
 
@@ -31,6 +31,8 @@ interface EditProps {
     destroy_url: string;
     index_url: string;
     documentation_url: string;
+    import_documentation_url: string;
+    import_changelog_url: string;
     can_delete: boolean;
     flash?: { success?: string | null };
 }
@@ -74,6 +76,8 @@ export default function PackagesEdit({
     destroy_url,
     index_url,
     documentation_url,
+    import_documentation_url,
+    import_changelog_url,
     can_delete,
     flash,
 }: EditProps) {
@@ -89,6 +93,8 @@ export default function PackagesEdit({
         package_registry: pkg.package_registry ?? '',
     });
 
+    const [importing, setImporting] = useState<'docs' | 'changelog' | null>(null);
+
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
         patch(update_url, { preserveScroll: true });
@@ -99,6 +105,18 @@ export default function PackagesEdit({
             return;
         }
         router.delete(destroy_url);
+    };
+
+    const runImport = (
+        kind: 'docs' | 'changelog',
+        url: string,
+        payload: Record<string, string>,
+    ) => {
+        router.post(url, payload, {
+            preserveScroll: true,
+            onStart: () => setImporting(kind),
+            onFinish: () => setImporting(null),
+        });
     };
 
     return (
@@ -149,6 +167,22 @@ export default function PackagesEdit({
                                 onChange={(event) => setData('docs_url', event.target.value)}
                                 error={errors.docs_url}
                             />
+                            <div className="flex justify-end">
+                                <Button
+                                    type="button"
+                                    color="secondary"
+                                    loading={importing === 'docs'}
+                                    disabled={!data.docs_url && !data.wiki_url}
+                                    onClick={() =>
+                                        runImport('docs', import_documentation_url, {
+                                            wiki_url: data.wiki_url,
+                                            docs_url: data.docs_url,
+                                        })
+                                    }
+                                >
+                                    Import Documentation
+                                </Button>
+                            </div>
                             <Input
                                 id="changelog_url"
                                 type="url"
@@ -159,6 +193,21 @@ export default function PackagesEdit({
                                 onChange={(event) => setData('changelog_url', event.target.value)}
                                 error={errors.changelog_url}
                             />
+                            <div className="flex justify-end">
+                                <Button
+                                    type="button"
+                                    color="secondary"
+                                    loading={importing === 'changelog'}
+                                    disabled={!data.changelog_url}
+                                    onClick={() =>
+                                        runImport('changelog', import_changelog_url, {
+                                            changelog_url: data.changelog_url,
+                                        })
+                                    }
+                                >
+                                    Import Changelog
+                                </Button>
+                            </div>
 
                             <div className="flex flex-wrap items-center gap-3 pt-2">
                                 <Link href={index_url} className="btn btn-ghost">

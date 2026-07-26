@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-07-26
+
+### Fixed
+- Restored the **Import Documentation** and **Import Changelog** buttons on the package edit page — they were dropped during the Livewire → Inertia port. New admin endpoints (`dashboard.packages.import-documentation`, `dashboard.packages.import-changelog`) validate the current form URL, persist it, and dispatch the existing `ImportWikiDocumentation` / `ImportChangelog` jobs. `docs_url` takes priority over `wiki_url`, and only the URL the job will actually use is validated so a stale value in the ignored field never blocks the import (#183)
+- Serve `fonts.css` statically so absolute `/fonts/` URLs resolve correctly (#181)
+
+### Changed
+- Removed remaining GitLab code paths after the GitHub-only migration (#182)
+- Extracted duplicated GitHub URL regexes to `Package::GITHUB_URL_REGEX` / `Package::GITHUB_REPO_URL_REGEX` constants and lifted the docs-vs-wiki priority rule into `Package::documentationSourceField()` for a single source of truth (#183)
+
+### Documentation
+- Corrected deploy-script snippets in the Forge zero-downtime-deploy runbook
+- Refreshed operational runbooks post-v3.0.0 cutover
+
 ## [3.0.0] - 2026-07-25
 
 ### Added
