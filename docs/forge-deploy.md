@@ -54,43 +54,52 @@ belong in the same panel; they're not release-gating.
 
 ## Deploy script
 
-Forge's default deploy script needs three modifications for this app:
+The site uses Forge **Zero-Downtime Deployments**: `$CREATE_RELEASE()`
+clones the configured branch into a fresh release directory,
+`$ACTIVATE_RELEASE()` atomically swaps the `current` symlink, and
+`$RESTART_QUEUES()` restarts queue workers. Nothing in the script
+needs to know the branch name — Forge reads it from Application →
+**Git Repository → Branch**, which is why the branch flip is a
+one-click change with no script edit.
 
-1. `npm ci && npm run build` **before** the SSR restart — the SSR daemon
-   loads `bootstrap/ssr/ssr.js`, which is a build output.
-2. `php artisan inertia:stop-ssr` at the end so Forge's supervisor
-   relaunches SSR against the fresh bundle.
-3. `queue:restart` so the queue worker picks up new code.
+Two things the script does that aren't in Forge's Laravel default:
+
+1. `npm ci && npm run build` **before** `inertia:stop-ssr` — the SSR
+   daemon loads `bootstrap/ssr/ssr.js`, which is a build output. The
+   restart has to see the new bundle on disk.
+2. `inertia:stop-ssr || true` — the `|| true` handles the case where
+   SSR is toggled off, so the daemon isn't running and the artisan
+   command exits non-zero without failing the deploy.
 
 ```bash
-cd /home/forge/docs.artisanpackui.dev
+$CREATE_RELEASE()
 
-git pull origin main
+cd $FORGE_RELEASE_DIRECTORY
 
-$FORGE_COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+$FORGE_COMPOSER install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-npm ci --no-audit --no-fund
+# Client + SSR bundles. `npm ci` keeps the install deterministic
+# against package-lock.json; `npm run build` writes public/build/
+# AND bootstrap/ssr/ssr.js.
+npm ci || npm install
 npm run build
 
-( flock -w 10 9 || exit 1
-    echo 'Restarting FPM...'
-    sudo -S service $FORGE_PHP_FPM reload ) 9>/tmp/fpmlock
-
+$FORGE_PHP artisan optimize --except=views
+$FORGE_PHP artisan storage:link
 $FORGE_PHP artisan migrate --force
-$FORGE_PHP artisan config:cache
-$FORGE_PHP artisan route:cache
-$FORGE_PHP artisan view:cache
-$FORGE_PHP artisan event:cache
 
-# Signal the queue worker to reload; the daemon supervisor restarts it.
-$FORGE_PHP artisan queue:restart
+# SSR restart — must run AFTER `npm run build`. See
+# `inertia-ssr-forge.md` for the full zero-downtime pattern.
+$FORGE_PHP artisan inertia:stop-ssr || true
 
-# SSR restart MUST run after npm run build. See inertia-ssr-forge.md
-# for the full zero-downtime pattern.
-$FORGE_PHP artisan inertia:stop-ssr
+$ACTIVATE_RELEASE()
+
+$RESTART_QUEUES()
 ```
 
-Change the `git pull` branch to `main` once #117 merges.
+`optimize --except=views` runs `config:cache`, `route:cache`, and
+`event:cache` in one shot. Views are skipped because Blade caches
+compile lazily on first render and there's no gain from priming them.
 
 ## Post-deploy verification
 
@@ -127,59 +136,46 @@ Rollbacks are ordered by blast radius — start with the smallest.
    **Inertia SSR** off. Site falls back to CSR. Investigate; fix; re-enable.
    Details in [`inertia-ssr-forge.md`](./inertia-ssr-forge.md#rollback).
 2. **Bad deploy, code-level** (500s, wrong routes, broken assets):
-   - In Forge → **Deployments**, click **Redeploy** on the last known-good
-     commit — this is the preferred path; it stays on the configured
-     branch and Forge tracks the deployed SHA correctly.
-   - SSH fallback (only if Forge's Redeploy button is unavailable):
-     ```bash
-     cd /home/forge/docs.artisanpackui.dev
-     git fetch --tags
-     git checkout <last-good-tag>          # e.g. v2.0.0 during 3.0 cutover
-     $FORGE_COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-     npm ci --no-audit --no-fund && npm run build
-     $FORGE_PHP artisan config:cache
-     $FORGE_PHP artisan route:cache
-     $FORGE_PHP artisan view:cache
-     $FORGE_PHP artisan event:cache
-     $FORGE_PHP artisan queue:restart
-     $FORGE_PHP artisan inertia:stop-ssr
-     ```
-     `git checkout <tag>` leaves the working tree in detached-HEAD
-     state. Before the next normal deploy fires, reattach the
-     configured branch so Forge's `git pull origin <branch>` succeeds:
-     ```bash
-     git checkout main
-     git pull --ff-only
-     ```
+   Forge → **Deployments** shows the deploy history. The site uses
+   Zero-Downtime Deployments, so each deploy is a distinct
+   `~/site/releases/<timestamp>/` directory and `~/site/current` is a
+   symlink to whichever release is live. Click **Rollback** on the
+   last known-good deployment — Forge re-points `current` at that
+   release directory. No rebuild, no downtime; assets and
+   `bootstrap/ssr/ssr.js` from that release are already on disk.
+   The SSR daemon keeps running; if the bad release changed the SSR
+   bundle format, `php artisan inertia:stop-ssr` from
+   [SSR-only rollback](#rollback) forces a supervisor restart against
+   the rolled-back bundle.
+
+   If Forge's rollback UI is unavailable, SSH in and swap the symlink
+   by hand:
+   ```bash
+   cd /home/forge/docs.artisanpackui.dev
+   ls -1 releases/                # timestamps of retained releases
+   ln -sfn releases/<last-good> current
+   php artisan inertia:stop-ssr || true
+   php artisan queue:restart
+   ```
 3. **Bad migration**: if the migration is destructive, restore the most
    recent Forge database snapshot from the **Database** panel *before*
-   rolling code back — the older code will not tolerate the new schema.
-   Non-destructive migrations (added columns, added tables) are safe to
-   leave in place while running the prior release.
+   rolling the code release back — the older code will not tolerate
+   the new schema. Non-destructive migrations (added columns, added
+   tables) are safe to leave in place while running the prior release.
 4. **Bad `.env` change**: revert the specific keys in Forge →
    **Environment**, then click **Deploy Now** to re-cache config.
 
-Do not use `git reset --hard <tag>` on the deploy checkout to roll
-back. It rewrites the local branch pointer without touching the
-remote, so the next `git pull origin <branch>` fast-forwards straight
-back to the bad commit — the "rollback" evaporates on the next
-deploy. Use Forge's Redeploy button on the last-good commit, or the
-`git checkout <tag>` (detached) + reattach sequence above.
-
 ## Major-version cutover pattern
 
-For future `release/x.y` → `main` cutovers, run the flip in this order
-so Forge is never pointed at a nonexistent branch:
+For future `release/x.y` → `main` cutovers:
 
 1. Merge the release PR to `main` and tag on `main`.
 2. Forge → **Application** → set **Git Repository → Branch** to `main`
-   (or your target branch).
-3. Update the deploy-script snippet in this file and in
-   [`inertia-ssr-forge.md`](./inertia-ssr-forge.md#deploy-script)
-   to match the new branch name.
-4. Click **Deploy Now**. Verify against
+   (or your target branch). The deploy script doesn't need to change
+   — ZDD reads the branch name from Forge, not the script.
+3. Click **Deploy Now**. Verify against
    [Post-deploy verification](#post-deploy-verification).
-5. Once healthy, delete the release branch:
+4. Once healthy, delete the release branch:
    `git push origin --delete release/x.y`.
 
 ## Related
