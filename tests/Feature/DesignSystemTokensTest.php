@@ -5,7 +5,7 @@ declare(strict_types=1);
 it('ships the AP-UI design-system token files in resources/css/tokens', function () {
     $tokensDir = base_path('resources/css/tokens');
 
-    foreach (['colors', 'typography', 'spacing', 'base', 'fonts'] as $token) {
+    foreach (['colors', 'typography', 'spacing', 'base'] as $token) {
         expect(file_exists("{$tokensDir}/{$token}.css"))
             ->toBeTrue("Expected resources/css/tokens/{$token}.css to exist");
     }
@@ -15,11 +15,24 @@ it('imports every AP-UI token file from resources/css/app.css', function () {
     $appCss = (string) file_get_contents(base_path('resources/css/app.css'));
 
     expect($appCss)
-        ->toContain("@import './tokens/fonts.css'")
         ->toContain("@import './tokens/colors.css'")
         ->toContain("@import './tokens/typography.css'")
         ->toContain("@import './tokens/spacing.css'")
-        ->toContain("@import './tokens/base.css'");
+        ->toContain("@import './tokens/base.css'")
+        // fonts.css intentionally lives outside Vite's pipeline; loaded
+        // via a <link> from app.blade.php. See the "loads the static
+        // fonts.css…" test below.
+        ->not->toContain("@import './tokens/fonts.css'");
+});
+
+it('loads the static fonts.css from a <link> in app.blade.php', function () {
+    // The font-face declarations live in `public/css/fonts.css` and load
+    // via a plain <link> rather than through Vite, so their absolute
+    // `url('/fonts/…')` paths survive the build without being rewritten
+    // to `/build/fonts/…` (which 404s in production).
+    $blade = (string) file_get_contents(base_path('resources/views/app.blade.php'));
+
+    expect($blade)->toContain('<link rel="stylesheet" href="/css/fonts.css">');
 });
 
 it('extends Tailwind v4 @theme so utilities map to AP-UI tokens', function () {
@@ -64,7 +77,7 @@ it('carries the neon triad and dark-first color tokens', function () {
 
 it('declares Poppins + Space Mono in the typography and fonts tokens', function () {
     $typography = (string) file_get_contents(base_path('resources/css/tokens/typography.css'));
-    $fonts = (string) file_get_contents(base_path('resources/css/tokens/fonts.css'));
+    $fonts = (string) file_get_contents(public_path('css/fonts.css'));
 
     expect($typography)
         ->toContain('"Poppins"')
@@ -81,8 +94,8 @@ it('declares Poppins + Space Mono in the typography and fonts tokens', function 
         ->not->toContain('fonts.gstatic.com');
 });
 
-it('ships the self-hosted WOFF2 files referenced by the fonts token', function () {
-    $fonts = (string) file_get_contents(base_path('resources/css/tokens/fonts.css'));
+it('ships the self-hosted WOFF2 files referenced by fonts.css', function () {
+    $fonts = (string) file_get_contents(public_path('css/fonts.css'));
 
     preg_match_all("#url\('(/fonts/[^']+\.woff2)'\)#", $fonts, $matches);
 

@@ -2,7 +2,11 @@
 @import '@artisanpack-ui/tokens/css';
 @import '@fortawesome/fontawesome-free/css/all.min.css';
 
-@import './tokens/fonts.css';
+/* Font-face declarations live in public/css/fonts.css and load via a
+   direct <link> in resources/views/app.blade.php. Keeping them out of
+   Vite's CSS pipeline preserves the absolute url('/fonts/…') paths;
+   Tailwind's Vite plugin otherwise rewrites them to /build/fonts/…
+   which 404s in production. */
 @import './tokens/colors.css';
 @import './tokens/typography.css';
 @import './tokens/spacing.css';
