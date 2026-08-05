@@ -11,6 +11,16 @@
  *     analytics database. Skip the whole boot on those routes; the
  *     retention window has to see zero of these URLs.
  *
+ *     This gate is evaluated once, at boot, against the entry URL. It no
+ *     longer covers an SPA navigation *into* a sensitive path from a
+ *     normal page: the tracker owns navigation tracking as of
+ *     artisanpack-ui/analytics 1.5 and has no client-side path exclusion,
+ *     so such a URL now reaches `/api/analytics/*`. It is still kept out
+ *     of the database by `privacy.excluded_paths` server-side, which
+ *     filters per tracked item. The difference is that the URL transits
+ *     the network and can land in web-server logs, where previously it
+ *     never left the browser.
+ *
  *  2. Analytics consent. Both this package and the perf collector share the
  *     `analytics` consent category from `config/artisanpack/privacy.php`,
  *     so nothing loads until `window.PrivacyConsent.whenConsented('analytics')`
@@ -220,29 +230,12 @@ if (
                 // queue here is safe.
                 flushQueue();
 
-                // Inertia SPA navigations swap the page component
-                // without a full document load, so the tracker's own
-                // `_trackInitialPageView` (bound to window `load`) never
-                // fires again after the first render. Bridge Inertia's
-                // `inertia:navigate` DOM event into a manual pageView
-                // call so each SPA route change ends up on
-                // `analytics_page_views`.
-                //
-                // The event name matters: `@inertiajs/core` dispatches
-                // `inertia:navigate` (see `fireNavigateEvent` in the
-                // core bundle), NOT `inertia:navigated`. A `-d` at the
-                // end silently no-ops.
-                //
-                // Sensitive paths are skipped client-side (same list
-                // the boot gate uses) so password-reset / verify-token
-                // URLs never leave the browser.
-                const onNavigate = (): void => {
-                    if (isSensitivePath(window.location.pathname)) {
-                        return;
-                    }
-                    window.ArtisanPackAnalytics?.pageView?.();
-                };
-                document.addEventListener('inertia:navigate', onNavigate);
+                // SPA navigation tracking is the tracker's own job as of
+                // artisanpack-ui/analytics 1.5. It watches pushState /
+                // replaceState / popstate, which is what Inertia navigates
+                // through, so the `inertia:navigate` bridge this file used
+                // to install has been removed — keeping both would record
+                // every page view twice.
             })
             .catch((error: unknown) => {
                 // Consent was withdrawn, the wait was aborted, or the

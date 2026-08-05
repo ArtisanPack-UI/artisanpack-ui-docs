@@ -105,6 +105,44 @@ it('keeps the local provider active by default and leaves external providers opt
         ->and(config('artisanpack.analytics.providers.plausible.enabled'))->toBeFalse();
 });
 
+it('requires an analytics version that tracks SPA navigation itself', function () {
+    // This app used to bridge Inertia's `inertia:navigate` event into a manual
+    // pageView() call, because the vendor tracker only recorded the initial
+    // document load. artisanpack-ui/analytics 1.5 watches the History API
+    // directly, so the bridge was removed — keeping both would double count.
+    //
+    // Dropping back below ^1.5 would therefore silently lose every SPA page
+    // view again, with nothing failing to indicate it. Pin the floor.
+    $composer = json_decode((string) file_get_contents(base_path('composer.json')), true);
+
+    expect($composer['require']['artisanpack-ui/analytics'])->toBe('^1.5');
+
+    $client = (string) file_get_contents(base_path('resources/js/lib/analytics.ts'));
+
+    expect($client)->not->toContain(
+        "addEventListener('inertia:navigate'",
+        'The app-side navigation bridge is back; with analytics >=1.5 it double counts.',
+    );
+});
+
+it('excludes every client-side sensitive path server-side as well', function () {
+    // The client skips the whole tracker boot on token-bearing auth URLs, but
+    // that gate only sees the entry URL. An SPA navigation *into* one of these
+    // from a normal page is now tracked by the vendor tracker, which has no
+    // client-side path exclusion — so `excluded_paths` is the belt that keeps
+    // the token out of `analytics_page_views`. Every pattern in the client's
+    // SENSITIVE_PATH_PATTERNS must have server-side cover.
+    $excluded = config('artisanpack.analytics.privacy.excluded_paths');
+
+    expect($excluded)
+        ->toContain('/reset-password/*')
+        ->toContain('/forgot-password')
+        ->toContain('/verify/*')
+        ->toContain('/email/verify/*')
+        ->toContain('/two-factor-challenge')
+        ->toContain('/user/confirm-password');
+});
+
 it('excludes admin and single-use privacy tokens from server-side tracking', function () {
     // The excluded_paths list is what the analytics ingest middleware
     // consults before writing to analytics_page_views. Auth-flow URLs

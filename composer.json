@@ -12,7 +12,7 @@
     "require": {
         "php": "^8.4",
         "artisanpack-ui/accessibility": "^2.0",
-        "artisanpack-ui/analytics": "^1.4",
+        "artisanpack-ui/analytics": "^1.5",
         "artisanpack-ui/analytics-google": "^1.0",
         "artisanpack-ui/core": "^1.0",
         "artisanpack-ui/google": "^1.0",
