@@ -349,6 +349,21 @@ it('registers analytics-google as the GA4 provider name', function () {
     expect(config('analytics-google.provider_name'))->toBe('google-ga4');
 });
 
+it('exposes the server-side Measurement Protocol forwarding config from analytics-google 1.1', function () {
+    // analytics-google 1.1 made the google-ga4 provider actually relay page
+    // views and events to GA4 over the Measurement Protocol; before, it was a
+    // silent no-op. The relay reads these keys under `tracking`. Our published
+    // config file must carry them: under `config:cache` the package's
+    // mergeConfigFrom is skipped, so a missing key resolves to null and
+    // forwarding silently stays off — the exact failure this release fixes.
+    $tracking = config('analytics-google.tracking');
+
+    expect($tracking)
+        ->toHaveKeys(['api_secret', 'server_side', 'page_location_base', 'timeout', 'debug'])
+        ->and(config('analytics-google.tracking.server_side'))->toBeTrue()
+        ->and(config('analytics-google.tracking.timeout'))->toBe(3);
+});
+
 it('schedules the daily analytics:cleanup command', function () {
     $bootstrap = (string) file_get_contents(base_path('bootstrap/app.php'));
 
