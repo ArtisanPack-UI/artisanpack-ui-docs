@@ -11,15 +11,14 @@
  *     analytics database. Skip the whole boot on those routes; the
  *     retention window has to see zero of these URLs.
  *
- *     This gate is evaluated once, at boot, against the entry URL. It no
- *     longer covers an SPA navigation *into* a sensitive path from a
- *     normal page: the tracker owns navigation tracking as of
- *     artisanpack-ui/analytics 1.5 and has no client-side path exclusion,
- *     so such a URL now reaches `/api/analytics/*`. It is still kept out
- *     of the database by `privacy.excluded_paths` server-side, which
- *     filters per tracked item. The difference is that the URL transits
- *     the network and can land in web-server logs, where previously it
- *     never left the browser.
+ *     This boot-time gate only sees the entry URL. SPA navigation *into* a
+ *     sensitive path from a normal page is covered separately: the vendor
+ *     tracker's own History-API tracking is disabled
+ *     (`trackHistoryChanges: false`) because it has no client-side path
+ *     exclusion, and the guarded `inertia:navigate` bridge installed after
+ *     consent re-checks `isSensitivePath` on every navigation. So these
+ *     URLs never leave the browser, and `privacy.excluded_paths` remains
+ *     the server-side belt for anything that does reach `/api/analytics/*`.
  *
  *  2. Analytics consent. Both this package and the perf collector share the
  *     `analytics` consent category from `config/artisanpack/privacy.php`,
@@ -194,6 +193,16 @@ if (
         respectDNT: true,
         trackPageViews: true,
         trackHashChanges: false,
+        // Own SPA navigation tracking here rather than let the tracker's
+        // History-API wrapper (default on in 1.5) do it. The vendor wrapper
+        // has no client-side path exclusion, so it would POST sensitive
+        // auth URLs (password-reset / verify tokens) to `/api/analytics/*`
+        // where they can land in web-server logs — the exact leak gate #1
+        // exists to prevent. Turning it off and re-installing the guarded
+        // `inertia:navigate` bridge below keeps those URLs in the browser
+        // and, because there is then exactly one navigation tracker, avoids
+        // the double-counting that removing the bridge originally fixed.
+        trackHistoryChanges: false,
         trackOutboundLinks: true,
         trackFileDownloads: true,
         debug: false,
@@ -230,12 +239,26 @@ if (
                 // queue here is safe.
                 flushQueue();
 
-                // SPA navigation tracking is the tracker's own job as of
-                // artisanpack-ui/analytics 1.5. It watches pushState /
-                // replaceState / popstate, which is what Inertia navigates
-                // through, so the `inertia:navigate` bridge this file used
-                // to install has been removed — keeping both would record
-                // every page view twice.
+                // Bridge Inertia's `inertia:navigate` DOM event into a
+                // manual pageView call so each SPA route change lands on
+                // `analytics_page_views`. The tracker's built-in History-API
+                // tracking is disabled (`trackHistoryChanges: false` above),
+                // so this bridge is the sole navigation tracker — no double
+                // counting — and it re-checks `isSensitivePath` on every
+                // navigation, keeping token-bearing auth URLs in the browser
+                // exactly as the boot-time gate does for the entry URL.
+                //
+                // The event name matters: `@inertiajs/core` dispatches
+                // `inertia:navigate` (see `fireNavigateEvent` in the core
+                // bundle), NOT `inertia:navigated`. A `-d` at the end
+                // silently no-ops.
+                const onNavigate = (): void => {
+                    if (isSensitivePath(window.location.pathname)) {
+                        return;
+                    }
+                    window.ArtisanPackAnalytics?.pageView?.();
+                };
+                document.addEventListener('inertia:navigate', onNavigate);
             })
             .catch((error: unknown) => {
                 // Consent was withdrawn, the wait was aborted, or the

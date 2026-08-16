@@ -105,32 +105,37 @@ it('keeps the local provider active by default and leaves external providers opt
         ->and(config('artisanpack.analytics.providers.plausible.enabled'))->toBeFalse();
 });
 
-it('requires an analytics version that tracks SPA navigation itself', function () {
-    // This app used to bridge Inertia's `inertia:navigate` event into a manual
-    // pageView() call, because the vendor tracker only recorded the initial
-    // document load. artisanpack-ui/analytics 1.5 watches the History API
-    // directly, so the bridge was removed — keeping both would double count.
+it('tracks SPA navigation through exactly one tracker so views are neither lost nor doubled', function () {
+    // SPA route changes must reach analytics_page_views exactly once. Two
+    // trackers can do it and they must not both be live:
     //
-    // Dropping back below ^1.5 would therefore silently lose every SPA page
-    // view again, with nothing failing to indicate it. Pin the floor.
+    //   1. the vendor tracker's History-API wrapper (default on in 1.5), and
+    //   2. this app's guarded `inertia:navigate` bridge.
+    //
+    // The app runs the bridge and disables the wrapper. The bridge skips
+    // sensitive auth paths client-side; the wrapper has no such exclusion and
+    // would POST token-bearing URLs to the network. Enabling both would double
+    // count every navigation. Pin both halves of that invariant.
     $composer = json_decode((string) file_get_contents(base_path('composer.json')), true);
 
     expect($composer['require']['artisanpack-ui/analytics'])->toBe('^1.5');
 
     $client = (string) file_get_contents(base_path('resources/js/lib/analytics.ts'));
 
-    expect($client)->not->toContain(
-        "addEventListener('inertia:navigate'",
-        'The app-side navigation bridge is back; with analytics >=1.5 it double counts.',
-    );
+    // The vendor History-API tracker must stay off, or it double counts with
+    // the bridge and leaks sensitive paths; the guarded bridge must stay, or
+    // SPA page views go untracked.
+    expect($client)
+        ->toContain('trackHistoryChanges: false')
+        ->toContain("addEventListener('inertia:navigate'");
 });
 
 it('excludes every client-side sensitive path server-side as well', function () {
-    // The client skips the whole tracker boot on token-bearing auth URLs, but
-    // that gate only sees the entry URL. An SPA navigation *into* one of these
-    // from a normal page is now tracked by the vendor tracker, which has no
-    // client-side path exclusion — so `excluded_paths` is the belt that keeps
-    // the token out of `analytics_page_views`. Every pattern in the client's
+    // The client keeps these URLs off the network two ways: the boot gate
+    // skips the entry URL, and the guarded `inertia:navigate` bridge skips SPA
+    // navigations into them. `excluded_paths` is the server-side belt behind
+    // both — anything that still reaches `/api/analytics/*` stays out of
+    // `analytics_page_views`. Every pattern in the client's
     // SENSITIVE_PATH_PATTERNS must have server-side cover.
     $excluded = config('artisanpack.analytics.privacy.excluded_paths');
 
