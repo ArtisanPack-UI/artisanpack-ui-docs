@@ -105,6 +105,49 @@ it('keeps the local provider active by default and leaves external providers opt
         ->and(config('artisanpack.analytics.providers.plausible.enabled'))->toBeFalse();
 });
 
+it('tracks SPA navigation through exactly one tracker so views are neither lost nor doubled', function () {
+    // SPA route changes must reach analytics_page_views exactly once. Two
+    // trackers can do it and they must not both be live:
+    //
+    //   1. the vendor tracker's History-API wrapper (default on in 1.5), and
+    //   2. this app's guarded `inertia:navigate` bridge.
+    //
+    // The app runs the bridge and disables the wrapper. The bridge skips
+    // sensitive auth paths client-side; the wrapper has no such exclusion and
+    // would POST token-bearing URLs to the network. Enabling both would double
+    // count every navigation. Pin both halves of that invariant.
+    $composer = json_decode((string) file_get_contents(base_path('composer.json')), true);
+
+    expect($composer['require']['artisanpack-ui/analytics'])->toBe('^1.5');
+
+    $client = (string) file_get_contents(base_path('resources/js/lib/analytics.ts'));
+
+    // The vendor History-API tracker must stay off, or it double counts with
+    // the bridge and leaks sensitive paths; the guarded bridge must stay, or
+    // SPA page views go untracked.
+    expect($client)
+        ->toContain('trackHistoryChanges: false')
+        ->toContain("addEventListener('inertia:navigate'");
+});
+
+it('excludes every client-side sensitive path server-side as well', function () {
+    // The client keeps these URLs off the network two ways: the boot gate
+    // skips the entry URL, and the guarded `inertia:navigate` bridge skips SPA
+    // navigations into them. `excluded_paths` is the server-side belt behind
+    // both — anything that still reaches `/api/analytics/*` stays out of
+    // `analytics_page_views`. Every pattern in the client's
+    // SENSITIVE_PATH_PATTERNS must have server-side cover.
+    $excluded = config('artisanpack.analytics.privacy.excluded_paths');
+
+    expect($excluded)
+        ->toContain('/reset-password/*')
+        ->toContain('/forgot-password')
+        ->toContain('/verify/*')
+        ->toContain('/email/verify/*')
+        ->toContain('/two-factor-challenge')
+        ->toContain('/user/confirm-password');
+});
+
 it('excludes admin and single-use privacy tokens from server-side tracking', function () {
     // The excluded_paths list is what the analytics ingest middleware
     // consults before writing to analytics_page_views. Auth-flow URLs
@@ -309,6 +352,21 @@ it('exposes the analytics-google reporting routes behind auth', function () {
 
 it('registers analytics-google as the GA4 provider name', function () {
     expect(config('analytics-google.provider_name'))->toBe('google-ga4');
+});
+
+it('exposes the server-side Measurement Protocol forwarding config from analytics-google 1.1', function () {
+    // analytics-google 1.1 made the google-ga4 provider actually relay page
+    // views and events to GA4 over the Measurement Protocol; before, it was a
+    // silent no-op. The relay reads these keys under `tracking`. Our published
+    // config file must carry them: under `config:cache` the package's
+    // mergeConfigFrom is skipped, so a missing key resolves to null and
+    // forwarding silently stays off — the exact failure this release fixes.
+    $tracking = config('analytics-google.tracking');
+
+    expect($tracking)
+        ->toHaveKeys(['api_secret', 'server_side', 'page_location_base', 'timeout', 'debug'])
+        ->and(config('analytics-google.tracking.server_side'))->toBeTrue()
+        ->and(config('analytics-google.tracking.timeout'))->toBe(3);
 });
 
 it('schedules the daily analytics:cleanup command', function () {

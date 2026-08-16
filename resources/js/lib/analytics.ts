@@ -11,6 +11,15 @@
  *     analytics database. Skip the whole boot on those routes; the
  *     retention window has to see zero of these URLs.
  *
+ *     This boot-time gate only sees the entry URL. SPA navigation *into* a
+ *     sensitive path from a normal page is covered separately: the vendor
+ *     tracker's own History-API tracking is disabled
+ *     (`trackHistoryChanges: false`) because it has no client-side path
+ *     exclusion, and the guarded `inertia:navigate` bridge installed after
+ *     consent re-checks `isSensitivePath` on every navigation. So these
+ *     URLs never leave the browser, and `privacy.excluded_paths` remains
+ *     the server-side belt for anything that does reach `/api/analytics/*`.
+ *
  *  2. Analytics consent. Both this package and the perf collector share the
  *     `analytics` consent category from `config/artisanpack/privacy.php`,
  *     so nothing loads until `window.PrivacyConsent.whenConsented('analytics')`
@@ -184,6 +193,16 @@ if (
         respectDNT: true,
         trackPageViews: true,
         trackHashChanges: false,
+        // Own SPA navigation tracking here rather than let the tracker's
+        // History-API wrapper (default on in 1.5) do it. The vendor wrapper
+        // has no client-side path exclusion, so it would POST sensitive
+        // auth URLs (password-reset / verify tokens) to `/api/analytics/*`
+        // where they can land in web-server logs — the exact leak gate #1
+        // exists to prevent. Turning it off and re-installing the guarded
+        // `inertia:navigate` bridge below keeps those URLs in the browser
+        // and, because there is then exactly one navigation tracker, avoids
+        // the double-counting that removing the bridge originally fixed.
+        trackHistoryChanges: false,
         trackOutboundLinks: true,
         trackFileDownloads: true,
         debug: false,
@@ -220,22 +239,19 @@ if (
                 // queue here is safe.
                 flushQueue();
 
-                // Inertia SPA navigations swap the page component
-                // without a full document load, so the tracker's own
-                // `_trackInitialPageView` (bound to window `load`) never
-                // fires again after the first render. Bridge Inertia's
-                // `inertia:navigate` DOM event into a manual pageView
-                // call so each SPA route change ends up on
-                // `analytics_page_views`.
+                // Bridge Inertia's `inertia:navigate` DOM event into a
+                // manual pageView call so each SPA route change lands on
+                // `analytics_page_views`. The tracker's built-in History-API
+                // tracking is disabled (`trackHistoryChanges: false` above),
+                // so this bridge is the sole navigation tracker — no double
+                // counting — and it re-checks `isSensitivePath` on every
+                // navigation, keeping token-bearing auth URLs in the browser
+                // exactly as the boot-time gate does for the entry URL.
                 //
                 // The event name matters: `@inertiajs/core` dispatches
-                // `inertia:navigate` (see `fireNavigateEvent` in the
-                // core bundle), NOT `inertia:navigated`. A `-d` at the
-                // end silently no-ops.
-                //
-                // Sensitive paths are skipped client-side (same list
-                // the boot gate uses) so password-reset / verify-token
-                // URLs never leave the browser.
+                // `inertia:navigate` (see `fireNavigateEvent` in the core
+                // bundle), NOT `inertia:navigated`. A `-d` at the end
+                // silently no-ops.
                 const onNavigate = (): void => {
                     if (isSensitivePath(window.location.pathname)) {
                         return;

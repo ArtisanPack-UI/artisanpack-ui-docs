@@ -49,6 +49,7 @@
     array (
       'Core' => 'ArtisanPackUI\\Core\\Facades\\Core',
       'ArtisanPackLog' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackLog',
+      'ArtisanPackSite' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackSite',
       'ArtisanPackConfig' => 'ArtisanPackUI\\Core\\Facades\\ArtisanPackConfig',
     ),
     'providers' => 
