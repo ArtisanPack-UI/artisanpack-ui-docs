@@ -130,6 +130,25 @@ it('tracks SPA navigation through exactly one tracker so views are neither lost 
         ->toContain("addEventListener('inertia:navigate'");
 });
 
+it('sends analytics beacons unbatched so control beacons cannot poison a page-view batch', function () {
+    // The vendor tracker queues its `consent`, `session/start` and
+    // `session/extend` beacons without the `immediate` flag, so they enter
+    // the batch queue typed as `event` with no `name`. The batch ingest
+    // endpoint validates `items.*.data.name` as required for `event` items,
+    // so any batch one of them shares fails validation — a 422, or a 302 when
+    // the request carries no `Accept: application/json` header, which is how
+    // `sendBeacon` sends. `sendBeacon` reports both as success, so the whole
+    // batch, real page views included, is dropped silently. A visit then
+    // records its first page or two and goes dark once the session heartbeat
+    // starts sharing the queue. batchSize 1 flushes every page view alone to
+    // `/pageview`, which validates and returns 204, so none are lost. Remove
+    // this once the app depends on an analytics release that marks those
+    // control sends `immediate`.
+    $client = (string) file_get_contents(base_path('resources/js/lib/analytics.ts'));
+
+    expect($client)->toContain('batchSize: 1');
+});
+
 it('excludes every client-side sensitive path server-side as well', function () {
     // The client keeps these URLs off the network two ways: the boot gate
     // skips the entry URL, and the guarded `inertia:navigate` bridge skips SPA

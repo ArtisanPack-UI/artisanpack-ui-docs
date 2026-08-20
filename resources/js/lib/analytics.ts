@@ -205,6 +205,24 @@ if (
         trackHistoryChanges: false,
         trackOutboundLinks: true,
         trackFileDownloads: true,
+        // Send every beacon on its own instead of batching. This works
+        // around a tracker bug: the batch queue types every non-`pageview`
+        // send (the `consent`, `session/start` and `session/extend`
+        // heartbeat beacons — none of which are marked `immediate`) as
+        // `event`, but their payloads carry no `name`. The server's batch
+        // endpoint validates `items.*.data.name` as required for `event`
+        // items, so any batch that a control beacon lands in fails
+        // validation — a 422 that `sendBeacon` reports as success, or a 302
+        // when no `Accept: application/json` header is sent — and the whole
+        // batch, real page views included, is dropped. In practice a visit
+        // records its first page or two and then goes silent the moment the
+        // session heartbeat starts sharing the queue. Forcing batchSize 1
+        // means page views always flush alone to `/pageview` (which
+        // validates and returns 204), so none are lost. The proper fix lives
+        // in artisanpack-ui/analytics: mark those control sends `immediate`
+        // (as `session/end` already is) so they never enter the batch queue.
+        // Remove this once the app depends on a release carrying that fix.
+        batchSize: 1,
         debug: false,
     };
 
