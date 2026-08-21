@@ -168,16 +168,16 @@
         },
         {
             "name": "artisanpack-ui/analytics",
-            "version": "1.5.0",
+            "version": "1.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ArtisanPack-UI/analytics.git",
-                "reference": "e4b558b5a9653b905ab653ac0f888cb1c44abe77"
+                "reference": "bd1e9a9d2a3acb6d84c96581d5329995554932c3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ArtisanPack-UI/analytics/zipball/e4b558b5a9653b905ab653ac0f888cb1c44abe77",
-                "reference": "e4b558b5a9653b905ab653ac0f888cb1c44abe77",
+                "url": "https://api.github.com/repos/ArtisanPack-UI/analytics/zipball/bd1e9a9d2a3acb6d84c96581d5329995554932c3",
+                "reference": "bd1e9a9d2a3acb6d84c96581d5329995554932c3",
                 "shasum": ""
             },
             "require": {
@@ -251,9 +251,9 @@
             ],
             "support": {
                 "issues": "https://github.com/ArtisanPack-UI/analytics/issues",
-                "source": "https://github.com/ArtisanPack-UI/analytics/tree/v1.5.0"
+                "source": "https://github.com/ArtisanPack-UI/analytics/tree/v1.5.1"
             },
-            "time": "2026-08-09T20:32:17+00:00"
+            "time": "2026-08-21T01:28:50+00:00"
         },
         {
             "name": "artisanpack-ui/analytics-google",
