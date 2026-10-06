@@ -109,3 +109,130 @@ it('returns a class fallback when an ap.<name> file is missing on disk', functio
 
     expect($result)->toBe(['type' => 'class', 'class' => 'fa-solid fa-does-not-exist']);
 });
+
+function writeTestIcon(string $filename, string $markup): void
+{
+    config()->set('artisanpack.icons.sets', [
+        'test' => [
+            'prefix' => 'tst',
+            'path' => sys_get_temp_dir().'/artisanpack-icon-tests',
+        ],
+    ]);
+
+    $dir = sys_get_temp_dir().'/artisanpack-icon-tests';
+    if (! is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+
+    file_put_contents($dir.'/'.$filename, $markup);
+}
+
+it('returns a null reference for empty input', function () {
+    expect((new IconResolverService)->reference(null))->toBeNull();
+    expect((new IconResolverService)->reference('  '))->toBeNull();
+});
+
+it('builds a reference with svg markup for a custom icon set', function () {
+    $reference = (new IconResolverService)->reference('ap.puzzle');
+
+    expect($reference)->toMatchArray(['raw' => 'ap.puzzle', 'set' => 'ap', 'name' => 'puzzle']);
+    expect($reference['svg'])->toStartWith('<svg')->toContain('fill="currentColor"');
+});
+
+it('builds a reference without svg for Font Awesome and default-set icons', function (string $raw, string $set, string $name) {
+    expect((new IconResolverService)->reference($raw))
+        ->toBe(['raw' => $raw, 'set' => $set, 'name' => $name, 'svg' => null]);
+})->with([
+    'solid prefix' => ['fas.house', 'fas', 'house'],
+    'brand prefix' => ['fab.github', 'fab', 'github'],
+    'regular prefix' => ['far.calendar', 'far', 'calendar'],
+    'unknown prefix falls back to solid' => ['xx.thing', 'fas', 'thing'],
+    'bare name' => ['cube', 'fas', 'cube'],
+    'raw class with family' => ['fa-brands fa-github', 'fab', 'github'],
+    'raw class without family' => ['fa-star', 'fas', 'star'],
+    'missing custom icon falls back to solid' => ['ap.does-not-exist', 'fas', 'does-not-exist'],
+]);
+
+it('strips script elements, event handlers, and external hrefs from custom SVGs', function () {
+    writeTestIcon(
+        'unsafe.svg',
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" onload="alert(1)">'
+        .'<script>alert(2)</script>'
+        .'<foreignObject><div>x</div></foreignObject>'
+        .'<set attributeName="href" to="javascript:alert(3)"/>'
+        .'<a href="javascript:alert(4)"><path d="M0 0" onclick="alert(5)"/></a>'
+        .'<use xlink:href="https://evil.test/sprite.svg#icon"/>'
+        .'<use href="#local"/>'
+        .'</svg>'
+    );
+
+    $markup = (new IconResolverService)->reference('tst.unsafe')['svg'];
+
+    expect($markup)
+        ->not->toContain('script')
+        ->not->toContain('alert')
+        ->not->toContain('foreignObject')
+        ->not->toContain('<set')
+        ->not->toContain('evil.test')
+        ->not->toContain('onload')
+        ->not->toContain('onclick')
+        ->toContain('<path d="M0 0"')
+        ->toContain('href="#local"');
+
+    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/unsafe.svg');
+});
+
+it('falls back to a class when a custom SVG is not well-formed', function () {
+    writeTestIcon('broken.svg', '<svg><path></svg');
+
+    expect((new IconResolverService)->resolve('tst.broken'))
+        ->toBe(['type' => 'class', 'class' => 'fa-solid fa-broken']);
+
+    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/broken.svg');
+});
+
+it('rejects a custom file whose root element is not an svg', function () {
+    writeTestIcon('html.svg', '<html><body onload="alert(1)"/></html>');
+
+    expect((new IconResolverService)->reference('tst.html')['svg'])->toBeNull();
+
+    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/html.svg');
+});
+
+it('strips an external xlink:href that sits beside a local href on the same element', function () {
+    writeTestIcon(
+        'dual-href.svg',
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'
+        .'<use href="#local" xlink:href="https://evil.test/sprite.svg#icon"/>'
+        .'</svg>'
+    );
+
+    $markup = (new IconResolverService)->reference('tst.dual-href')['svg'];
+
+    expect($markup)->not->toContain('evil.test')->toContain('href="#local"');
+
+    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/dual-href.svg');
+});
+
+it('strips style elements and attributes carrying script or external urls', function () {
+    writeTestIcon(
+        'styled.svg',
+        '<svg xmlns="http://www.w3.org/2000/svg">'
+        .'<style>@import url(https://evil.test/a.css);</style>'
+        .'<path d="M0 0" style="fill: url(https://evil.test/b.svg#g)"/>'
+        .'<path d="M1 1" filter="url(javascript:alert(1))"/>'
+        .'<path d="M2 2" fill="url(#local-gradient)"/>'
+        .'</svg>'
+    );
+
+    $markup = (new IconResolverService)->reference('tst.styled')['svg'];
+
+    expect($markup)
+        ->not->toContain('<style')
+        ->not->toContain('evil.test')
+        ->not->toContain('javascript')
+        ->toContain('<path d="M0 0"')
+        ->toContain('<path d="M1 1"');
+
+    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/styled.svg');
+});

@@ -21,6 +21,7 @@ enum TokenAbility: string
     case DocsWrite = 'docs:write';
     case ChangelogsRead = 'changelogs:read';
     case ChangelogsWrite = 'changelogs:write';
+    case ImportsTrigger = 'imports:trigger';
 
     /**
      * @return array<int, string>
@@ -50,6 +51,7 @@ enum TokenAbility: string
             self::DocsWrite => 'Documentation: Write',
             self::ChangelogsRead => 'Changelogs: Read',
             self::ChangelogsWrite => 'Changelogs: Write',
+            self::ImportsTrigger => 'Imports: Trigger',
         };
     }
 

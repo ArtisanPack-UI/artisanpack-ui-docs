@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Packages\Http\Controllers\ImportChangelogController;
 use Modules\Packages\Http\Controllers\ImportDocumentationController;
 
 /*
@@ -11,10 +12,14 @@ use Modules\Packages\Http\Controllers\ImportDocumentationController;
  * in bootstrap/app.php) so all Sanctum-guarded endpoints — with
  * their abilities middleware — sit together.
  *
- * Only the docs-import trigger stays module-local for now because
- * it's tightly coupled to `Modules\Packages\Jobs\ImportWikiDocumentation`.
+ * Only the import triggers stay module-local for now because they're
+ * tightly coupled to the `ImportWikiDocumentation` / `ImportChangelog`
+ * jobs. Both require the `imports:trigger` ability and inherit the
+ * `throttle:api` limiter from the `api` middleware group.
  */
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+Route::middleware(['auth:sanctum', 'abilities:imports:trigger'])->prefix('v1')->group(function () {
     Route::post('packages/{package}/import-docs', ImportDocumentationController::class)
         ->name('packages.import-docs');
+    Route::post('packages/{package}/import-changelog', ImportChangelogController::class)
+        ->name('packages.import-changelog');
 });

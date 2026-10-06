@@ -123,3 +123,138 @@ test('store rejects invalid payloads with 422', function () {
         ->assertStatus(422)
         ->assertJsonValidationErrors(['name', 'slug', 'changelog_url']);
 });
+
+test('index filters to an exact slug match when ?slug= is given', function () {
+    actAsToken(['packages:read']);
+    Package::factory()->create(['slug' => 'forms']);
+    Package::factory()->create(['slug' => 'forms-extra']);
+    Package::factory()->create(['slug' => 'react']);
+
+    $this->getJson(route('api.v1.packages.index', ['slug' => 'forms']))
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'forms');
+});
+
+test('index returns an empty collection when no package has the given slug', function () {
+    actAsToken(['packages:read']);
+    Package::factory()->create(['slug' => 'forms']);
+
+    $this->getJson(route('api.v1.packages.index', ['slug' => 'missing']))
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
+});
+
+test('index ignores an empty slug filter', function () {
+    actAsToken(['packages:read']);
+    Package::factory()->count(2)->create();
+
+    $this->getJson(route('api.v1.packages.index').'?slug=')
+        ->assertOk()
+        ->assertJsonCount(2, 'data');
+});
+
+test('index rejects a non-string slug filter', function () {
+    actAsToken(['packages:read']);
+
+    $this->getJson(route('api.v1.packages.index').'?slug[]=forms')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['slug']);
+});
+
+test('show resolves a package by slug as well as by id', function () {
+    actAsToken(['packages:read']);
+    $package = Package::factory()->create(['slug' => 'accessibility']);
+
+    $this->getJson('/api/v1/packages/accessibility')
+        ->assertOk()
+        ->assertJsonPath('data.id', $package->id);
+
+    $this->getJson("/api/v1/packages/{$package->id}")
+        ->assertOk()
+        ->assertJsonPath('data.slug', 'accessibility');
+});
+
+test('show returns 404 for an unknown slug or id', function () {
+    actAsToken(['packages:read']);
+
+    $this->getJson('/api/v1/packages/no-such-package')->assertNotFound();
+    $this->getJson('/api/v1/packages/999999')->assertNotFound();
+});
+
+test('update resolves a package by slug', function () {
+    actAsToken(['packages:write']);
+    $package = Package::factory()->create(['slug' => 'icons', 'version' => '1.0.0']);
+
+    $this->patchJson('/api/v1/packages/icons', [
+        'name' => $package->name,
+        'slug' => 'icons',
+        'wiki_url' => $package->wiki_url,
+        'changelog_url' => $package->changelog_url,
+        'version' => '1.1.0',
+    ])->assertOk()->assertJsonPath('data.version', '1.1.0');
+});
+
+test('show returns a structured icon reference with svg for custom icon sets', function () {
+    actAsToken(['packages:read']);
+    $package = Package::factory()->create(['icon' => 'ap.puzzle']);
+
+    $response = $this->getJson(route('api.v1.packages.show', $package))
+        ->assertOk()
+        ->assertJsonPath('data.icon.raw', 'ap.puzzle')
+        ->assertJsonPath('data.icon.set', 'ap')
+        ->assertJsonPath('data.icon.name', 'puzzle');
+
+    expect($response->json('data.icon.svg'))
+        ->toStartWith('<svg')
+        ->toContain('fill="currentColor"')
+        ->not->toContain('<!--');
+});
+
+test('show returns a structured icon reference without svg for shared icon sets', function (string $raw, string $set, string $name) {
+    actAsToken(['packages:read']);
+    $package = Package::factory()->create(['icon' => $raw]);
+
+    $this->getJson(route('api.v1.packages.show', $package))
+        ->assertOk()
+        ->assertJsonPath('data.icon', [
+            'raw' => $raw,
+            'set' => $set,
+            'name' => $name,
+            'svg' => null,
+        ]);
+})->with([
+    'font awesome solid' => ['fas.cube', 'fas', 'cube'],
+    'font awesome brand' => ['fab.github', 'fab', 'github'],
+    'default set bare name' => ['cube', 'fas', 'cube'],
+    'raw font awesome class' => ['fa-regular fa-calendar', 'far', 'calendar'],
+]);
+
+test('show returns a null icon when the package has none', function () {
+    actAsToken(['packages:read']);
+    $package = Package::factory()->create(['icon' => null]);
+
+    $this->getJson(route('api.v1.packages.show', $package))
+        ->assertOk()
+        ->assertJsonPath('data.icon', null);
+});
+
+test('show exposes documentation and changelog import status', function () {
+    actAsToken(['packages:read']);
+    $package = Package::factory()->create([
+        'docs_imported_at' => '2026-10-01 12:00:00',
+        'docs_import_status' => 'succeeded',
+        'changelog_import_status' => 'failed',
+        'changelog_import_error' => 'File not found',
+    ]);
+
+    $this->getJson(route('api.v1.packages.show', $package))
+        ->assertOk()
+        ->assertJsonPath('data.docs_imported_at', '2026-10-01T12:00:00.000000Z')
+        ->assertJsonPath('data.changelog_imported_at', null)
+        ->assertJsonPath('data.imports.docs.status', 'succeeded')
+        ->assertJsonPath('data.imports.docs.error', null)
+        ->assertJsonPath('data.imports.docs.imported_at', '2026-10-01T12:00:00.000000Z')
+        ->assertJsonPath('data.imports.changelog.status', 'failed')
+        ->assertJsonPath('data.imports.changelog.error', 'File not found');
+});

@@ -2,10 +2,14 @@
 
 namespace Modules\Packages;
 
+use App\Enums\ImportStatus;
+use App\Enums\ImportType;
 use ArtisanPackUI\SEO\Traits\HasSeo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Str;
 use Modules\Packages\Database\Factories\PackageFactory;
 
 class Package extends Model
@@ -26,6 +30,12 @@ class Package extends Model
      */
     public const GITHUB_REPO_URL_REGEX = '/^https:\/\/github\.com\//';
 
+    /**
+     * Upper bound on the import error message persisted for the API, so a
+     * runaway exception message can't bloat every package payload.
+     */
+    public const IMPORT_ERROR_MAX_LENGTH = 1000;
+
     /*
      * See Page::bootHasSeo — the package's default trait boot calls
      * `static::observe(...)`, which throws under Laravel 13 because the
@@ -43,6 +53,11 @@ class Package extends Model
         'icon',
         'version',
         'docs_imported_at',
+        'docs_import_status',
+        'docs_import_error',
+        'changelog_imported_at',
+        'changelog_import_status',
+        'changelog_import_error',
         'package_registry',
     ];
 
@@ -50,7 +65,29 @@ class Package extends Model
     {
         return [
             'docs_imported_at' => 'datetime',
+            'docs_import_status' => ImportStatus::class,
+            'changelog_imported_at' => 'datetime',
+            'changelog_import_status' => ImportStatus::class,
         ];
+    }
+
+    /**
+     * Bind `{package}` by numeric id as before, and fall back to the slug
+     * for non-numeric values so API callers can address a package by
+     * either key (e.g. `/api/v1/packages/react`).
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<static>|Relation<static, *, *>  $query
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return \Illuminate\Database\Eloquent\Builder<static>|Relation<static, *, *>
+     */
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        if ($field === null && is_string($value) && ! ctype_digit($value)) {
+            return $query->where('slug', $value);
+        }
+
+        return parent::resolveRouteBindingQuery($query, $value, $field);
     }
 
     protected static function newFactory()
@@ -117,6 +154,31 @@ class Package extends Model
         }
 
         return null;
+    }
+
+    public function markImportQueued(ImportType $type): void
+    {
+        $this->update([
+            $type->statusColumn() => ImportStatus::Queued,
+            $type->errorColumn() => null,
+        ]);
+    }
+
+    public function markImportSucceeded(ImportType $type): void
+    {
+        $this->update([
+            $type->importedAtColumn() => now(),
+            $type->statusColumn() => ImportStatus::Succeeded,
+            $type->errorColumn() => null,
+        ]);
+    }
+
+    public function markImportFailed(ImportType $type, string $error): void
+    {
+        $this->update([
+            $type->statusColumn() => ImportStatus::Failed,
+            $type->errorColumn() => Str::limit($error, self::IMPORT_ERROR_MAX_LENGTH),
+        ]);
     }
 
     public function needsDocumentationReimport(int $daysThreshold = 7): bool

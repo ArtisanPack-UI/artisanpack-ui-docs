@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `?slug=` exact-match filter on `GET /api/v1/packages`, and `{package}` route binding by slug as well as id (#188)
+- `POST /api/v1/packages/{package}/import-changelog` to queue a changelog import remotely, returning `202 Accepted` (#190)
+- Structured `icon` object (`{ raw, set, name, svg }`) on the package API resource, with sanitized SVG markup for custom `ap.*` icons (#191)
+- Import status on the package API resource: `docs_imported_at`, `changelog_imported_at`, and an `imports` object with the last status (`queued` / `succeeded` / `failed`) and error for each import type (#192)
+- `packages:sync-versions` command, scheduled daily, that updates each package's `version` to its latest stable Packagist / npm release. Disable with `PACKAGE_VERSION_SYNC_ENABLED=false` (#193)
+
+### Changed
+- **Breaking:** the API import endpoints (`import-docs`, `import-changelog`) now require the new `imports:trigger` token ability. Existing release-workflow tokens must be re-issued (or rotated after adding the ability) at `/dashboard/settings/api-tokens`, or they will receive `403` (#189)
+- **Breaking:** the package API resource's `icon` field is now an object instead of a string; the previous value is available as `icon.raw` (#191)
+
+### Security
+- Custom SVG icons are sanitized (script / foreign-content elements, event-handler attributes, and external `href`s removed) before they are rendered or returned by the API (#191)
+
 ## [3.0.1] - 2026-07-26
 
 ### Fixed

@@ -3,12 +3,14 @@
 namespace App\Jobs;
 
 use App\Concerns\ResolvesServiceTokens;
+use App\Enums\ImportType;
 use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Modules\Packages\Changelog;
 use Modules\Packages\Package;
+use Throwable;
 
 class ImportChangelog implements ShouldQueue
 {
@@ -59,6 +61,8 @@ class ImportChangelog implements ShouldQueue
                 ]
             );
 
+            $this->package->markImportSucceeded(ImportType::Changelog);
+
             Log::info('Successfully imported changelog for package {package}', [
                 'package' => $this->package->name,
             ]);
@@ -70,6 +74,19 @@ class ImportChangelog implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    /**
+     * Record the import as failed once the queue gives up on the job —
+     * after the final retry, or on a worker timeout — so a transient
+     * first-attempt error doesn't report `failed` while retries remain.
+     */
+    public function failed(?Throwable $exception): void
+    {
+        $this->package->markImportFailed(
+            ImportType::Changelog,
+            $exception?->getMessage() ?: 'The import job failed.',
+        );
     }
 
     /**

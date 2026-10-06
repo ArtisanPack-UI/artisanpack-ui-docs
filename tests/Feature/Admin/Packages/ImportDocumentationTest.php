@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\ImportStatus;
 use App\Jobs\ImportWikiDocumentation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,6 +38,8 @@ it('queues an import when a docs url is provided', function (): void {
         ImportWikiDocumentation::class,
         fn ($job) => $job->package->id === $package->id,
     );
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Queued);
 });
 
 it('persists the current form url before dispatching', function (): void {

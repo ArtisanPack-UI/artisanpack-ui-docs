@@ -58,6 +58,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('privacy:purge-expired')->daily();
         $schedule->command('privacy:process-requests')->daily();
         $schedule->command('perf:aggregate-metrics')->hourly();
+        // Pull each package's latest stable Packagist / npm release so
+        // `packages.version` doesn't drift. Toggle off with
+        // PACKAGE_VERSION_SYNC_ENABLED when another system owns versions.
+        $schedule->command('packages:sync-versions')
+            ->daily()
+            ->when(fn (): bool => (bool) config('artisanpack.packages.version_sync_enabled', true))
+            ->withoutOverlapping()
+            ->onOneServer();
         // Analytics package: prune raw events past retention_days and
         // roll up daily aggregates before deletion. Cron expression
         // sourced from ANALYTICS_CLEANUP_SCHEDULE so ops can slide the

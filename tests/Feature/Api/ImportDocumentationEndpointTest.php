@@ -1,15 +1,21 @@
 <?php
 
+use App\Enums\ImportStatus;
 use App\Jobs\ImportWikiDocumentation;
-use Illuminate\Auth\Middleware\Authenticate;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Sanctum;
 use Modules\Packages\Package;
 
 uses(RefreshDatabase::class);
 
-test('the import-docs route is registered and protected by authentication', function () {
+beforeEach(function () {
+    Sanctum::actingAs(User::factory()->create(), ['imports:trigger']);
+});
+
+test('the import-docs route is registered and protected by authentication and the imports:trigger ability', function () {
     $route = collect(Route::getRoutes())->first(
         fn ($route) => $route->getName() === 'api.packages.import-docs'
     );
@@ -17,7 +23,8 @@ test('the import-docs route is registered and protected by authentication', func
     expect($route)->not->toBeNull()
         ->and($route->methods())->toContain('POST')
         ->and($route->uri())->toBe('api/v1/packages/{package}/import-docs')
-        ->and($route->gatherMiddleware())->toContain('auth:sanctum');
+        ->and($route->gatherMiddleware())->toContain('auth:sanctum')
+        ->and($route->gatherMiddleware())->toContain('abilities:imports:trigger');
 });
 
 test('the endpoint queues an import for a package with a docs url', function () {
@@ -28,8 +35,7 @@ test('the endpoint queues an import for a package with a docs url', function () 
         'docs_url' => 'https://github.com/owner/repo',
     ]);
 
-    $response = $this->withoutMiddleware(Authenticate::class)
-        ->postJson(route('api.packages.import-docs', $package));
+    $response = $this->postJson(route('api.packages.import-docs', $package));
 
     $response->assertAccepted()
         ->assertJson([
@@ -38,6 +44,8 @@ test('the endpoint queues an import for a package with a docs url', function () 
         ]);
 
     Queue::assertPushed(ImportWikiDocumentation::class, fn ($job) => $job->package->id === $package->id);
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Queued);
 });
 
 test('the endpoint reports the wiki source when only a wiki url is set', function () {
@@ -48,8 +56,7 @@ test('the endpoint reports the wiki source when only a wiki url is set', functio
         'docs_url' => null,
     ]);
 
-    $response = $this->withoutMiddleware(Authenticate::class)
-        ->postJson(route('api.packages.import-docs', $package));
+    $response = $this->postJson(route('api.packages.import-docs', $package));
 
     $response->assertAccepted()
         ->assertJsonPath('source', 'wiki');
@@ -65,10 +72,35 @@ test('the endpoint rejects a package without any source url', function () {
         'docs_url' => null,
     ]);
 
-    $response = $this->withoutMiddleware(Authenticate::class)
-        ->postJson(route('api.packages.import-docs', $package));
+    $response = $this->postJson(route('api.packages.import-docs', $package));
 
     $response->assertUnprocessable();
+
+    Queue::assertNothingPushed();
+    expect($package->fresh()->docs_import_status)->toBeNull();
+});
+
+test('the endpoint rejects a token without the imports:trigger ability', function (array $abilities) {
+    Queue::fake();
+    Sanctum::actingAs(User::factory()->create(), $abilities);
+
+    $package = Package::factory()->create(['docs_url' => 'https://github.com/owner/repo']);
+
+    $this->postJson(route('api.packages.import-docs', $package))->assertForbidden();
+
+    Queue::assertNothingPushed();
+})->with([
+    'read-only token' => [['packages:read', 'docs:read']],
+    'write token' => [['packages:write', 'docs:write']],
+]);
+
+test('the endpoint rejects unauthenticated requests', function () {
+    Queue::fake();
+    $this->app['auth']->forgetGuards();
+
+    $package = Package::factory()->create(['docs_url' => 'https://github.com/owner/repo']);
+
+    $this->postJson(route('api.packages.import-docs', $package))->assertUnauthorized();
 
     Queue::assertNothingPushed();
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Packages\Http\Controllers\Admin;
 
+use App\Enums\ImportType;
 use App\Http\Controllers\Controller;
 use App\Jobs\ImportWikiDocumentation;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +18,8 @@ class ImportDocumentationController extends Controller
         $source = $request->sourceField();
         $validated = $request->validated();
         $package->update([$source => $validated[$source]]);
+
+        $package->markImportQueued(ImportType::Docs);
 
         ImportWikiDocumentation::dispatch($package);
 

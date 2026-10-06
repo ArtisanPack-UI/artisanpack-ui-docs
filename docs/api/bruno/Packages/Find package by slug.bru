@@ -1,0 +1,27 @@
+meta {
+  name: Find package by slug
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/api/v1/packages?slug=react
+  body: none
+  auth: bearer
+}
+
+params:query {
+  slug: react
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `packages:read` ability. Returns a collection holding the package whose slug exactly matches `slug`, or an empty collection.
+}

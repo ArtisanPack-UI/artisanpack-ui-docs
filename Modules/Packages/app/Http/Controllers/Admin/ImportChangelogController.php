@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Packages\Http\Controllers\Admin;
 
+use App\Enums\ImportType;
 use App\Http\Controllers\Controller;
 use App\Jobs\ImportChangelog;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +18,8 @@ class ImportChangelogController extends Controller
         $validated = $request->validated();
 
         $package->update(['changelog_url' => $validated['changelog_url']]);
+
+        $package->markImportQueued(ImportType::Changelog);
 
         ImportChangelog::dispatch($package);
 

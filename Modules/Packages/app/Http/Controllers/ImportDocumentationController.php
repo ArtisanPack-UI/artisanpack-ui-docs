@@ -2,6 +2,7 @@
 
 namespace Modules\Packages\Http\Controllers;
 
+use App\Enums\ImportType;
 use App\Http\Controllers\Controller;
 use App\Jobs\ImportWikiDocumentation;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,8 @@ class ImportDocumentationController extends Controller
                 'message' => 'The package does not have a docs URL or wiki URL configured.',
             ], 422);
         }
+
+        $package->markImportQueued(ImportType::Docs);
 
         ImportWikiDocumentation::dispatch($package);
 

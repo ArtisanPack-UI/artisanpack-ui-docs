@@ -1,6 +1,7 @@
 <?php
 
 use App\Contracts\WikiServiceInterface;
+use App\Enums\ImportStatus;
 use App\Jobs\ImportChangelog;
 use App\Services\WikiServiceFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -245,4 +246,77 @@ test('removes long H1 header like Digital Shopfront CMS Accessibility Changelog'
         ->and($changelog->content)->not->toContain('# Digital Shopfront CMS Accessibility Changelog')
         ->and($changelog->content)->toContain('## Version 1.0.0')
         ->and($changelog->content)->toContain('- Initial release');
+});
+
+test('stamps the changelog import as succeeded with a timestamp', function () {
+    Log::shouldReceive('info')->once();
+    $this->freezeSecond();
+
+    $package = Package::factory()->create([
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+        'changelog_import_status' => ImportStatus::Failed,
+        'changelog_import_error' => 'previous failure',
+    ]);
+
+    mockGitHubFileContent($package->changelog_url, "# Changelog\n\n## [1.0.0]");
+
+    (new ImportChangelog($package))->handle();
+
+    $package->refresh();
+    expect($package->changelog_import_status)->toBe(ImportStatus::Succeeded)
+        ->and($package->changelog_import_error)->toBeNull()
+        ->and($package->changelog_imported_at?->equalTo(now()))->toBeTrue()
+        ->and($package->docs_import_status)->toBeNull();
+});
+
+test('leaves the status queued while a failed attempt may still be retried', function () {
+    Log::shouldReceive('error')->once();
+
+    $package = Package::factory()->create([
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+        'changelog_import_status' => ImportStatus::Queued,
+    ]);
+
+    $mock = Mockery::mock(WikiServiceInterface::class);
+    $mock->shouldReceive('getFileContent')->andThrow(new Exception('File not found'));
+    $factory = Mockery::mock(WikiServiceFactory::class);
+    $factory->shouldReceive('make')->andReturn($mock);
+    app()->bind(WikiServiceFactory::class, fn () => $factory);
+
+    expect(fn () => (new ImportChangelog($package))->handle())->toThrow(Exception::class, 'File not found');
+
+    expect($package->fresh()->changelog_import_status)->toBe(ImportStatus::Queued);
+});
+
+test('the failed hook stamps the changelog import as failed and keeps the last success time', function () {
+    $package = Package::factory()->create([
+        'changelog_imported_at' => '2026-09-01 00:00:00',
+        'changelog_import_status' => ImportStatus::Queued,
+    ]);
+
+    (new ImportChangelog($package))->failed(new Exception('File not found'));
+
+    $package->refresh();
+    expect($package->changelog_import_status)->toBe(ImportStatus::Failed)
+        ->and($package->changelog_import_error)->toBe('File not found')
+        ->and($package->changelog_imported_at->toDateTimeString())->toBe('2026-09-01 00:00:00');
+});
+
+test('the failed hook falls back to a generic message without an exception', function () {
+    $package = Package::factory()->create(['changelog_import_status' => ImportStatus::Queued]);
+
+    (new ImportChangelog($package))->failed(null);
+
+    $package->refresh();
+    expect($package->changelog_import_status)->toBe(ImportStatus::Failed)
+        ->and($package->changelog_import_error)->toBe('The import job failed.');
+});
+
+test('truncates very long import errors', function () {
+    $package = Package::factory()->create();
+
+    (new ImportChangelog($package))->failed(new Exception(str_repeat('x', 5000)));
+
+    expect(mb_strlen($package->fresh()->changelog_import_error))
+        ->toBe(Package::IMPORT_ERROR_MAX_LENGTH + 3);
 });
