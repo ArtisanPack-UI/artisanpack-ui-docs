@@ -14,10 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `packages:sync-versions` command, scheduled daily, that updates each package's `version` to its latest stable Packagist / npm release. It never downgrades a newer stored version and exits non-zero when a registry lookup fails. Disable with `PACKAGE_VERSION_SYNC_ENABLED=false` (#193)
 
 ### Changed
-- **Breaking:** the API import endpoints (`import-docs`, `import-changelog`) now require the new `imports:trigger` token ability. Existing release-workflow tokens must be re-issued with the ability at `/dashboard/settings/api-tokens` (rotating keeps the old abilities), or they will receive `403`. See [`docs/reissue-import-token.md`](docs/reissue-import-token.md) (#189)
 - **Breaking:** the package API resource's `icon` field is now an object instead of a string; the previous value is available as `icon.raw` (#191)
 
 ### Security
+- The API import endpoints (`import-docs`, `import-changelog`) now require the new `imports:trigger` token ability instead of accepting any authenticated token. No existing consumer called these endpoints, so nothing needs re-issuing. See [`docs/import-trigger-token.md`](docs/import-trigger-token.md) for minting a token (#189)
 - Custom SVG icons are sanitized (script / foreign-content elements, event-handler attributes, and external `href`s removed) before they are rendered or returned by the API (#191)
 
 ## [3.0.1] - 2026-07-26

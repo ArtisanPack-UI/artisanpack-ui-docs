@@ -43,8 +43,8 @@ The bounded allow-list from `App\Enums\TokenAbility`:
 
 A token without the required ability for a route receives **403**.
 
-> Tokens minted before `imports:trigger` existed can't call the import
-> endpoints. See [`reissue-import-token.md`](./reissue-import-token.md).
+> To create a token for the import endpoints, see
+> [`import-trigger-token.md`](./import-trigger-token.md).
 
 
 ## 4. Error envelope
