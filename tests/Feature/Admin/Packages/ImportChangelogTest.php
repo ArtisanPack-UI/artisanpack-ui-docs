@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\ImportStatus;
 use App\Jobs\ImportChangelog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,6 +36,8 @@ it('queues a changelog import when a valid url is provided', function (): void {
         ImportChangelog::class,
         fn ($job) => $job->package->id === $package->id,
     );
+
+    expect($package->fresh()->changelog_import_status)->toBe(ImportStatus::Queued);
 });
 
 it('persists the current form changelog url before dispatching', function (): void {

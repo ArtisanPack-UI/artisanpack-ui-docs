@@ -48,6 +48,38 @@ class NpmService
     }
 
     /**
+     * Get the latest stable (non-pre-release) version of a package
+     *
+     * Prefers the `latest` dist-tag and falls back to the highest stable
+     * published version when that tag points at a pre-release. Not
+     * cached — callers such as the scheduled version sync need the
+     * current value.
+     *
+     * @param  string  $packageName  The package name (e.g., '@artisanpack-ui/react')
+     */
+    public function getLatestStableVersion(string $packageName): ?string
+    {
+        try {
+            $encodedName = str_replace('/', '%2F', $packageName);
+            $response = Http::get("{$this->registryUrl}/{$encodedName}");
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            $latestTag = $response->json('dist-tags.latest');
+
+            if (is_string($latestTag) && StableVersion::isStable($latestTag)) {
+                return StableVersion::normalize($latestTag);
+            }
+
+            return StableVersion::latest(array_keys((array) $response->json('versions', [])));
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Get download counts for a package
      *
      * @return array{total: int, monthly: int, weekly: int}

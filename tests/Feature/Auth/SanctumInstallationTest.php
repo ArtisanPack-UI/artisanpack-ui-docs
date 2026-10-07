@@ -50,6 +50,7 @@ it('registers the bounded ability allow-list', function () {
         'docs:write',
         'changelogs:read',
         'changelogs:write',
+        'imports:trigger',
     ]);
 
     expect(config('sanctum.abilities'))->toEqual(TokenAbility::values());
@@ -59,6 +60,7 @@ it('recognizes allow-listed abilities and rejects unknown ones', function () {
     expect(TokenAbility::isAllowed('packages:read'))->toBeTrue();
     expect(TokenAbility::isAllowed('docs:write'))->toBeTrue();
     expect(TokenAbility::isAllowed('changelogs:read'))->toBeTrue();
+    expect(TokenAbility::isAllowed('imports:trigger'))->toBeTrue();
 
     expect(TokenAbility::isAllowed('*'))->toBeFalse();
     expect(TokenAbility::isAllowed('users:write'))->toBeFalse();
@@ -68,7 +70,8 @@ it('recognizes allow-listed abilities and rejects unknown ones', function () {
 it('exposes options suitable for the token issuance UI checklist', function () {
     $options = TokenAbility::options();
 
-    expect($options)->toHaveCount(6);
+    expect($options)->toHaveCount(7);
     expect($options[0])->toEqual(['value' => 'packages:read', 'label' => 'Packages: Read']);
     expect($options[5])->toEqual(['value' => 'changelogs:write', 'label' => 'Changelogs: Write']);
+    expect($options[6])->toEqual(['value' => 'imports:trigger', 'label' => 'Imports: Trigger']);
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Packages\Http\Controllers\Admin;
 
+use App\Enums\ImportType;
 use App\Http\Controllers\Controller;
 use App\Jobs\ImportChangelog;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,9 @@ class ImportChangelogController extends Controller
 
         $package->update(['changelog_url' => $validated['changelog_url']]);
 
-        ImportChangelog::dispatch($package);
+        $attemptId = $package->markImportQueued(ImportType::Changelog);
+
+        ImportChangelog::dispatch($package, $attemptId);
 
         return back()->with('success', 'Changelog import started! This may take a few moments.');
     }

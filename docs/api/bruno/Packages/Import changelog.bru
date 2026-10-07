@@ -1,0 +1,27 @@
+meta {
+  name: Import changelog
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/api/v1/packages/:package/import-changelog
+  body: none
+  auth: bearer
+}
+
+params:path {
+  package: 1
+}
+
+headers {
+  Accept: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Requires the `imports:trigger` ability. `:package` is the numeric id or the package slug. Queues an import from `changelog_url` and returns 202; 422 when it is empty.
+}

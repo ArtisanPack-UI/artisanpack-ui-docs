@@ -1,6 +1,8 @@
 <?php
 
 use App\Contracts\WikiServiceInterface;
+use App\Enums\ImportStatus;
+use App\Enums\ImportType;
 use App\Jobs\ImportWikiDocumentation;
 use App\Services\WikiServiceFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -543,4 +545,78 @@ test('YAML title takes precedence over H1 header', function () {
         ->and($homeDoc->content)->not->toContain('---')
         ->and($homeDoc->content)->not->toContain('# H1 Title')
         ->and($homeDoc->content)->toContain('Content here.');
+});
+
+test('stamps the docs import as succeeded with a timestamp', function () {
+    Log::shouldReceive('info');
+    $this->freezeSecond();
+
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+        'docs_import_status' => ImportStatus::Queued,
+        'docs_import_error' => 'previous failure',
+    ]);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "# Home\n\nContent."],
+    ]);
+
+    (new ImportWikiDocumentation($package))->handle();
+
+    $package->refresh();
+    expect($package->docs_import_status)->toBe(ImportStatus::Succeeded)
+        ->and($package->docs_import_error)->toBeNull()
+        ->and($package->docs_imported_at?->equalTo(now()))->toBeTrue()
+        ->and($package->changelog_import_status)->toBeNull();
+});
+
+test('leaves the docs status queued while a failed attempt may still be retried', function () {
+    Log::shouldReceive('error')->once();
+
+    $package = Package::factory()->create([
+        'wiki_url' => 'https://github.com/owner/repo/wiki',
+        'docs_import_status' => ImportStatus::Queued,
+    ]);
+
+    $mock = Mockery::mock(WikiServiceInterface::class);
+    $mock->shouldReceive('getWikiPagesWithContent')->andThrow(new Exception('Failed to clone wiki repository'));
+    $factory = Mockery::mock(WikiServiceFactory::class);
+    $factory->shouldReceive('make')->andReturn($mock);
+    app()->bind(WikiServiceFactory::class, fn () => $factory);
+
+    expect(fn () => (new ImportWikiDocumentation($package))->handle())->toThrow(Exception::class);
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Queued);
+});
+
+test('the failed hook stamps the docs import as failed', function () {
+    $package = Package::factory()->create(['docs_import_status' => ImportStatus::Queued]);
+
+    (new ImportWikiDocumentation($package))->failed(new RuntimeException('Job timed out'));
+
+    $package->refresh();
+    expect($package->docs_import_status)->toBe(ImportStatus::Failed)
+        ->and($package->docs_import_error)->toBe('Job timed out')
+        ->and($package->docs_imported_at)->toBeNull();
+});
+
+test('a superseded docs attempt cannot overwrite the status of a newer one', function () {
+    Log::shouldReceive('info');
+
+    $package = Package::factory()->create(['wiki_url' => 'https://github.com/owner/repo/wiki']);
+
+    $olderAttempt = $package->markImportQueued(ImportType::Docs);
+    $newerAttempt = $package->markImportQueued(ImportType::Docs);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "# Home\n\nContent."],
+    ]);
+
+    (new ImportWikiDocumentation($package->fresh(), $olderAttempt))->handle();
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Queued);
+
+    (new ImportWikiDocumentation($package->fresh(), $newerAttempt))->handle();
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Succeeded);
 });

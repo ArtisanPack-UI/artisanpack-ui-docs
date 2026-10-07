@@ -79,6 +79,31 @@ class PackagistService
     }
 
     /**
+     * Get the latest stable (non-dev, non-pre-release) version of a package
+     *
+     * Not cached — callers such as the scheduled version sync need the
+     * current value.
+     *
+     * @param  string  $packageName  The package name (e.g., 'vendor/package')
+     */
+    public function getLatestStableVersion(string $packageName): ?string
+    {
+        try {
+            $response = Http::get("{$this->baseUrl}/packages/{$packageName}.json");
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            $versions = array_keys((array) $response->json('package.versions', []));
+
+            return StableVersion::latest($versions);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Clear cached stats for a package
      */
     public function clearCache(string $packageName): void

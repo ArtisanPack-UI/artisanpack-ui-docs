@@ -9,6 +9,7 @@ use App\Services\AuditLogger;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Modules\Packages\Http\Requests\ListPackagesRequest;
 use Modules\Packages\Http\Requests\PackageRequest;
 use Modules\Packages\Http\Resources\PackageResource;
 use Modules\Packages\Package;
@@ -25,12 +26,21 @@ class PackageController extends Controller
 
     public function __construct(protected AuditLogger $audit) {}
 
-    public function index(): AnonymousResourceCollection
+    /**
+     * List packages, optionally narrowed to an exact `?slug=` match so
+     * remote consumers can link their records to ours by slug.
+     */
+    public function index(ListPackagesRequest $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Package::class);
 
+        $slug = $request->validated('slug');
+
         return PackageResource::collection(
-            Package::query()->orderBy('name')->get()
+            Package::query()
+                ->when($slug !== null, fn ($query) => $query->where('slug', $slug))
+                ->orderBy('name')
+                ->get()
         );
     }
 

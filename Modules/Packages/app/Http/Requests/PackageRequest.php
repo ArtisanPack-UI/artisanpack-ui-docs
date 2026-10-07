@@ -16,7 +16,7 @@ class PackageRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255', 'not_regex:/^\d+$/'],
             'homepage' => ['nullable', 'integer'],
             'wiki_url' => [
                 'nullable',
@@ -47,6 +47,7 @@ class PackageRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'slug.not_regex' => 'The slug cannot be only digits, since numeric values address packages by id.',
             'wiki_url.regex' => 'The wiki URL must be a GitHub URL.',
             'wiki_url.required_without' => 'A wiki URL or docs URL is required.',
             'docs_url.regex' => 'The docs URL must be a GitHub repository URL.',

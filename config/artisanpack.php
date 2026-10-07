@@ -25,4 +25,12 @@ return [
     'api' => [
         'rate_limit_per_minute' => (int) env('API_RATE_LIMIT_PER_MINUTE', 60),
     ],
+
+    /*
+     * Scheduled `packages:sync-versions` run that keeps `packages.version`
+     * in step with the latest stable Packagist / npm release.
+     */
+    'packages' => [
+        'version_sync_enabled' => (bool) env('PACKAGE_VERSION_SYNC_ENABLED', true),
+    ],
 ];

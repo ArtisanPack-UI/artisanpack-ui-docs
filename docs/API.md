@@ -39,8 +39,13 @@ The bounded allow-list from `App\Enums\TokenAbility`:
 | `docs:write`        | Create, update, delete, reorder documentation     |
 | `changelogs:read`   | List changelogs                                   |
 | `changelogs:write`  | Create, update, delete changelogs                 |
+| `imports:trigger`   | Queue documentation / changelog imports           |
 
 A token without the required ability for a route receives **403**.
+
+> To create a token for the import endpoints, see
+> [`import-trigger-token.md`](./import-trigger-token.md).
+
 
 ## 4. Error envelope
 
@@ -94,17 +99,25 @@ and visible at `/dashboard/audit-log` for admins.
 | Method & URL                                | Ability            | Response       |
 |---------------------------------------------|--------------------|----------------|
 | `GET    /api/v1/packages`                   | `packages:read`    | 200 collection |
+| `GET    /api/v1/packages?slug={slug}`       | `packages:read`    | 200 collection |
 | `GET    /api/v1/packages/{package}`         | `packages:read`    | 200 resource   |
 | `POST   /api/v1/packages`                   | `packages:write`   | 201 resource   |
 | `PATCH  /api/v1/packages/{package}`         | `packages:write`   | 200 resource   |
 | `DELETE /api/v1/packages/{package}`         | `packages:write`   | 204 empty      |
+
+`{package}` in every route accepts either the numeric id or the package
+slug (`/api/v1/packages/42` and `/api/v1/packages/react` are equivalent).
+Unknown ids and slugs return **404**.
+
+`?slug=` narrows the index to an exact slug match — the collection has
+one item, or none when no package uses that slug.
 
 **Package payload (create / update)**
 
 | Field              | Type    | Required | Notes                                     |
 |--------------------|---------|----------|-------------------------------------------|
 | `name`             | string  | ✓        | Max 255                                   |
-| `slug`             | string  | ✓        | Max 255                                   |
+| `slug`             | string  | ✓        | Max 255; must not be digits only          |
 | `wiki_url`         | url     | one of\* | Must be a GitHub URL                      |
 | `docs_url`         | url     | one of\* | Must be a GitHub URL                      |
 | `changelog_url`    | url     | ✓        | Must be a GitHub URL                      |
@@ -127,13 +140,73 @@ and visible at `/dashboard/audit-log` for admins.
         "wiki_url": "https://github.com/artisanpack-ui/react/wiki",
         "docs_url": null,
         "changelog_url": "https://github.com/artisanpack-ui/react/blob/main/CHANGELOG.md",
-        "icon": null,
+        "icon": {
+            "raw": "ap.puzzle",
+            "set": "ap",
+            "name": "puzzle",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 640\" fill=\"currentColor\">…</svg>"
+        },
         "version": "3.0.0",
         "package_registry": "npm",
+        "docs_imported_at": "2026-10-01T12:00:00.000000Z",
+        "changelog_imported_at": null,
+        "imports": {
+            "docs": {
+                "status": "succeeded",
+                "error": null,
+                "imported_at": "2026-10-01T12:00:00.000000Z"
+            },
+            "changelog": {
+                "status": "failed",
+                "error": "Failed to fetch file content",
+                "imported_at": null
+            }
+        },
         "created_at": "2026-01-01T00:00:00.000000Z",
         "updated_at": "2026-07-25T12:00:00.000000Z"
     }
 }
+```
+
+**`icon`** is `null` when the package has no icon, otherwise an iconRef:
+
+| Field  | Notes                                                                                     |
+|--------|-------------------------------------------------------------------------------------------|
+| `raw`  | The stored identifier (`ap.puzzle`, `fas.cube`, `fa-brands fa-github`, `cube`, …)         |
+| `set`  | `ap` for the custom ArtisanPack set; otherwise the Font Awesome set (`fas`, `fab`, `far`, `fal`, `fad`). Bare names and unknown prefixes resolve to `fas`. |
+| `name` | Icon name within the set                                                                  |
+| `svg`  | Sanitized SVG markup (`fill="currentColor"`) for custom-set icons only; `null` for Font Awesome icons, which every consumer already has |
+
+**`imports`** reports the most recent run of each import type.
+`status` is `null` (never run), `queued`, `succeeded`, or `failed`;
+`error` holds the failure message (truncated to 1000 characters) and
+is cleared when an import is queued again or succeeds. `imported_at`
+(also exposed top-level as `docs_imported_at` /
+`changelog_imported_at`) is the time of the last **successful**
+import and is not cleared by a failure.
+
+### 5.1.1 Import triggers
+
+| Method & URL                                        | Ability            | Response     |
+|-----------------------------------------------------|--------------------|--------------|
+| `POST   /api/v1/packages/{package}/import-docs`      | `imports:trigger`  | 202 accepted |
+| `POST   /api/v1/packages/{package}/import-changelog` | `imports:trigger`  | 202 accepted |
+
+Both endpoints take no body: they queue an import from the URLs already
+stored on the package and mark that import `queued` (see `imports`
+above). Poll `GET /api/v1/packages/{package}` for the outcome.
+
+- `import-docs` reads `docs_url` (preferred) or `wiki_url`; returns
+  **422** when neither is set.
+- `import-changelog` reads `changelog_url`; returns **422** when it is
+  empty.
+
+```json
+{ "message": "Documentation import queued.", "package": "react", "source": "docs" }
+```
+
+```json
+{ "message": "Changelog import queued.", "package": "react" }
 ```
 
 ### 5.2 Documentation

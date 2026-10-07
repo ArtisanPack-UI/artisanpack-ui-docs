@@ -2,6 +2,7 @@
 
 namespace Modules\Packages\Http\Controllers;
 
+use App\Enums\ImportType;
 use App\Http\Controllers\Controller;
 use App\Jobs\ImportWikiDocumentation;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +25,9 @@ class ImportDocumentationController extends Controller
             ], 422);
         }
 
-        ImportWikiDocumentation::dispatch($package);
+        $attemptId = $package->markImportQueued(ImportType::Docs);
+
+        ImportWikiDocumentation::dispatch($package, $attemptId);
 
         return response()->json([
             'message' => 'Documentation import queued.',

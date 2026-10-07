@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Concerns\ResolvesServiceTokens;
+use App\Enums\ImportType;
 use App\Services\WikiServiceFactory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Packages\Documentation;
 use Modules\Packages\Package;
+use Throwable;
 
 class ImportWikiDocumentation implements ShouldQueue
 {
@@ -27,7 +29,8 @@ class ImportWikiDocumentation implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package
+        public Package $package,
+        public ?string $attemptId = null,
     ) {}
 
     /**
@@ -131,8 +134,7 @@ class ImportWikiDocumentation implements ShouldQueue
             // Set up parent relationships for subpages
             $this->setParentRelationships($parentOverrides);
 
-            // Update the docs_imported_at timestamp
-            $this->package->update(['docs_imported_at' => now()]);
+            $this->package->markImportSucceeded(ImportType::Docs, $this->attemptId);
 
             Log::info('Successfully imported {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),
@@ -146,6 +148,20 @@ class ImportWikiDocumentation implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    /**
+     * Record the import as failed once the queue gives up on the job —
+     * after the final retry, or on a worker timeout — so a transient
+     * first-attempt error doesn't report `failed` while retries remain.
+     */
+    public function failed(?Throwable $exception): void
+    {
+        $this->package->markImportFailed(
+            ImportType::Docs,
+            $exception?->getMessage() ?: 'The import job failed.',
+            $this->attemptId,
+        );
     }
 
     /**
