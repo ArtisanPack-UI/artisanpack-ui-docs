@@ -28,7 +28,8 @@ class ImportChangelog implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package
+        public Package $package,
+        public ?string $attemptId = null,
     ) {}
 
     /**
@@ -61,7 +62,7 @@ class ImportChangelog implements ShouldQueue
                 ]
             );
 
-            $this->package->markImportSucceeded(ImportType::Changelog);
+            $this->package->markImportSucceeded(ImportType::Changelog, $this->attemptId);
 
             Log::info('Successfully imported changelog for package {package}', [
                 'package' => $this->package->name,
@@ -86,6 +87,7 @@ class ImportChangelog implements ShouldQueue
         $this->package->markImportFailed(
             ImportType::Changelog,
             $exception?->getMessage() ?: 'The import job failed.',
+            $this->attemptId,
         );
     }
 

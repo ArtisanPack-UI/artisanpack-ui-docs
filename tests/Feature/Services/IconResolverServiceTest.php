@@ -2,7 +2,16 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Cache;
 use Modules\Core\Services\IconResolverService;
+
+afterEach(function () {
+    foreach (glob(sys_get_temp_dir().'/artisanpack-icon-tests/*.svg') ?: [] as $fixture) {
+        unlink($fixture);
+    }
+
+    Cache::flush();
+});
 
 it('returns null for empty input', function () {
     $service = new IconResolverService;
@@ -75,8 +84,6 @@ it('injects fill="currentColor" into SVGs that lack a root fill attribute', func
 
     expect($result)->toMatchArray(['type' => 'svg']);
     expect($result['markup'])->toContain('fill="currentColor"');
-
-    unlink($dir.'/blank.svg');
 });
 
 it('strips HTML comments from resolved SVGs', function () {
@@ -100,8 +107,6 @@ it('strips HTML comments from resolved SVGs', function () {
 
     expect($markup)->not->toContain('<!--');
     expect($markup)->not->toContain('license');
-
-    unlink($dir.'/commented.svg');
 });
 
 it('returns a class fallback when an ap.<name> file is missing on disk', function () {
@@ -178,8 +183,6 @@ it('strips script elements, event handlers, and external hrefs from custom SVGs'
         ->not->toContain('onclick')
         ->toContain('<path d="M0 0"')
         ->toContain('href="#local"');
-
-    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/unsafe.svg');
 });
 
 it('falls back to a class when a custom SVG is not well-formed', function () {
@@ -187,16 +190,12 @@ it('falls back to a class when a custom SVG is not well-formed', function () {
 
     expect((new IconResolverService)->resolve('tst.broken'))
         ->toBe(['type' => 'class', 'class' => 'fa-solid fa-broken']);
-
-    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/broken.svg');
 });
 
 it('rejects a custom file whose root element is not an svg', function () {
     writeTestIcon('html.svg', '<html><body onload="alert(1)"/></html>');
 
     expect((new IconResolverService)->reference('tst.html')['svg'])->toBeNull();
-
-    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/html.svg');
 });
 
 it('strips an external xlink:href that sits beside a local href on the same element', function () {
@@ -210,8 +209,6 @@ it('strips an external xlink:href that sits beside a local href on the same elem
     $markup = (new IconResolverService)->reference('tst.dual-href')['svg'];
 
     expect($markup)->not->toContain('evil.test')->toContain('href="#local"');
-
-    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/dual-href.svg');
 });
 
 it('strips style elements and attributes carrying script or external urls', function () {
@@ -233,6 +230,4 @@ it('strips style elements and attributes carrying script or external urls', func
         ->not->toContain('javascript')
         ->toContain('<path d="M0 0"')
         ->toContain('<path d="M1 1"');
-
-    unlink(sys_get_temp_dir().'/artisanpack-icon-tests/styled.svg');
 });

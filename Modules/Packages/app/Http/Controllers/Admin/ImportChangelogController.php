@@ -19,9 +19,9 @@ class ImportChangelogController extends Controller
 
         $package->update(['changelog_url' => $validated['changelog_url']]);
 
-        $package->markImportQueued(ImportType::Changelog);
+        $attemptId = $package->markImportQueued(ImportType::Changelog);
 
-        ImportChangelog::dispatch($package);
+        ImportChangelog::dispatch($package, $attemptId);
 
         return back()->with('success', 'Changelog import started! This may take a few moments.');
     }

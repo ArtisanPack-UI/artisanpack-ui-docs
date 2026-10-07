@@ -29,7 +29,8 @@ class ImportWikiDocumentation implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Package $package
+        public Package $package,
+        public ?string $attemptId = null,
     ) {}
 
     /**
@@ -133,7 +134,7 @@ class ImportWikiDocumentation implements ShouldQueue
             // Set up parent relationships for subpages
             $this->setParentRelationships($parentOverrides);
 
-            $this->package->markImportSucceeded(ImportType::Docs);
+            $this->package->markImportSucceeded(ImportType::Docs, $this->attemptId);
 
             Log::info('Successfully imported {count} wiki pages for package {package}', [
                 'count' => count($wikiPages),
@@ -159,6 +160,7 @@ class ImportWikiDocumentation implements ShouldQueue
         $this->package->markImportFailed(
             ImportType::Docs,
             $exception?->getMessage() ?: 'The import job failed.',
+            $this->attemptId,
         );
     }
 

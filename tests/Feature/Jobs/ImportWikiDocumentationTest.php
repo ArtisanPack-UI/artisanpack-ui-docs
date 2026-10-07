@@ -2,6 +2,7 @@
 
 use App\Contracts\WikiServiceInterface;
 use App\Enums\ImportStatus;
+use App\Enums\ImportType;
 use App\Jobs\ImportWikiDocumentation;
 use App\Services\WikiServiceFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -597,4 +598,25 @@ test('the failed hook stamps the docs import as failed', function () {
     expect($package->docs_import_status)->toBe(ImportStatus::Failed)
         ->and($package->docs_import_error)->toBe('Job timed out')
         ->and($package->docs_imported_at)->toBeNull();
+});
+
+test('a superseded docs attempt cannot overwrite the status of a newer one', function () {
+    Log::shouldReceive('info');
+
+    $package = Package::factory()->create(['wiki_url' => 'https://github.com/owner/repo/wiki']);
+
+    $olderAttempt = $package->markImportQueued(ImportType::Docs);
+    $newerAttempt = $package->markImportQueued(ImportType::Docs);
+
+    mockWikiPages([
+        ['slug' => 'home', 'title' => 'home', 'content' => "# Home\n\nContent."],
+    ]);
+
+    (new ImportWikiDocumentation($package->fresh(), $olderAttempt))->handle();
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Queued);
+
+    (new ImportWikiDocumentation($package->fresh(), $newerAttempt))->handle();
+
+    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Succeeded);
 });

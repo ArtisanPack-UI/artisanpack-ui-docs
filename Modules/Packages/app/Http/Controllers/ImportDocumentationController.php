@@ -25,9 +25,9 @@ class ImportDocumentationController extends Controller
             ], 422);
         }
 
-        $package->markImportQueued(ImportType::Docs);
+        $attemptId = $package->markImportQueued(ImportType::Docs);
 
-        ImportWikiDocumentation::dispatch($package);
+        ImportWikiDocumentation::dispatch($package, $attemptId);
 
         return response()->json([
             'message' => 'Documentation import queued.',

@@ -19,9 +19,9 @@ class ImportDocumentationController extends Controller
         $validated = $request->validated();
         $package->update([$source => $validated[$source]]);
 
-        $package->markImportQueued(ImportType::Docs);
+        $attemptId = $package->markImportQueued(ImportType::Docs);
 
-        ImportWikiDocumentation::dispatch($package);
+        ImportWikiDocumentation::dispatch($package, $attemptId);
 
         return back()->with('success', 'Documentation import started! This may take a few moments.');
     }

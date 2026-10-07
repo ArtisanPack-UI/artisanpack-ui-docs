@@ -43,9 +43,16 @@ test('the endpoint queues an import for a package with a docs url', function () 
             'source' => 'docs',
         ]);
 
-    Queue::assertPushed(ImportWikiDocumentation::class, fn ($job) => $job->package->id === $package->id);
+    $package->refresh();
 
-    expect($package->fresh()->docs_import_status)->toBe(ImportStatus::Queued);
+    Queue::assertPushed(
+        ImportWikiDocumentation::class,
+        fn ($job) => $job->package->id === $package->id
+            && $job->attemptId !== null
+            && $job->attemptId === $package->docs_import_attempt,
+    );
+
+    expect($package->docs_import_status)->toBe(ImportStatus::Queued);
 });
 
 test('the endpoint reports the wiki source when only a wiki url is set', function () {

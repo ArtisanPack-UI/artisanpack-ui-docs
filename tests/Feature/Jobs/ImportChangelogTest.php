@@ -2,6 +2,7 @@
 
 use App\Contracts\WikiServiceInterface;
 use App\Enums\ImportStatus;
+use App\Enums\ImportType;
 use App\Jobs\ImportChangelog;
 use App\Services\WikiServiceFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -310,6 +311,35 @@ test('the failed hook falls back to a generic message without an exception', fun
     $package->refresh();
     expect($package->changelog_import_status)->toBe(ImportStatus::Failed)
         ->and($package->changelog_import_error)->toBe('The import job failed.');
+});
+
+test('a superseded attempt cannot overwrite the status of a newer one', function () {
+    Log::shouldReceive('info')->once();
+
+    $package = Package::factory()->create([
+        'changelog_url' => 'https://github.com/owner/repo/blob/main/CHANGELOG.md',
+    ]);
+
+    $olderAttempt = $package->markImportQueued(ImportType::Changelog);
+    $newerAttempt = $package->markImportQueued(ImportType::Changelog);
+
+    mockGitHubFileContent($package->changelog_url, "# Changelog\n\n## [1.0.0]");
+    (new ImportChangelog($package->fresh(), $olderAttempt))->handle();
+
+    $package->refresh();
+    expect($package->changelog_import_status)->toBe(ImportStatus::Queued)
+        ->and($package->changelog_imported_at)->toBeNull()
+        ->and($package->changelog_import_attempt)->toBe($newerAttempt);
+
+    (new ImportChangelog($package->fresh(), $olderAttempt))->failed(new Exception('stale failure'));
+
+    expect($package->fresh()->changelog_import_status)->toBe(ImportStatus::Queued)
+        ->and($package->fresh()->changelog_import_error)->toBeNull();
+
+    (new ImportChangelog($package->fresh(), $newerAttempt))->failed(new Exception('current failure'));
+
+    expect($package->fresh()->changelog_import_status)->toBe(ImportStatus::Failed)
+        ->and($package->fresh()->changelog_import_error)->toBe('current failure');
 });
 
 test('truncates very long import errors', function () {

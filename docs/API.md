@@ -43,6 +43,10 @@ The bounded allow-list from `App\Enums\TokenAbility`:
 
 A token without the required ability for a route receives **403**.
 
+> Tokens minted before `imports:trigger` existed can't call the import
+> endpoints. See [`reissue-import-token.md`](./reissue-import-token.md).
+
+
 ## 4. Error envelope
 
 Errors are the standard Laravel JSON shape. Callers should treat
@@ -113,7 +117,7 @@ one item, or none when no package uses that slug.
 | Field              | Type    | Required | Notes                                     |
 |--------------------|---------|----------|-------------------------------------------|
 | `name`             | string  | ✓        | Max 255                                   |
-| `slug`             | string  | ✓        | Max 255                                   |
+| `slug`             | string  | ✓        | Max 255; must not be digits only          |
 | `wiki_url`         | url     | one of\* | Must be a GitHub URL                      |
 | `docs_url`         | url     | one of\* | Must be a GitHub URL                      |
 | `changelog_url`    | url     | ✓        | Must be a GitHub URL                      |

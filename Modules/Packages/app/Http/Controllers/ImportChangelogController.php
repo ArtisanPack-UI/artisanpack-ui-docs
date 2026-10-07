@@ -27,9 +27,9 @@ class ImportChangelogController extends Controller
             ], 422);
         }
 
-        $package->markImportQueued(ImportType::Changelog);
+        $attemptId = $package->markImportQueued(ImportType::Changelog);
 
-        ImportChangelog::dispatch($package);
+        ImportChangelog::dispatch($package, $attemptId);
 
         return response()->json([
             'message' => 'Changelog import queued.',

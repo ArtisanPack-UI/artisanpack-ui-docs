@@ -86,7 +86,8 @@ test('warns and skips packages whose registry lookup fails', function () {
 
     $this->artisan('packages:sync-versions')
         ->expectsOutputToContain('Could not determine the latest stable version of artisanpack-ui/missing.')
-        ->assertSuccessful();
+        ->expectsOutputToContain('1 registry lookup(s) failed.')
+        ->assertFailed();
 
     expect($missing->fresh()->version)->toBe('1.0.0');
 });
@@ -100,9 +101,46 @@ test('skips packages whose registry has no stable release', function () {
 
     $this->artisan('packages:sync-versions')
         ->expectsOutputToContain('Could not determine the latest stable version')
-        ->assertSuccessful();
+        ->assertFailed();
 
     expect($package->fresh()->version)->toBeNull();
+});
+
+test('keeps going after a failed lookup and still updates the other packages', function () {
+    fakeRegistries();
+
+    $missing = Package::factory()->create(['name' => 'A Missing', 'slug' => 'missing', 'package_registry' => 'packagist', 'version' => '1.0.0']);
+    $forms = Package::factory()->create(['name' => 'B Forms', 'slug' => 'forms', 'package_registry' => 'packagist', 'version' => '2.0.9']);
+
+    $this->artisan('packages:sync-versions')->assertFailed();
+
+    expect($missing->fresh()->version)->toBe('1.0.0')
+        ->and($forms->fresh()->version)->toBe('2.0.10');
+});
+
+test('never rolls a newer stored version back to an older registry result', function () {
+    fakeRegistries();
+
+    $forms = Package::factory()->create(['name' => 'Forms', 'slug' => 'forms', 'package_registry' => 'packagist', 'version' => '2.1.0']);
+    $vForms = Package::factory()->create(['name' => 'Core', 'slug' => 'core', 'package_registry' => 'packagist', 'version' => 'v1.0.1']);
+
+    $this->artisan('packages:sync-versions')
+        ->expectsOutputToContain('Forms: keeping 2.1.0 (registry reports older 2.0.10)')
+        ->expectsOutputToContain('Updated 0 package version(s).')
+        ->assertSuccessful();
+
+    expect($forms->fresh()->version)->toBe('2.1.0')
+        ->and($vForms->fresh()->version)->toBe('v1.0.1');
+});
+
+test('updates a non-semver stored version', function () {
+    fakeRegistries();
+
+    $forms = Package::factory()->create(['slug' => 'forms', 'package_registry' => 'packagist', 'version' => '2.x-dev']);
+
+    $this->artisan('packages:sync-versions')->assertSuccessful();
+
+    expect($forms->fresh()->version)->toBe('2.0.10');
 });
 
 test('dry run reports changes without saving them', function () {

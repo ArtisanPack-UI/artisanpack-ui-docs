@@ -55,9 +55,11 @@ class Package extends Model
         'docs_imported_at',
         'docs_import_status',
         'docs_import_error',
+        'docs_import_attempt',
         'changelog_imported_at',
         'changelog_import_status',
         'changelog_import_error',
+        'changelog_import_attempt',
         'package_registry',
     ];
 
@@ -156,29 +158,69 @@ class Package extends Model
         return null;
     }
 
-    public function markImportQueued(ImportType $type): void
+    /**
+     * Mark an import as queued and return the new attempt id, which the
+     * dispatched job passes back when it records its outcome.
+     */
+    public function markImportQueued(ImportType $type): string
     {
+        $attemptId = (string) Str::uuid();
+
         $this->update([
             $type->statusColumn() => ImportStatus::Queued,
             $type->errorColumn() => null,
+            $type->attemptColumn() => $attemptId,
         ]);
+
+        return $attemptId;
     }
 
-    public function markImportSucceeded(ImportType $type): void
+    /**
+     * @param  string|null  $attemptId  The attempt the job was queued as; null skips the staleness check.
+     */
+    public function markImportSucceeded(ImportType $type, ?string $attemptId = null): bool
     {
-        $this->update([
+        return $this->recordImportOutcome($type, $attemptId, [
             $type->importedAtColumn() => now(),
             $type->statusColumn() => ImportStatus::Succeeded,
             $type->errorColumn() => null,
         ]);
     }
 
-    public function markImportFailed(ImportType $type, string $error): void
+    /**
+     * @param  string|null  $attemptId  The attempt the job was queued as; null skips the staleness check.
+     */
+    public function markImportFailed(ImportType $type, string $error, ?string $attemptId = null): bool
     {
-        $this->update([
+        return $this->recordImportOutcome($type, $attemptId, [
             $type->statusColumn() => ImportStatus::Failed,
             $type->errorColumn() => Str::limit($error, self::IMPORT_ERROR_MAX_LENGTH),
         ]);
+    }
+
+    /**
+     * Write an import outcome only while `$attemptId` is still the latest
+     * queued attempt, so an older job finishing last can't overwrite the
+     * result of a newer one. Returns false when the attempt was superseded.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function recordImportOutcome(ImportType $type, ?string $attemptId, array $attributes): bool
+    {
+        $attributes[$this->getUpdatedAtColumn()] = $this->freshTimestamp();
+
+        $updated = static::query()
+            ->whereKey($this->getKey())
+            ->when($attemptId !== null, fn ($query) => $query->where($type->attemptColumn(), $attemptId))
+            ->update($attributes);
+
+        if ($updated === 0) {
+            return false;
+        }
+
+        $this->forceFill($attributes)->syncOriginalAttributes(array_keys($attributes));
+
+        return true;
     }
 
     public function needsDocumentationReimport(int $daysThreshold = 7): bool

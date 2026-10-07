@@ -44,9 +44,15 @@ test('the endpoint queues a changelog import and marks it queued', function () {
             'package' => 'core',
         ]);
 
-    Queue::assertPushed(ImportChangelog::class, fn ($job) => $job->package->id === $package->id);
-
     $package->refresh();
+
+    Queue::assertPushed(
+        ImportChangelog::class,
+        fn ($job) => $job->package->id === $package->id
+            && $job->attemptId !== null
+            && $job->attemptId === $package->changelog_import_attempt,
+    );
+
     expect($package->changelog_import_status)->toBe(ImportStatus::Queued)
         ->and($package->changelog_import_error)->toBeNull();
 });

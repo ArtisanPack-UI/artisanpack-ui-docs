@@ -28,4 +28,13 @@ enum ImportType: string
     {
         return "{$this->value}_import_error";
     }
+
+    /**
+     * Holds the id of the most recently queued attempt, so a superseded
+     * job can't overwrite the status of a newer one.
+     */
+    public function attemptColumn(): string
+    {
+        return "{$this->value}_import_attempt";
+    }
 }

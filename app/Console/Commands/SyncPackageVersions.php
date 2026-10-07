@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\NpmService;
 use App\Services\PackagistService;
+use App\Services\StableVersion;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Modules\Packages\Package;
@@ -31,6 +32,7 @@ class SyncPackageVersions extends Command
     {
         $isDryRun = (bool) $this->option('dry-run');
         $updated = 0;
+        $failedLookups = 0;
 
         $packages = Package::query()->whereNotNull('package_registry')->orderBy('name')->get();
 
@@ -49,11 +51,20 @@ class SyncPackageVersions extends Command
 
             if ($latest === null) {
                 $this->warn("Could not determine the latest stable version of {$registryName}.");
+                $failedLookups++;
 
                 continue;
             }
 
             if ($latest === $package->version) {
+                continue;
+            }
+
+            // Registry metadata can lag (Packagist caches for hours), so
+            // never roll a newer stored release back to an older one.
+            if ($this->isOlderThanStoredVersion($latest, $package->version)) {
+                $this->line("{$package->name}: keeping {$package->version} (registry reports older {$latest})");
+
                 continue;
             }
 
@@ -75,6 +86,25 @@ class SyncPackageVersions extends Command
 
         $this->info($isDryRun ? 'Dry run complete; no versions were saved.' : "Updated {$updated} package version(s).");
 
+        if ($failedLookups > 0) {
+            $this->error("{$failedLookups} registry lookup(s) failed.");
+
+            return Command::FAILURE;
+        }
+
         return Command::SUCCESS;
+    }
+
+    /**
+     * Whether the registry version is lower than a stored stable version.
+     * Non-semver stored values (or none) never block an update.
+     */
+    protected function isOlderThanStoredVersion(string $registryVersion, ?string $storedVersion): bool
+    {
+        if ($storedVersion === null || ! StableVersion::isStable($storedVersion)) {
+            return false;
+        }
+
+        return version_compare($registryVersion, StableVersion::normalize($storedVersion), '<');
     }
 }

@@ -258,3 +258,29 @@ test('show exposes documentation and changelog import status', function () {
         ->assertJsonPath('data.imports.changelog.status', 'failed')
         ->assertJsonPath('data.imports.changelog.error', 'File not found');
 });
+
+test('store rejects a digit-only slug that would collide with id lookups', function () {
+    actAsToken(['packages:write']);
+
+    $this->postJson(route('api.v1.packages.store'), [
+        'name' => 'Numeric Package',
+        'slug' => '2048',
+        'wiki_url' => 'https://github.com/artisanpack-ui/numeric/wiki',
+        'changelog_url' => 'https://github.com/artisanpack-ui/numeric/blob/main/CHANGELOG.md',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['slug']);
+
+    $this->assertDatabaseMissing('packages', ['slug' => '2048']);
+});
+
+test('store still accepts a slug that mixes digits and letters', function () {
+    actAsToken(['packages:write']);
+
+    $this->postJson(route('api.v1.packages.store'), [
+        'name' => 'Mixed Package',
+        'slug' => '2048-ui',
+        'wiki_url' => 'https://github.com/artisanpack-ui/mixed/wiki',
+        'changelog_url' => 'https://github.com/artisanpack-ui/mixed/blob/main/CHANGELOG.md',
+    ])->assertCreated();
+});
