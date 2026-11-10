@@ -2,6 +2,8 @@
 
 namespace Modules\Packages\Providers;
 
+use ArtisanPackUI\DesignSystem\Manifest\Examples;
+use ArtisanPackUI\DesignSystem\Manifest\ManifestRepository;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -36,6 +38,21 @@ class PackagesServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
+        $this->registerDesignSystem();
+    }
+
+    /**
+     * Bind the design-system manifests and examples (design-system#43).
+     *
+     * Both default to the files shipped in `artisanpack-ui/design-system`.
+     * The manifests are loaded once per request; tests rebind either to
+     * point at fixtures.
+     */
+    protected function registerDesignSystem(): void
+    {
+        $this->app->singleton(ManifestRepository::class, fn () => ManifestRepository::fromFile());
+        $this->app->singleton(Examples::class, fn () => new Examples);
     }
 
     /**

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4a30e4d35ba3710fbfc0e849ca5d66b0",
+    "content-hash": "847f3e74bc813faf6ba744d2f89832a0",
     "packages": [
         {
             "name": "artisanpack-ui/accessibility",
@@ -410,6 +410,79 @@
                 "source": "https://github.com/ArtisanPack-UI/core/tree/v1.3.1"
             },
             "time": "2026-08-09T20:07:15+00:00"
+        },
+        {
+            "name": "artisanpack-ui/design-system",
+            "version": "dev-feature/39-43-quality-gates-assets-docs-template",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ArtisanPack-UI/design-system.git",
+                "reference": "15f801a8fe09fbaa4aaeb59f5e7bcc92f5f65224"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ArtisanPack-UI/design-system/zipball/15f801a8fe09fbaa4aaeb59f5e7bcc92f5f65224",
+                "reference": "15f801a8fe09fbaa4aaeb59f5e7bcc92f5f65224",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-json": "*",
+                "ext-libxml": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0|^11.0",
+                "pestphp/pest": "^3.8|^4.0"
+            },
+            "suggest": {
+                "illuminate/view": "Renders the Blade fixtures and runs the Livewire parity checks (^12.0|^13.0).",
+                "pestphp/pest": "For the toMatchManifest expectation."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ArtisanPackUI\\DesignSystem\\Manifest\\": "packages/manifest/php/",
+                    "ArtisanPackUI\\DesignSystem\\Testing\\": "packages/testing/php/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "ArtisanPackUI\\DesignSystem\\Testing\\Tests\\": "packages/testing/tests-php/"
+                }
+            },
+            "archive": {
+                "exclude": [
+                    "/design",
+                    "/docs",
+                    "/apps",
+                    "/tools",
+                    "/node_modules",
+                    "/packages/*/node_modules",
+                    "/packages/*/test",
+                    "/packages/testing/tests-php"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "pest --test-directory=packages/testing/tests-php"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jacob Martella",
+                    "email": "me@jacobmartella.com"
+                }
+            ],
+            "description": "The PHP side of the ArtisanPack UI Design System: component manifests, docs examples and the quality-gate kit (Blade fixture host and parity checks).",
+            "support": {
+                "source": "https://github.com/ArtisanPack-UI/design-system/tree/feature/39-43-quality-gates-assets-docs-template",
+                "issues": "https://github.com/ArtisanPack-UI/design-system/issues"
+            },
+            "time": "2026-11-10T17:24:14+00:00"
         },
         {
             "name": "artisanpack-ui/google",
@@ -15267,7 +15340,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "artisanpack-ui/design-system": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

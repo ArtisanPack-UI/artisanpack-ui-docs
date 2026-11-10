@@ -15,6 +15,7 @@
         "artisanpack-ui/analytics": "^1.5",
         "artisanpack-ui/analytics-google": "^1.1",
         "artisanpack-ui/core": "^1.0",
+        "artisanpack-ui/design-system": "dev-feature/39-43-quality-gates-assets-docs-template",
         "artisanpack-ui/google": "^1.0",
         "artisanpack-ui/icons": "^2.0",
         "artisanpack-ui/performance": "^1.1",
@@ -106,5 +107,12 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "name": "design-system",
+            "type": "vcs",
+            "url": "https://github.com/ArtisanPack-UI/design-system"
+        }
+    ]
 }
