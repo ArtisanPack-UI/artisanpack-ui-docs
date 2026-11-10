@@ -65,6 +65,7 @@ export function ExamplePreview({ stack, source, title }: ExamplePreviewProps) {
     );
 }
 
+/** The Blade example, rendered on the server and injected as HTML. */
 function BladePreview({ html }: { html: string | null }) {
     if (html === null) {
         return <PreviewUnavailable />;
@@ -80,6 +81,7 @@ function BladePreview({ html }: { html: string | null }) {
     );
 }
 
+/** Shown when an example has no live preview, or it failed to mount. */
 function PreviewUnavailable() {
     return (
         <p className="text-[14px] text-text-subtle">
@@ -107,6 +109,7 @@ function useHydrated(): boolean {
     );
 }
 
+/** Mounts a React or Vue example as an island after hydration. */
 function IslandPreview({ stack, file }: { stack: 'react' | 'vue'; file: string }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [status, setStatus] = useState<IslandStatus>('loading');
@@ -169,7 +172,9 @@ function IslandPreview({ stack, file }: { stack: 'react' | 'vue'; file: string }
         };
     }, [loader, stack, file]);
 
-    const unavailable = !loader || status === 'error';
+    // Before hydration there's no loader yet: show loading, not "unavailable",
+    // so the server HTML and the first client render match and don't mislead.
+    const unavailable = (hydrated && !loader) || status === 'error';
 
     return (
         <>

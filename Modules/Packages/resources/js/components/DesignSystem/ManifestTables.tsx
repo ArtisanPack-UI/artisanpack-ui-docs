@@ -153,6 +153,7 @@ function WarningBadge({ className = '', children }: { className?: string; childr
     );
 }
 
+/** A prop's default value as the tables print it. */
 function formatDefault(value: unknown): string {
     if (typeof value === 'string') {
         return `'${value}'`;
@@ -160,6 +161,7 @@ function formatDefault(value: unknown): string {
     return JSON.stringify(value);
 }
 
+/** A titled, linkable section of the API reference. */
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
     return (
         <section aria-labelledby={id} className="flex flex-col gap-4">
@@ -174,6 +176,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
     );
 }
 
+/** A table with the given column headers. */
 function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
     return (
         <div className="overflow-x-auto rounded-[12px] border border-border-subtle">
@@ -197,10 +200,12 @@ function Table({ headers, children }: { headers: string[]; children: ReactNode }
     );
 }
 
+/** A body cell. */
 function Cell({ children }: { children: ReactNode }) {
     return <td className="px-4 py-3 align-top leading-[1.6] text-text-muted">{children}</td>;
 }
 
+/** Inline code. */
 function Code({ children }: { children: ReactNode }) {
     return (
         <code className="rounded-[4px] bg-surface-2 px-1.5 py-0.5 font-mono text-[13px] text-text">

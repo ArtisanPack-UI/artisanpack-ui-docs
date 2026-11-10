@@ -178,10 +178,12 @@ export default function Component({ component, examples, navigation }: DesignSys
     );
 }
 
+/** The example's anchor id on the page. */
 function exampleId(example: ComponentExample): string {
     return `example-${example.id}`;
 }
 
+/** One example: the live preview above its source in each stack. */
 function Example({
     example,
     stack,
