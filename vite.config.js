@@ -1,12 +1,21 @@
+import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import vue from '@vitejs/plugin-vue';
 import { globSync } from 'glob';
 import tailwindcss from '@tailwindcss/vite';
 
 const moduleAssets = globSync(
     'Modules/*/resources/assets/{js,css,scss}/*.{js,scss,css}',
+);
+
+// Design-system docs examples (design-system#43). The component pages load
+// the React and Vue examples from here as client-only islands through
+// `import.meta.glob('@artisanpack-ui/design-system/examples/...')`.
+const designSystemExamples = fileURLToPath(
+    new URL('./vendor/artisanpack-ui/design-system/packages/manifest/examples', import.meta.url),
 );
 
 export default defineConfig(({ isSsrBuild }) => ({
@@ -31,11 +40,31 @@ export default defineConfig(({ isSsrBuild }) => ({
             detectTls: true,
         }),
         react(),
+        vue(),
         tailwindcss(),
     ],
+    server: {
+        // When the design-system package is a Composer path repository,
+        // vendor/ holds a symlink and Vite resolves the examples to their
+        // real path outside this project. Allow that path so the dev
+        // server will serve them. With an installed package it is just
+        // the vendor/ directory again.
+        fs: {
+            allow: [
+                searchForWorkspaceRoot(process.cwd()),
+                ...(existsSync(designSystemExamples) ? [realpathSync(designSystemExamples)] : []),
+            ],
+        },
+    },
     resolve: {
+        // The examples import React, Vue and the ArtisanPack UI packages.
+        // Resolve those from this app, never from a node_modules next to
+        // the examples' real path (a symlinked design-system checkout has
+        // its own), so an island shares the app's single React and Vue.
+        dedupe: ['react', 'react-dom', 'vue', '@artisanpack-ui/react', '@artisanpack-ui/vue'],
         alias: {
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+            '@artisanpack-ui/design-system/examples': designSystemExamples,
             // Stub `apexcharts` and `react-apexcharts` in the SSR bundle
             // only. Both touch `window` / `document` / `getComputedStyle`
             // at module load and crash Node the moment ssr.js starts —

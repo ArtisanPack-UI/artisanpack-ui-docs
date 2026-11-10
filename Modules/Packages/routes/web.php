@@ -8,6 +8,7 @@ use Modules\Packages\Http\Controllers\Admin\ImportChangelogController as AdminIm
 use Modules\Packages\Http\Controllers\Admin\ImportDocumentationController as AdminImportDocumentationController;
 use Modules\Packages\Http\Controllers\Admin\PackagesController as AdminPackagesController;
 use Modules\Packages\Http\Controllers\ChangelogViewerController;
+use Modules\Packages\Http\Controllers\ComponentDocsController;
 use Modules\Packages\Http\Controllers\DocumentationReorderController;
 use Modules\Packages\Http\Controllers\DocumentationViewerController;
 
@@ -19,6 +20,13 @@ Route::get('/documentation/{package}/changelog', function ($package) {
 Route::get('/documentation/{package}/changelogs', function ($package) {
     return redirect()->route('changelog.show', ['package' => $package], 301);
 });
+
+// Design-system component pages. Registered before the catch-all docs
+// route below, whose `.*` slug would otherwise swallow this path. A slug
+// with no matching manifest is handed to the docs viewer by the controller.
+Route::get('/documentation/design-system/components/{component}', [ComponentDocsController::class, 'show'])
+    ->where('component', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('documentation.design-system.component');
 
 // Public documentation route
 Route::get('/documentation/{package}/{slug}', [DocumentationViewerController::class, 'show'])
