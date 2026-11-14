@@ -268,3 +268,29 @@ test('removes stale docs pages on re-import', function () {
     expect(Documentation::where('slug', 'old-page')->exists())->toBeFalse()
         ->and(Documentation::where('slug', 'home')->exists())->toBeTrue();
 });
+
+test('imports pages larger than 64 KB in full and still nests their siblings', function () {
+    $package = Package::factory()->create([
+        'slug' => 'design-system',
+        'docs_url' => 'https://github.com/owner/repo',
+    ]);
+
+    $largeBody = str_repeat('A long upgrade guide paragraph. ', 2500);
+
+    mockDocsPages([
+        ['slug' => 'upgrade', 'title' => 'Upgrading', 'content' => '# Upgrading'],
+        ['slug' => 'upgrade/livewire', 'title' => 'Livewire', 'content' => "# Livewire\n\n".$largeBody],
+        ['slug' => 'upgrade/react', 'title' => 'React', 'content' => '# React'],
+    ]);
+
+    (new ImportWikiDocumentation($package))->handle();
+
+    $parent = Documentation::where('slug', 'upgrade')->first();
+    $large = Documentation::where('slug', 'upgrade/livewire')->first();
+    $sibling = Documentation::where('slug', 'upgrade/react')->first();
+
+    expect(strlen($largeBody))->toBeGreaterThan(65535)
+        ->and(strlen($large->content))->toBeGreaterThan(65535)
+        ->and($large->parent)->toBe($parent->id)
+        ->and($sibling->parent)->toBe($parent->id);
+});
